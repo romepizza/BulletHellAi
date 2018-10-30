@@ -1,0 +1,88 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerMovement : MonoBehaviour
+{
+    [Header("------- Settings -------")]
+    [Header("--- Movement ---")]
+    [SerializeField] private float m_movementSpeed;
+    [SerializeField] private float m_slowFactor;
+
+    [Header("--- Key Binding ---")]
+    [SerializeField] private KeyCode m_keyUp;
+    [SerializeField] private KeyCode m_keyDown;
+    [SerializeField] private KeyCode m_keyLeft;
+    [SerializeField] private KeyCode m_keyRight;
+    [SerializeField] private KeyCode m_keySlow;
+
+    [Header("--- Objects ---")]
+    [SerializeField] private RestrictedArea m_restrictedArea;
+
+    [Header("------- Debug -------")]
+    [SerializeField] private Vector3 m_forceVector;
+    [SerializeField] private Vector3 m_currentMoveDirectionLocal;
+
+    [SerializeField] private bool m_isPressingUp;
+    [SerializeField] private bool m_isPressingDown;
+    [SerializeField] private bool m_isPressingLeft;
+    [SerializeField] private bool m_isPressingRight;
+    [SerializeField] private bool m_isPressingSlow;
+
+
+
+    #region Mono
+    private void Update()
+    {
+        GetInput();
+        GetForcVectorDc();
+        ApplyForceDc();
+    }
+    #endregion
+
+    #region Manage Movement
+    void GetForcVectorDc()
+    {
+        m_forceVector = Vector3.zero;
+        if (m_isPressingUp && !m_restrictedArea.IsOutOfRestrictionPosY(transform.position))
+            m_forceVector.y += m_movementSpeed * (m_isPressingSlow ? m_slowFactor : 1);
+        if (m_isPressingDown && !m_restrictedArea.IsOutOfRestrictionNegY(transform.position))
+            m_forceVector.y -= m_movementSpeed * (m_isPressingSlow ? m_slowFactor : 1);
+        if (m_isPressingLeft && !m_restrictedArea.IsOutOfRestrictionNegX(transform.position))
+            m_forceVector.x -= m_movementSpeed * (m_isPressingSlow ? m_slowFactor : 1);
+        if (m_isPressingRight && !m_restrictedArea.IsOutOfRestrictionPosX(transform.position))
+            m_forceVector.x += m_movementSpeed * (m_isPressingSlow ? m_slowFactor : 1);
+
+        m_forceVector *= Time.deltaTime;
+    }
+    void ApplyForceDc()
+    {
+        if (m_forceVector == Vector3.zero)
+            return;
+
+        transform.position += m_forceVector;
+    }
+    #endregion
+
+    #region Misc
+    void GetInput()
+    {
+        m_isPressingUp = false;
+        m_isPressingDown = false;
+        m_isPressingLeft = false;
+        m_isPressingRight = false;
+        m_isPressingSlow = false;
+
+        if (Input.GetKey(m_keyUp))
+            m_isPressingUp = true;
+        if (Input.GetKey(m_keyDown))
+            m_isPressingDown = true;
+        if (Input.GetKey(m_keyLeft))
+            m_isPressingLeft = true;
+        if (Input.GetKey(m_keyRight))
+            m_isPressingRight = true;
+        if (Input.GetKey(m_keySlow))
+            m_isPressingSlow = true;
+    }
+    #endregion
+}

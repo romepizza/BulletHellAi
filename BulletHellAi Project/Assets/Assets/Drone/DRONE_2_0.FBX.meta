@@ -1,0 +1,148 @@
+fileFormatVersion: 2
+guid: ecb354eed32ab4840990b27dc1d1f7f1
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: Hull
+    100004: Static_STUFF
+    100006: Weapon_L_Pivot_Control
+    100008: WEAPON_LEFT
+    100010: Weapon_R_Pivot_Control
+    100012: WEAPON_RIGHT
+    100014: Wing_L_Pivot_Control
+    100016: WING_LEFT
+    100018: Wing_R_Pivot_Control
+    100020: WING_RIGHT
+    400000: //RootNode
+    400002: Hull
+    400004: Static_STUFF
+    400006: Weapon_L_Pivot_Control
+    400008: WEAPON_LEFT
+    400010: Weapon_R_Pivot_Control
+    400012: WEAPON_RIGHT
+    400014: Wing_L_Pivot_Control
+    400016: WING_LEFT
+    400018: Wing_R_Pivot_Control
+    400020: WING_RIGHT
+    2300000: Hull
+    2300002: Static_STUFF
+    2300004: WEAPON_LEFT
+    2300006: WEAPON_RIGHT
+    2300008: WING_LEFT
+    2300010: WING_RIGHT
+    3300000: Hull
+    3300002: Static_STUFF
+    3300004: WEAPON_LEFT
+    3300006: WEAPON_RIGHT
+    3300008: WING_LEFT
+    3300010: WING_RIGHT
+    4300000: WING_RIGHT
+    4300002: WEAPON_RIGHT
+    4300004: WING_LEFT
+    4300006: WEAPON_LEFT
+    4300008: Hull
+    4300010: Static_STUFF
+    7400000: Take 001
+    9500000: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 01 - Default
+    second: {fileID: 2100000, guid: a737cb15b4a02d14fb1be881828e07b3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 02 - Default
+    second: {fileID: 2100000, guid: 05abbcee607fb354da995466366eeff9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 03 - Default
+    second: {fileID: 2100000, guid: 5a7b056dfeb84074886357c46761c8cb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 07 - Default
+    second: {fileID: 2100000, guid: 11a7c857a4b3fa549b142cab02a176d7, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 0
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 0
+    importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
