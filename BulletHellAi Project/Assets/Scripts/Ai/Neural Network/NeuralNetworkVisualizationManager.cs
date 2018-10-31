@@ -24,13 +24,19 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
             Debug.Log("Warning: More than one instance of NeuralNetworkVisualizationManager is active!");
         s_instance = this;
     }
+    private void Start()
+    {
+        m_activeVisualizations = new List<NeuralNetworkVisualization>();
+    }
     #endregion
 
     public void CreateVisualization(NeuralNetwork neuralNetwork)
     {
         GameObject g = Instantiate(m_objectPrefab, m_parentTransform);
 
-        NeuralNetworkVisualization visualizationScript = g.AddComponent<NeuralNetworkVisualization>();
+        NeuralNetworkVisualization visualizationScript = g.GetComponent<NeuralNetworkVisualization>();
+        if(visualizationScript == null)
+            visualizationScript = g.AddComponent<NeuralNetworkVisualization>();
         visualizationScript.CreateVisualization(neuralNetwork, Vector3.zero);
 
         m_activeVisualizations.Add(visualizationScript);

@@ -86,7 +86,7 @@ public class NeuralNetworkManager : MonoBehaviour
         
         if(m_isPressingVisualize)
         {
-            if (m_onClickVisualizationIndex <= m_neuralNetworks.Count)
+            if (m_onClickVisualizationIndex < m_neuralNetworks.Count)
                 VisualizeNetwork(m_neuralNetworks[m_onClickVisualizationIndex]);
         }
     }
