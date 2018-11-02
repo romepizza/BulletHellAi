@@ -51,10 +51,10 @@ public class SpawnObstacles : MonoBehaviour
         IsObstacle obstacleScript = spawnedObject.GetComponent<IsObstacle>();
         obstacleScript.SetLevelOptionsScript(m_levelOptions);
         obstacleScript.SetSpawnObstaclesScript(this);
-        if (m_levelOptions.GetIsPlayerLevel())
-            obstacleScript.SetIsPlayer(true);
-        if (m_levelOptions.GetIsAiLevel())
-            obstacleScript.SetIsAi(true);
+        //if (m_levelOptions.GetIsPlayerLevel())
+        //    obstacleScript.SetIsPlayer(true);
+        //if (m_levelOptions.GetIsAiLevel())
+        //    obstacleScript.SetIsAi(true);
 
         m_activeObstacles.Add(obstacleScript);
     }

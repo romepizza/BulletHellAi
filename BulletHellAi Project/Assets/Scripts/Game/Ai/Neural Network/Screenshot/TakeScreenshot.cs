@@ -74,16 +74,23 @@ public class TakeScreenshot : MonoBehaviour {
     }
     #endregion Monobehaviour
 
-    #region screenshot control
+    #region Screenshot Control
     public void PerformTakeScreenshot(bool forceScreenshot)
     {
         if (!m_isPressingScreenshot && !forceScreenshot)
-            return ;
+            return;
 
-        Texture2D texture = PrepareScreenshot();
+        PrepareScreenshot();
         ShowScreenshot();
-        SaveScreenshot();
         SaveFile();
+    }
+    public SampleContainer GetScreenshot()
+    {
+        Texture2D texture = PrepareScreenshot();
+
+        //SampleContainer sampleContainer = new SampleContainer(texture);
+
+        return null;
     }
     Texture2D PrepareScreenshot()
     {
@@ -121,8 +128,7 @@ public class TakeScreenshot : MonoBehaviour {
     }
     void SaveScreenshot()
     {
-        if (!m_saveScreenshot)
-            return;
+        
 
         // TODO
     }
@@ -146,7 +152,7 @@ public class TakeScreenshot : MonoBehaviour {
         {
             fileData = m_screenshotTexture.EncodeToJPG();
         }
-        else if (m_format == Format.PPM) // ppm
+        else if (m_format == Format.PPM)
         {
             // create a file header for ppm formatted file
             string headerStr = string.Format("P6\n{0} {1}\n255\n", m_rect.width, m_rect.height);

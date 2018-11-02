@@ -14,7 +14,7 @@ public class NeuralNetwork
     public float[][][] m_weights { get; private set; }       // m_weights[layerIndex][nodeIndex][weightIndex], m_weights[0] are the weights connecting layer one and layer two and so on
     public int m_layerCount { get; private set; }
 
-    // Optionns
+    // Options
     private ActivisionFunctionType m_activisionFunctionType;
 
     // Enums
@@ -32,45 +32,6 @@ public class NeuralNetwork
 
         m_activisionFunctionType = ActivisionFunctionType.Sigmoid;
     }
-    //private void InitializeNetwork()
-    //{
-    //    initialize biases
-    //    m_biases = new List<List<float>>();
-    //    m_biases.Add(null); // omit the biases of the first layer, leaving a null object
-    //    for (int layerLength = 1; layerLength < m_layerCount; layerLength++)
-    //    {
-    //        List<float> biasesPerLayer = new List<float>();
-
-    //        int nodeCount = m_layerLenghts[layerLength];
-    //        for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
-    //        {
-    //            biasesPerLayer.Add(0);
-    //        }
-    //        m_biases.Add(biasesPerLayer);
-    //    }
-
-    //    initialize weights, omit the last layer
-    //   m_weights = new List<List<List<float>>>();
-    //    for (int layerLength = 0; layerLength < m_layerCount - 1; layerLength++)
-    //    {
-    //        List<List<float>> weightsPerLayer = new List<List<float>>();
-
-    //        int nodeCount = m_layerLenghts[layerLength];
-    //        for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
-    //        {
-    //            List<float> weightsPerNode = new List<float>();
-
-    //            int weightCount = m_layerLenghts[layerLength + 1];
-    //            for (int weightIndex = 0; weightIndex < weightCount; weightIndex++)
-    //            {
-    //                weightsPerNode.Add(0);
-    //            }
-    //            weightsPerLayer.Add(weightsPerNode);
-    //        }
-
-    //        m_weights.Add(weightsPerLayer);
-    //    }
-    //}
     private void InitializeBiases()
     {
         // initialize biases
@@ -143,6 +104,13 @@ public class NeuralNetwork
         }
 
         return activisionsCurrentLayer;
+    }
+    #endregion
+
+    #region Training
+    public void addTrainingData(float[] input, float[] desiredOutput)
+    {
+
     }
     #endregion
 

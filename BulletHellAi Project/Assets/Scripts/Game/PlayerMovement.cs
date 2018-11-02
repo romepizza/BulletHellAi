@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    private static PlayerMovement s_instance;
     [Header("------- Settings -------")]
     [Header("--- Movement ---")]
     [SerializeField] private float m_movementSpeed;
@@ -32,6 +33,12 @@ public class PlayerMovement : MonoBehaviour
 
 
     #region Mono
+    private void Awake()
+    {
+        if (s_instance != null)
+            Debug.Log("Warning: More than two instances of PlayerMovement have been found!");
+        s_instance = this;
+    }
     private void Update()
     {
         GetInput();
@@ -64,7 +71,7 @@ public class PlayerMovement : MonoBehaviour
     }
     #endregion
 
-    #region Misc
+    #region Input
     void GetInput()
     {
         m_isPressingUp = false;
@@ -83,6 +90,28 @@ public class PlayerMovement : MonoBehaviour
             m_isPressingRight = true;
         if (Input.GetKey(m_keySlow))
             m_isPressingSlow = true;
+    }
+    public float[] GenerateInputData()
+    {
+        float[] input = new float[4];
+
+        if (Input.GetKey(m_keyUp))
+            input[0] = 1;
+        if (Input.GetKey(m_keyDown))
+            input[1] = 1;
+        if (Input.GetKey(m_keyLeft))
+            input[2] = 1;
+        if (Input.GetKey(m_keyRight))
+            input[3] = 1;
+
+        return input;
+    }
+    #endregion
+
+    #region Statics
+    public static PlayerMovement Instance()
+    {
+        return s_instance;
     }
     #endregion
 }

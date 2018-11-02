@@ -8,8 +8,8 @@ public class LevelOptions : MonoBehaviour
     //public Text m_aiText;
 
     [Header("------- Settings ------")]
-    [SerializeField] private bool m_isPlayerLevel;
-    [SerializeField] private bool m_isAiLevel;
+    //[SerializeField] private bool m_isPlayerLevel;
+    //[SerializeField] private bool m_isAiLevel;
     [SerializeField] private KeyCode m_startGameKeyCode;
 
     [Header("--- Objets ---")]
@@ -106,13 +106,13 @@ public class LevelOptions : MonoBehaviour
     #endregion
 
     #region Getter
-    public bool GetIsPlayerLevel()
-    {
-        return m_isPlayerLevel;
-    }
-    public bool GetIsAiLevel()
-    {
-        return m_isAiLevel;
-    }
+    //public bool GetIsPlayerLevel()
+    //{
+    //    return m_isPlayerLevel;
+    //}
+    //public bool GetIsAiLevel()
+    //{
+    //    return m_isAiLevel;
+    //}
     #endregion
 }

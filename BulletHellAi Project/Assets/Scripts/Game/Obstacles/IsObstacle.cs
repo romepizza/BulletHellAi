@@ -5,8 +5,8 @@ using UnityEngine;
 public class IsObstacle : MonoBehaviour {
 
     [Header("------- Settings -------")]
-    [SerializeField] private bool m_isPlayerObstacle;
-    [SerializeField] private bool m_isAiObstacle;
+    //[SerializeField] private bool m_isPlayerObstacle;
+    //[SerializeField] private bool m_isAiObstacle;
     [Header("--- Objects ---")]
     [SerializeField] private Transform m_visualMainCamera;
     [SerializeField] private Transform m_visualCaptureCamera;
@@ -40,13 +40,13 @@ public class IsObstacle : MonoBehaviour {
     {
         m_spawnObjectsScript = spawnObstacles;
     }
-    public void SetIsPlayer(bool value)
-    {
-        m_isPlayerObstacle = value;
-    }
-    public void SetIsAi(bool value)
-    {
-        m_isAiObstacle = value;
-    }
+    //public void SetIsPlayer(bool value)
+    //{
+    //    m_isPlayerObstacle = value;
+    //}
+    //public void SetIsAi(bool value)
+    //{
+    //    m_isAiObstacle = value;
+    //}
     #endregion
 }

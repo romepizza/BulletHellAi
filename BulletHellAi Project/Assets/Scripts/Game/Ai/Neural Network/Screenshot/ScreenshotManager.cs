@@ -19,12 +19,13 @@ public class ScreenshotManager : MonoBehaviour
 
     [Header("--- Objects ---")]
     //public Camera m_playerCaptureCamera;
-    [SerializeField] private TakeScreenshot m_playerScreenshotScript;
-    [SerializeField] private Transform m_playerCaptureArea;
+    //[SerializeField] private TakeScreenshot m_playerScreenshotScript;
+    [SerializeField] private List<Transform> m_captureAreas;
+    //[SerializeField] private Transform m_playerCaptureArea;
     [Space]
     //public Camera m_aiCaptureCamera;
-    [SerializeField] private TakeScreenshot m_aiScreenshotScript;
-    [SerializeField] private Transform m_aiCaptureArea;
+    //[SerializeField] private TakeScreenshot m_aiScreenshotScript;
+    //[SerializeField] private Transform m_aiCaptureArea;
     [Space]
     //[SerializeField] private Camera m_mainCamera;
 
@@ -45,7 +46,7 @@ public class ScreenshotManager : MonoBehaviour
     }
     #endregion Mono
 
-    #region Alter Size
+    #region Size
     public Vector2Int GetScreenshotSize()
     {
         Vector2Int size = new Vector2Int();
@@ -59,7 +60,6 @@ public class ScreenshotManager : MonoBehaviour
         float pixelWidth = m_captureAreaSize.x / m_captureWidth;
         float pixelHeight = m_captureAreaSize.y / m_captureHeight;
 
-
         return pixelHeight * size;
     }
     private void SetCaptureSize(int captureWidth, int captureHeight)
@@ -72,9 +72,12 @@ public class ScreenshotManager : MonoBehaviour
         // change capture area size
         float finalCaptureAreaWidth = m_backgroundHeight * m_ratio;
         m_captureAreaSize = new Vector3(finalCaptureAreaWidth, m_backgroundHeight, 1);
-        m_playerCaptureArea.localScale = m_captureAreaSize;
-        m_aiCaptureArea.localScale = m_captureAreaSize;
         m_pixelWorldScale = GetPixelToWorldScale(1);
+
+        for(int i = 0; i < m_captureAreas.Count; i++)
+        {
+            m_captureAreas[i].localScale = m_captureAreaSize;
+        }
     }
     public Vector3 GetObstacleScale(Vector3 originalScale)
     {
