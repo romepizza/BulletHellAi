@@ -6,18 +6,28 @@ public class SampleManager : MonoBehaviour
 {
     [Header("------ Settings ------")]
     [SerializeField] private InputType m_inputType;
+    [SerializeField] private bool m_saveSamples;
+
+
+    [Header("--- Screenshots ---")]
+    [SerializeField] private TakeScreenshot m_screenshotScript;
 
     
     [Header("------ Debug ------")]
     bool b;
+    public List<SampleContainer> m_samples { get; private set; }
 
 
     #region Enums
-    public enum InputType { screenshots, raycasts, worldInformation }
+    public enum InputType { Screenshots, Raycasts, WorldInformation }
     #endregion
 
-
-    public List<SampleContainer> m_samples { get; private set; }
+    #region Mono
+    private void Awake()
+    {
+        m_samples = new List<SampleContainer>();
+    }
+    #endregion
 
     #region Sample Control
     public SampleContainer GenerateSample()
@@ -26,7 +36,7 @@ public class SampleManager : MonoBehaviour
         float[] desiredOutput = GenerateDesiredOutput();
 
         SampleContainer sampleContainer = new SampleContainer(input, desiredOutput);
-        m_samples.Add(sampleContainer);
+        SaveSample(sampleContainer);
 
         return sampleContainer;
     }
@@ -34,22 +44,23 @@ public class SampleManager : MonoBehaviour
     {
         return PlayerMovement.Instance().GenerateInputData();
     }
+    #region Generate Input
     private float[] GenerateInput()
     {
         float[] input = new float[0];
 
-        if (m_inputType == InputType.screenshots)
+        if (m_inputType == InputType.Screenshots)
             input = GenerateInputScreenshot();
-        else if (m_inputType == InputType.raycasts)
+        else if (m_inputType == InputType.Raycasts)
             input = GenerateInputRaycast();
-        else if (m_inputType == InputType.worldInformation)
+        else if (m_inputType == InputType.WorldInformation)
             input = GenerateInputWorldInformation();
 
         return input;
     }
     private float[] GenerateInputScreenshot()
     {
-        float[] input = new float[0];
+        float[] input = m_screenshotScript.GetScreenshotComputedData();
 
         return input;
     }
@@ -68,6 +79,12 @@ public class SampleManager : MonoBehaviour
         // TODO
 
         return input;
+    }
+        #endregion
+    private void SaveSample(SampleContainer sampleContainer)
+    {
+        if(m_saveSamples)
+            m_samples.Add(sampleContainer);
     }
     #endregion
 

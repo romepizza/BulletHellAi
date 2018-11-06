@@ -9,6 +9,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("--- Movement ---")]
     [SerializeField] private float m_movementSpeed;
     [SerializeField] private float m_slowFactor;
+    [SerializeField] private bool m_allowUpDownMovement;
 
     [Header("--- Key Binding ---")]
     [SerializeField] private KeyCode m_keyUp;
@@ -90,19 +91,25 @@ public class PlayerMovement : MonoBehaviour
             m_isPressingRight = true;
         if (Input.GetKey(m_keySlow))
             m_isPressingSlow = true;
+
+        if (!m_allowUpDownMovement)
+            m_isPressingUp = m_isPressingDown = false;
     }
     public float[] GenerateInputData()
     {
         float[] input = new float[4];
 
-        if (Input.GetKey(m_keyUp))
-            input[0] = 1;
-        if (Input.GetKey(m_keyDown))
-            input[1] = 1;
         if (Input.GetKey(m_keyLeft))
-            input[2] = 1;
+            input[0] = 1;
         if (Input.GetKey(m_keyRight))
+            input[1] = 1;
+        if (Input.GetKey(m_keyUp))
+            input[2] = 1;
+        if (Input.GetKey(m_keyDown))
             input[3] = 1;
+
+        if (!m_allowUpDownMovement)
+            input[2] = input[3] = 0;
 
         return input;
     }

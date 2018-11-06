@@ -11,29 +11,30 @@ public class TakeScreenshot : MonoBehaviour {
 
     [Header("--- Format ---")]
     [SerializeField] private Format m_format;
+    [SerializeField] private bool m_allowHDR;
 
     [Header("--- Folder ---")]
     [SerializeField] private string m_fileName;
     [SerializeField] private string m_folderName;
 
     [Header("--- Misc ---")]
+    [SerializeField] private float m_activisionThreshold;
     [SerializeField] private KeyCode m_keyCodeScreenshot;
     [SerializeField] private bool m_saveFile;
-    [SerializeField] private bool m_saveScreenshot;
     [SerializeField] private bool m_showScreenshot;
 
     [Header("--- Objects ---")]
-    [SerializeField] private ScreenshotManager m_screenshotManager;
     [SerializeField] private RawImage m_rawImage;
 
     [Header("------- Debug -------")]
-    [SerializeField] private RenderTexture m_renderTexture;
-    [SerializeField] private bool m_isPressingScreenshot;
-    [SerializeField] private int m_fileNameCounter;
-    [SerializeField] private Rect m_rect;
-    [SerializeField] private Texture2D m_screenshotTexture;
-    [SerializeField] private int m_currentHeight;
-    [SerializeField] private int m_currentWidth;
+    private ScreenshotManager m_screenshotManager;
+    private RenderTexture m_renderTexture;
+    private bool m_isPressingScreenshot;
+    private int m_fileNameCounter;
+    private Rect m_rect;
+    private Texture2D m_screenshotTexture;
+    private int m_currentHeight;
+    private int m_currentWidth;
 
     public enum Format { RAW, PNG, JPG, PPM }
 
@@ -45,6 +46,9 @@ public class TakeScreenshot : MonoBehaviour {
     }
     void InitializeStuff()
     {
+        if (m_screenshotManager == null)
+            m_screenshotManager = ScreenshotManager.Instance();
+
         Vector2Int size = m_screenshotManager.GetScreenshotSize();
         m_currentHeight = size.y;
         m_currentWidth = size.x;
@@ -84,13 +88,42 @@ public class TakeScreenshot : MonoBehaviour {
         ShowScreenshot();
         SaveFile();
     }
-    public SampleContainer GetScreenshot()
+    public float[] GetScreenshotComputedData()
     {
         Texture2D texture = PrepareScreenshot();
 
-        //SampleContainer sampleContainer = new SampleContainer(texture);
+        int dataLength = m_currentHeight * m_currentWidth;
+        float[] data = new float[dataLength];
 
-        return null;
+        for(int height = 0; height < texture.height; height++)
+        {
+            for (int width = 0; width < texture.width; width++)
+            {
+                int index = height * texture.width + width;
+                float value = 0;
+
+                Color color = texture.GetPixel(width, height);
+                // Green = Player / Ai
+                // Red = Obstacle
+                if (color.r > m_activisionThreshold)
+                {
+                    value = -color.r;
+                    // TODO : index = ...
+                }
+                else if(color.g > m_activisionThreshold)
+                {
+                    value = color.g;
+                    // TODO : index = ...
+                }
+
+                data[index] = value;
+            }
+        }
+
+        ShowScreenshot();
+        SaveFile();
+
+        return data;
     }
     Texture2D PrepareScreenshot()
     {
@@ -104,6 +137,7 @@ public class TakeScreenshot : MonoBehaviour {
         m_screenshotTexture = new Texture2D(m_currentWidth, m_currentHeight, TextureFormat.RGB24, false);
 
         m_camera.targetTexture = m_renderTexture;
+        m_camera.allowHDR = m_allowHDR;
         m_camera.Render();
         RenderTexture.active = m_renderTexture;
         m_screenshotTexture.ReadPixels(m_rect, 0, 0);
@@ -125,12 +159,6 @@ public class TakeScreenshot : MonoBehaviour {
             else
                 m_rawImage.enabled = false;
         }
-    }
-    void SaveScreenshot()
-    {
-        
-
-        // TODO
     }
     void SaveFile()
     {
@@ -170,6 +198,10 @@ public class TakeScreenshot : MonoBehaviour {
             Debug.Log(string.Format("Wrote screenshot {0} of size {1}", fileName, fileData.Length));
         }).Start();
     }
+    #endregion
+
+    #region Color Control
+
     #endregion
 
     #region misc

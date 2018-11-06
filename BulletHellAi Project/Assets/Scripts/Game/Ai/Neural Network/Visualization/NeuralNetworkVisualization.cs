@@ -5,9 +5,25 @@ using UnityEngine;
 public class NeuralNetworkVisualization : MonoBehaviour
 {
     [Header("------- Settings -------")]
-    private float m_marginX = 0.25f;
-    private float m_marginY = 0.25f;
-    private OrientationType m_orientation = OrientationType.leftToRight;
+    [SerializeField] private bool m_visualize;
+    [SerializeField] private float m_height;
+    [SerializeField] private float m_width;
+    [SerializeField] private float m_marginX = 0.25f;
+    [SerializeField] private float m_marginY = 0.25f;
+    [SerializeField] private OrientationType m_orientation = OrientationType.LeftToRight;
+
+    [Header("--- Scale ---")]
+    [SerializeField] private float m_nodesScaleFactorGlobal = 1;
+    [SerializeField] private float m_weightsScaleFactorGloal = 1;
+    [SerializeField] private float[] m_nodesScaleFactorLayerWise;
+    [SerializeField] private float[] m_weightsScaleFactorLayerWise;
+
+    [Header("--- Transform ---")]
+    [SerializeField] private Vector3 m_relativePosition;
+    [SerializeField] private Vector3 m_relativeRotation;
+
+    [Header("--- Objects ---")]
+    [SerializeField] private Transform m_parentTransform;
 
     [Header("------- Debug -------")]
     //private Vector3 m_originPosition;
@@ -22,24 +38,24 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
     private NeuralNetworkVisualizationManager m_manager;
 
-    private enum OrientationType { topToDown, downToTop, leftToRight, rightToLeft }
+    private enum OrientationType { TopToDown, DownToTop, LeftToRight, RightToLeft }
 
     #region Creation
-    public void CreateVisualization(NeuralNetworkContainer networkContainer, Vector3 position, Vector3 rotation, float size)
+    public void CreateVisualization(NeuralNetworkContainer networkContainer)//, Vector3 position, Vector3 rotation, float size)
     {
         m_manager = NeuralNetworkVisualizationManager.Instance();
         m_network = networkContainer.m_network;
         m_layerCount = m_network.m_layerCount;
         
-        m_cameraCanvasSize.y = size;
-        m_cameraCanvasSize.x = m_cameraCanvasSize.y * Statics.GetMainCamera().aspect;
+        m_cameraCanvasSize.y = m_height;
+        m_cameraCanvasSize.x = m_width;// m_cameraCanvasSize.y * Statics.GetMainCamera().aspect;
 
         CreateObjects();
         PositionObjects();
         ColorObjects();
 
-        transform.position = position;
-        transform.Rotate(rotation);
+        m_parentTransform.position += m_relativePosition;
+        m_parentTransform.Rotate(m_relativeRotation);
     }
     private void CreateObjects()
     {
@@ -47,7 +63,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
         m_layerTransforms = new Transform[m_layerCount];
         for(int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
         {
-            GameObject layerObject = Instantiate(m_manager.GetLayerPrefab(), transform);
+            GameObject layerObject = Instantiate(m_manager.GetLayerPrefab(), m_parentTransform);
             layerObject.name = "Layer_" + layerIndex;
             layerObject.layer = Statics.s_neuralNetworkLayer;
             m_layerTransforms[layerIndex] = layerObject.transform;
@@ -120,11 +136,19 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
             for (int nodeIndex = 0; nodeIndex < nodeCountThisLayer; nodeIndex++)
             {
+               // position
                 Transform node = m_nodeTransforms[layerIndex][nodeIndex];
                 node.position = currentLayerPadding + currentNodePadding;
 
                 Transform activision = m_activisionTransforms[layerIndex][nodeIndex];
                 activision.position = currentLayerPadding + currentNodePadding;
+
+                // scale
+                float scaleFactor = m_nodesScaleFactorGlobal;
+                if (m_nodesScaleFactorLayerWise != null && layerIndex < m_nodesScaleFactorLayerWise.Length)
+                    scaleFactor *= m_nodesScaleFactorLayerWise[layerIndex];
+                node.localScale = node.localScale * scaleFactor;
+                activision.localScale = activision.localScale * scaleFactor;
 
                 currentNodePadding += nodePadding;
             }
@@ -148,7 +172,15 @@ public class NeuralNetworkVisualization : MonoBehaviour
                     float distanceY = displacement.y;
 
                     // scale
-                    weight.localScale = new Vector3(weight.localScale.x * displacement.magnitude, weight.localScale.y, weight.localScale.z);
+                    float scaleFactorWeight = m_weightsScaleFactorGloal;
+                    if (m_weightsScaleFactorLayerWise != null && layerIndex < m_weightsScaleFactorLayerWise.Length )
+                        scaleFactorWeight *= m_weightsScaleFactorLayerWise[layerIndex];
+                    float scaleFactorNode = m_nodesScaleFactorGlobal;
+                    if (m_nodesScaleFactorLayerWise != null && layerIndex < m_nodesScaleFactorLayerWise.Length)
+                        scaleFactorNode *= m_nodesScaleFactorLayerWise[layerIndex];
+                    if (scaleFactorNode == 0)
+                        scaleFactorNode = 1;
+                    weight.localScale = new Vector3(weight.localScale.x * displacement.magnitude, weight.localScale.y * scaleFactorWeight, weight.localScale.z) / scaleFactorNode;
 
                     // position
                     Vector3 position = (nodeNextLayer.position + nodeThisLayer.position) * 0.5f;
@@ -172,6 +204,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
     #region Update
     public void UpdateVisualization()
     {
+        Debug.Log("Warning!");
         ColorObjects();
     }
     public void UpdateBiases()
@@ -184,7 +217,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
             int nodeCount = m_network.m_layerLengths[layerIndex];
             for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
             {
-                float value = m_network.m_biases[layerIndex][nodeIndex];
+                float value = m_network.GetBias(layerIndex, nodeIndex);
                 minValueBias = Mathf.Min(value, minValueBias);
                 maxValueBias = Mathf.Max(value, maxValueBias);
             }
@@ -198,7 +231,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
             {
                 Transform node = m_nodeTransforms[layerIndex][nodeIndex];
 
-                float value = m_network.m_biases[layerIndex][nodeIndex];
+                float value = m_network.GetBias(layerIndex, nodeIndex);
                 float mappedValue = Utility.MapValuePercent(minValueBias, maxValueBias, value);
                 if (mappedValue > 0.5f)
                     color = Color.Lerp(m_manager.GetColorBiasAverage(), m_manager.GetColorBiasMax(), (mappedValue - 0.5f) * 2f);
@@ -227,7 +260,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
             {
                 for (int weightIndex = 0; weightIndex < weightCount; weightIndex++)
                 {
-                    float value = m_network.m_weights[layerIndex][nodeIndex][weightIndex];
+                    float value = m_network.GetWeight(layerIndex, nodeIndex, weightIndex);
                     minValueWeight = Mathf.Min(value, minValueWeight);
                     maxValueWeight = Mathf.Max(value, maxValueWeight);
                 }
@@ -246,7 +279,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
                 {
                     Transform weight = m_weightTransforms[layerIndex][nodeIndex][weightIndex];
 
-                    float value = m_network.m_weights[layerIndex][nodeIndex][weightIndex];
+                    float value = m_network.GetWeight(layerIndex, nodeIndex, weightIndex);
                     float mappedValue = Utility.MapValuePercent(minValueWeight, maxValueWeight, value);
                     if (mappedValue > 0.5f)
                         color = Color.Lerp(m_manager.GetColorWeightAverage(), m_manager.GetColorWeightMax(), (mappedValue - 0.5f) * 2f);
@@ -280,31 +313,31 @@ public class NeuralNetworkVisualization : MonoBehaviour
     #region Orientation
     private Vector3 GetOriginPositionOrientation()
     {
-        Vector3 position = new Vector3();
+        Vector3 position = m_parentTransform.position;
 
-        if (m_orientation == OrientationType.topToDown)
+        if (m_orientation == OrientationType.TopToDown)
         {
             // top left
-            position.x = 0.5f * -m_cameraCanvasSize.x * (1 - m_marginX);
-            position.y = 0.5f * m_cameraCanvasSize.y * (1 - m_marginY);
+            position.x += 0.5f * -m_cameraCanvasSize.x * (1 - m_marginX);
+            position.y += 0.5f * m_cameraCanvasSize.y * (1 - m_marginY);
         }
-        else if (m_orientation == OrientationType.downToTop)
+        else if (m_orientation == OrientationType.DownToTop)
         {
             // down left
-            position.x = 0.5f * -m_cameraCanvasSize.x * (1 - m_marginX);
-            position.y = 0.5f * -m_cameraCanvasSize.y * (1 - m_marginY);
+            position.x += 0.5f * -m_cameraCanvasSize.x * (1 - m_marginX);
+            position.y += 0.5f * -m_cameraCanvasSize.y * (1 - m_marginY);
         }
-        else if (m_orientation == OrientationType.leftToRight)
+        else if (m_orientation == OrientationType.LeftToRight)
         {
             // top left
-            position.x = 0.5f * -m_cameraCanvasSize.x * (1 - m_marginX);
-            position.y = 0.5f * m_cameraCanvasSize.y * (1 - m_marginY);
+            position.x += 0.5f * -m_cameraCanvasSize.x * (1 - m_marginX);
+            position.y += 0.5f * m_cameraCanvasSize.y * (1 - m_marginY);
         }
-        else if (m_orientation == OrientationType.rightToLeft)
+        else if (m_orientation == OrientationType.RightToLeft)
         {
             // top right
-            position.x = 0.5f * m_cameraCanvasSize.x * (1 - m_marginX);
-            position.y = 0.5f * m_cameraCanvasSize.y * (1 - m_marginY);
+            position.x += 0.5f * m_cameraCanvasSize.x * (1 - m_marginX);
+            position.y += 0.5f * m_cameraCanvasSize.y * (1 - m_marginY);
         }
 
         return position;
@@ -318,22 +351,22 @@ public class NeuralNetworkVisualization : MonoBehaviour
         }
 
         Vector3 padding = new Vector3();
-        if (m_orientation == OrientationType.topToDown)
+        if (m_orientation == OrientationType.TopToDown)
         {
             padding.x = 0;
             padding.y = -m_cameraCanvasSize.y * (1 - m_marginY) / (numberLayer - 1);
         }
-        else if (m_orientation == OrientationType.downToTop)
+        else if (m_orientation == OrientationType.DownToTop)
         {
             padding.x = 0;
             padding.y = m_cameraCanvasSize.y * (1 - m_marginY) / (numberLayer - 1);
         }
-        else if (m_orientation == OrientationType.leftToRight)
+        else if (m_orientation == OrientationType.LeftToRight)
         {
             padding.x = m_cameraCanvasSize.x * (1 - m_marginX) / (numberLayer - 1);
             padding.y = 0;
         }
-        else if (m_orientation == OrientationType.rightToLeft)
+        else if (m_orientation == OrientationType.RightToLeft)
         {
             padding.x = -m_cameraCanvasSize.x * (1 - m_marginX) / (numberLayer - 1);
             padding.y = 0;
@@ -350,22 +383,22 @@ public class NeuralNetworkVisualization : MonoBehaviour
         }
 
         Vector3 padding = new Vector3();
-        if (m_orientation == OrientationType.topToDown)
+        if (m_orientation == OrientationType.TopToDown)
         {
             padding.x = m_cameraCanvasSize.x * (1 - m_marginX) / (numberNodes - 1);
             padding.y = 0;
         }
-        else if (m_orientation == OrientationType.downToTop)
+        else if (m_orientation == OrientationType.DownToTop)
         {
             padding.x = m_cameraCanvasSize.x * (1 - m_marginX) / (numberNodes - 1);
             padding.y = 0;
         }
-        else if (m_orientation == OrientationType.leftToRight)
+        else if (m_orientation == OrientationType.LeftToRight)
         {
             padding.x = 0;
             padding.y = -m_cameraCanvasSize.y * (1 - m_marginY) / (numberNodes - 1);
         }
-        else if (m_orientation == OrientationType.rightToLeft)
+        else if (m_orientation == OrientationType.RightToLeft)
         {
             padding.x = 0;
             padding.y = -m_cameraCanvasSize.y * (1 - m_marginY) / (numberNodes - 1);

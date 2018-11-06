@@ -40,13 +40,5 @@ public class IsObstacle : MonoBehaviour {
     {
         m_spawnObjectsScript = spawnObstacles;
     }
-    //public void SetIsPlayer(bool value)
-    //{
-    //    m_isPlayerObstacle = value;
-    //}
-    //public void SetIsAi(bool value)
-    //{
-    //    m_isAiObstacle = value;
-    //}
     #endregion
 }

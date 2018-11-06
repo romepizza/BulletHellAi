@@ -88,7 +88,7 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
 
         creationIndex++;
 
-        visualizationScript.CreateVisualization(networkContainer, position, rotation, 10);
+        visualizationScript.CreateVisualization(networkContainer);//, position, rotation, 10);
 
         m_activeVisualizations.Add(visualizationScript);
     }

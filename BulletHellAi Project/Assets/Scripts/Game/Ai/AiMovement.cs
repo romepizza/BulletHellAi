@@ -7,6 +7,7 @@ public class AiMovement : MonoBehaviour {
     [Header("------- Settings -------")]
     [Header("----- Movement -----")]
     [SerializeField] private float m_movementSpeed;
+    [SerializeField] private bool m_allowUpDownMovement;
 
     [Header("--- Movement Decision ---")]
     [SerializeField] private MovementDecision m_movementDecision;
@@ -30,8 +31,8 @@ public class AiMovement : MonoBehaviour {
     [SerializeField] private bool m_isPressingLeft;
     [SerializeField] private bool m_isPressingRight;
 
-    public enum NetworkOutputInterpretation { randomAndThreshold, fullyRandom, thresholdOnly }
-    public enum MovementDecision { dontDecide, network, algorithm, random }
+    public enum NetworkOutputInterpretation { RandomAndThreshold, FullyRandom, ThresholdOnly }
+    public enum MovementDecision { DontDecide, Network, Algorithm, Random }
 
     #region Mono
     void Start()
@@ -68,13 +69,13 @@ public class AiMovement : MonoBehaviour {
             m_currentMoveDirection.x = 0;
         if (m_isPressingRight && m_restrictedArea.IsOutOfRestrictionPosX(transform.position))
             m_currentMoveDirection.x = 0;
+
+        
     }
     Vector3 GetMoveDirection()
     {
         if (m_decisionCooldownRdy > Time.time)
-        {
             return m_currentMoveDirection;
-        }
         m_decisionCooldownRdy = Time.time + m_decisionCooldown;
 
         Vector3 finalMoveDirection = Vector3.zero;
@@ -103,12 +104,15 @@ public class AiMovement : MonoBehaviour {
         m_isPressingLeft = false;
         m_isPressingRight = false;
 
-        if (m_movementDecision == MovementDecision.network)
+        if (m_movementDecision == MovementDecision.Network)
             GetPressingInputViaNetwork();
-        if (m_movementDecision == MovementDecision.algorithm)
+        if (m_movementDecision == MovementDecision.Algorithm)
             GetPressingInputViaAlgorithm();
-        if (m_movementDecision == MovementDecision.random)
+        if (m_movementDecision == MovementDecision.Random)
             GetPressingInputViaRandom();
+
+        if (!m_allowUpDownMovement)
+            m_isPressingUp = m_isPressingDown = false;
     }
     void GetPressingInputViaNetwork()
     {
@@ -116,12 +120,12 @@ public class AiMovement : MonoBehaviour {
         if (output.Count == 0)
             return;
 
-        float upOutput = output[0];
-        float downOutput = output[1];
-        float leftOutput = output[2];
-        float rightOutput = output[3];
+        float leftOutput = output[0];
+        float rightOutput = output[1];
+        float upOutput = output[2];
+        float downOutput = output[3];
 
-        if (m_interpretationType == NetworkOutputInterpretation.thresholdOnly)
+        if (m_interpretationType == NetworkOutputInterpretation.ThresholdOnly)
         {
             if (upOutput >= m_decisionThreshold)
                 m_isPressingUp = true;
@@ -132,11 +136,11 @@ public class AiMovement : MonoBehaviour {
             if (rightOutput >= m_decisionThreshold)
                 m_isPressingRight = true;
         }
-        if (m_interpretationType == NetworkOutputInterpretation.fullyRandom)
+        if (m_interpretationType == NetworkOutputInterpretation.FullyRandom)
         {
             Debug.Log("Warning: NetworkOutputInterpretation.fullyRandom not implemented yet!");
         }
-        if (m_interpretationType == NetworkOutputInterpretation.randomAndThreshold)
+        if (m_interpretationType == NetworkOutputInterpretation.RandomAndThreshold)
         {
             if (m_randomInitialCooldownRdy > Time.time)
                 return;
