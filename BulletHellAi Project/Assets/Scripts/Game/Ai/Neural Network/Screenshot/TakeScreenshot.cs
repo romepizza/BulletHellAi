@@ -27,6 +27,7 @@ public class TakeScreenshot : MonoBehaviour {
     [SerializeField] private RawImage m_rawImage;
 
     [Header("------- Debug -------")]
+    //private SampleManager m_sampleManager;
     private ScreenshotManager m_screenshotManager;
     private RenderTexture m_renderTexture;
     private bool m_isPressingScreenshot;
@@ -92,7 +93,10 @@ public class TakeScreenshot : MonoBehaviour {
     {
         Texture2D texture = PrepareScreenshot();
 
-        int dataLength = m_currentHeight * m_currentWidth;
+        int enemyLength = ScreenshotManager.Instance().GetInputLayerLengthEnemy();
+        int playerLenth = ScreenshotManager.Instance().GetInputLayerLengthPlayer();
+
+        int dataLength = enemyLength + playerLenth;
         float[] data = new float[dataLength];
 
         for(int height = 0; height < texture.height; height++)
@@ -107,13 +111,12 @@ public class TakeScreenshot : MonoBehaviour {
                 // Red = Obstacle
                 if (color.r > m_activisionThreshold)
                 {
-                    value = -color.r;
-                    // TODO : index = ...
+                    value = color.r;
                 }
                 else if(color.g > m_activisionThreshold)
                 {
                     value = color.g;
-                    // TODO : index = ...
+                    index += enemyLength;
                 }
 
                 data[index] = value;
@@ -200,10 +203,6 @@ public class TakeScreenshot : MonoBehaviour {
     }
     #endregion
 
-    #region Color Control
-
-    #endregion
-
     #region misc
     string getFileName()
     {
@@ -240,5 +239,12 @@ public class TakeScreenshot : MonoBehaviour {
     {
         m_isPressingScreenshot = Input.GetKeyDown(m_keyCodeScreenshot);
     }
+    #endregion
+
+    #region Setter
+    //public void SetSampleManager(SampleManager manager)
+    //{
+    //    m_sampleManager = manager;
+    //}
     #endregion
 }

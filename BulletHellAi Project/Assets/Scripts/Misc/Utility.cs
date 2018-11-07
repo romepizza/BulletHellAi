@@ -6,10 +6,21 @@ public class Utility : MonoBehaviour
 {
     public static float MapValuePercent(float minValue, float maxValue, float value)
     {
+        if (minValue == maxValue)
+            return 0.5f;
+
+        if(minValue > maxValue)
+        {
+            Debug.Log("Warning: minValue > maxValue! Values have been swapped!");
+            float min = minValue;
+            minValue = maxValue;
+            maxValue = min;
+        }
+
         float v = 0;
 
         float range = maxValue - minValue;
-        v = (minValue + value) / range;
+        v = (value - minValue) / range;
 
         return v;
     }

@@ -21,9 +21,9 @@ public class IsObstacle : MonoBehaviour {
     }
 
     #region Getter
-    public Transform GetVisualCamera()
+    public Transform GetCaptureCameraTransform()
     {
-        return m_visualMainCamera;
+        return m_visualCaptureCamera;
     }
     public LevelOptions GetLevelOptions()
     {

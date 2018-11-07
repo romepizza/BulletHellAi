@@ -21,7 +21,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
     [Header("--- Transform ---")]
     [SerializeField] private Vector3 m_relativePosition;
     [SerializeField] private Vector3 m_relativeRotation;
-
+    
     [Header("--- Objects ---")]
     [SerializeField] private Transform m_parentTransform;
 
@@ -43,6 +43,9 @@ public class NeuralNetworkVisualization : MonoBehaviour
     #region Creation
     public void CreateVisualization(NeuralNetworkContainer networkContainer)//, Vector3 position, Vector3 rotation, float size)
     {
+        if (!m_visualize)
+            return;
+
         m_manager = NeuralNetworkVisualizationManager.Instance();
         m_network = networkContainer.m_network;
         m_layerCount = m_network.m_layerCount;
@@ -52,7 +55,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
         CreateObjects();
         PositionObjects();
-        ColorObjects();
+        UpdateVisualization();
 
         m_parentTransform.position += m_relativePosition;
         m_parentTransform.Rotate(m_relativeRotation);
@@ -194,20 +197,35 @@ public class NeuralNetworkVisualization : MonoBehaviour
             }
         }
     }
-    private void ColorObjects()
-    {
-        UpdateBiases();
-        UpdateWeights();
-    }
     #endregion
 
     #region Update
     public void UpdateVisualization()
     {
-        Debug.Log("Warning!");
-        ColorObjects();
+        if (!m_visualize)
+            return;
+
+        UpdateLayer();
+        UpdateBiases();
+        //UpdateActivisions();
+        UpdateWeights();
     }
-    public void UpdateBiases()
+    private void UpdateLayer()
+    {
+        for(int layerIndex = 1; layerIndex < m_layerTransforms.Length; layerIndex++)
+        {
+            NeuralNetworkValueContainer valueContainer = m_layerTransforms[layerIndex].GetComponent<NeuralNetworkValueContainer>();
+            if (valueContainer == null)
+                valueContainer = m_layerTransforms[layerIndex].gameObject.AddComponent<NeuralNetworkValueContainer>();
+            float[] values = new float[m_nodeTransforms[layerIndex].Length];
+            for(int nodeIndex = 0; nodeIndex < m_nodeTransforms[layerIndex].Length; nodeIndex++)
+            {
+                values[nodeIndex] = m_network.GetBias(layerIndex, nodeIndex);
+            }
+            valueContainer.m_valuesBias = values;
+        }
+    }
+    private void UpdateBiases()
     {
         float minValueBias = float.MaxValue;
         float maxValueBias = float.MinValue;
@@ -220,6 +238,11 @@ public class NeuralNetworkVisualization : MonoBehaviour
                 float value = m_network.GetBias(layerIndex, nodeIndex);
                 minValueBias = Mathf.Min(value, minValueBias);
                 maxValueBias = Mathf.Max(value, maxValueBias);
+
+                NeuralNetworkValueContainer valueContainer = m_nodeTransforms[layerIndex][nodeIndex].GetComponent<NeuralNetworkValueContainer>();
+                if (valueContainer == null)
+                    valueContainer = m_nodeTransforms[layerIndex][nodeIndex].gameObject.AddComponent<NeuralNetworkValueContainer>();
+                valueContainer.m_value = value;
             }
         }
         // set actual colors
@@ -247,7 +270,59 @@ public class NeuralNetworkVisualization : MonoBehaviour
             }
         }
     }
-    public void UpdateWeights()
+    public void UpdateActivisions(float[] input)
+    {
+        if (!m_visualize)
+            return;
+
+        MyMatrix[] activisions = m_network.GetActivisions(input);
+
+        // set actual colors
+        Color color;
+        for (int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
+        {
+            NeuralNetworkValueContainer valueContainerLayer = m_layerTransforms[layerIndex].GetComponent<NeuralNetworkValueContainer>();
+            if (valueContainerLayer == null)
+                valueContainerLayer = m_layerTransforms[layerIndex].gameObject.AddComponent<NeuralNetworkValueContainer>();
+            float[] values = new float[m_nodeTransforms[layerIndex].Length];
+            
+
+            int nodeCount = m_network.m_layerLengths[layerIndex];
+            for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
+            {
+                Transform activision = m_activisionTransforms[layerIndex][nodeIndex];
+
+                float value = activisions[layerIndex].m_data[nodeIndex][0];
+
+                float mappedValue = 0;
+                if(layerIndex == 0)
+                    mappedValue = Utility.MapValuePercent(0f, 1f, value);
+                else
+                    mappedValue = Utility.MapValuePercent(0f, 1f, value);
+
+                if (mappedValue > 0.5f)
+                    color = Color.Lerp(m_manager.GetColorBiasAverage(), m_manager.GetColorBiasMax(), (mappedValue - 0.5f) * 2f);
+                else
+                    color = Color.Lerp(m_manager.GetColorBiasMin(), m_manager.GetColorBiasAverage(), mappedValue * 2f);
+
+                Renderer renderer = activision.GetComponent<Renderer>();
+                MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+                mpb.SetColor("_Color", color);
+                renderer.material.EnableKeyword("_EMISSION");
+                mpb.SetColor("_EmissionColor", color);
+                renderer.SetPropertyBlock(mpb);
+
+                NeuralNetworkValueContainer valueContainerNode = activision.GetComponent<NeuralNetworkValueContainer>();
+                if (valueContainerNode == null)
+                    valueContainerNode = activision.gameObject.AddComponent<NeuralNetworkValueContainer>();
+                valueContainerNode.m_value = value;
+                values[nodeIndex] = value;
+            }
+
+            valueContainerLayer.m_valuesActivision = values;
+        }
+    }
+    private void UpdateWeights()
     {
         float minValueWeight = float.MaxValue;
         float maxValueWeight = float.MinValue;
@@ -258,12 +333,25 @@ public class NeuralNetworkVisualization : MonoBehaviour
             int weightCount = m_network.m_layerLengths[layerIndex + 1];
             for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
             {
+                NeuralNetworkValueContainer valueContainerNode = m_nodeTransforms[layerIndex][nodeIndex].GetComponent<NeuralNetworkValueContainer>();
+                if (valueContainerNode == null)
+                    valueContainerNode = m_nodeTransforms[layerIndex][nodeIndex].gameObject.AddComponent<NeuralNetworkValueContainer>();
+                float[] weightValues = new float[weightCount];
+
                 for (int weightIndex = 0; weightIndex < weightCount; weightIndex++)
                 {
                     float value = m_network.GetWeight(layerIndex, nodeIndex, weightIndex);
                     minValueWeight = Mathf.Min(value, minValueWeight);
                     maxValueWeight = Mathf.Max(value, maxValueWeight);
+
+                    NeuralNetworkValueContainer valueContainerWeight = m_weightTransforms[layerIndex][nodeIndex][weightIndex].GetComponent<NeuralNetworkValueContainer>();
+                    if (valueContainerWeight == null)
+                        valueContainerWeight = m_weightTransforms[layerIndex][nodeIndex][weightIndex].gameObject.AddComponent<NeuralNetworkValueContainer>();
+                    valueContainerWeight.m_value = value;
+                    weightValues[weightIndex] = value;
                 }
+
+                valueContainerNode.m_valuesWeight = weightValues;
             }
         }
 
@@ -281,6 +369,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
                     float value = m_network.GetWeight(layerIndex, nodeIndex, weightIndex);
                     float mappedValue = Utility.MapValuePercent(minValueWeight, maxValueWeight, value);
+
                     if (mappedValue > 0.5f)
                         color = Color.Lerp(m_manager.GetColorWeightAverage(), m_manager.GetColorWeightMax(), (mappedValue - 0.5f) * 2f);
                     else
@@ -288,11 +377,6 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
                     Renderer renderer = weight.GetComponent<Renderer>();
                     renderer.material.SetColor("_TintColor", color);
-                    //MaterialPropertyBlock mpb = new MaterialPropertyBlock();
-                    //mpb.SetColor("_Color", color);
-                    //renderer.material.EnableKeyword("_EMISSION");
-                    //mpb.SetColor("_EmissionColor", color);
-                    //renderer.SetPropertyBlock(mpb);
                 }
             }
         }

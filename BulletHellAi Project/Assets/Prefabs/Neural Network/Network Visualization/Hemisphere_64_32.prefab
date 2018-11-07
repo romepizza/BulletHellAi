@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 4434396935996098}
   - component: {fileID: 33828855031023072}
   - component: {fileID: 23672981518755368}
+  - component: {fileID: 114524851571533348}
   m_Layer: 0
   m_Name: Hemisphere_64_32
   m_TagString: Untagged
@@ -83,3 +84,16 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1328527639127528}
   m_Mesh: {fileID: 4300000, guid: a981d4b500593d54c9dbc345178820e7, type: 3}
+--- !u!114 &114524851571533348
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1328527639127528}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62513a45a190ca14a8be1edb8ede7e1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_value: 0
+  m_values: []

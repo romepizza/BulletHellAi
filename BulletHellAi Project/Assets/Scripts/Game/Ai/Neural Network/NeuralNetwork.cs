@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class NeuralNetwork
 {
-
+    
     // Options
     private float m_learnRate;
     private int m_batchSize;
@@ -38,7 +38,7 @@ public class NeuralNetwork
     public enum ActivisionFunctionType { Sigmoid }
     public enum CostFunctionType { Quadratic }
     public enum InitializationType { Zero, Random }
-    
+
 
     #region Initialization
     public NeuralNetwork(
@@ -49,11 +49,12 @@ public class NeuralNetwork
         CostFunctionType costType,
         InitializationType initializationType)
     {
+
         m_layerLengths = layerLengths;
         m_layerCount = m_layerLengths.Length;
         m_learnRate = learnRate;
 
-        if(batchSize <= 0)
+        if (batchSize <= 0)
         {
             Debug.Log("Info: batch size was <= 0 (" + batchSize + "). It was set to a default value of 1!");
             m_batchSize = 1;
@@ -72,68 +73,10 @@ public class NeuralNetwork
 
         //m_activisionFunctionType = ActivisionFunctionType.Sigmoid;
     }
-    //private void InitializeBiases()
-    //{
-    //    // initialize biases
-    //    m_biases = new float[m_layerCount][];
-    //    for (int layerIndex = 1; layerIndex < m_layerCount; layerIndex++)
-    //    {
-    //        int nodeCount = m_layerLengths[layerIndex];
-    //        float[] biasesPerLayer = new float[nodeCount];
-
-    //        for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
-    //        {
-    //            biasesPerLayer[nodeIndex] = Random.Range(0f, 1f);
-    //        }
-    //        m_biases[layerIndex] = biasesPerLayer;
-    //    }
-    //}
-    //private void InitializeWeights()
-    //{
-    //    // initialize weights, omit the last layer
-    //    m_weights = new float[m_layerCount][][];
-    //    for (int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
-    //    {
-    //        int nodeCount = m_layerLengths[layerIndex];
-    //        float[][] weightsPerLayer = new float[nodeCount][];
-
-    //        for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
-    //        {
-    //            int weightCount = m_layerLengths[layerIndex + 1];
-    //            float[] weightsPerNode = new float[weightCount];
-    //            for (int weightIndex = 0; weightIndex < weightCount; weightIndex++)
-    //            {
-    //                weightsPerNode[weightIndex] = Random.Range(0f, 1f);
-    //            }
-    //            weightsPerLayer[nodeIndex] = weightsPerNode;
-    //        }
-
-    //        m_weights[layerIndex] = weightsPerLayer;
-    //    }
-    //}
-    //private void InitializeBatch()
-    //{
-    //    m_currentBatchIndex = 0;
-
-    //    m_batchInputs = new float[m_batchSize][];
-    //    int nodeCount = m_layerLengths[m_layerCount - 1];
-    //    for (int batchIndex = 0; batchIndex < m_batchSize; batchIndex++)
-    //    {
-    //        float[] outputNodes = new float[nodeCount];
-    //        m_batchInputs[batchIndex] = outputNodes;
-    //    }
-
-    //    m_batchDesiredOutputs = new float[m_batchSize][];
-    //    for (int batchIndex = 0; batchIndex < m_batchSize; batchIndex++)
-    //    {
-    //        float[] outputNodes = new float[nodeCount];
-    //        m_batchDesiredOutputs[batchIndex] = outputNodes;
-    //    }
-    //}
     private void InitializeBiases()
     {
         m_biases = new MyMatrix[m_layerCount - 1];
-        for(int layerIndex = 1; layerIndex < m_layerCount; layerIndex++)
+        for (int layerIndex = 1; layerIndex < m_layerCount; layerIndex++)
         {
             int nodeCount = m_layerLengths[layerIndex];
             MyMatrix mat = new MyMatrix(nodeCount, 1);
@@ -178,7 +121,7 @@ public class NeuralNetwork
     {
         // biases
         m_newBiases = new MyMatrix[m_biases.Length];
-        for(int layerIndex = 0; layerIndex < m_newBiases.Length; layerIndex++)
+        for (int layerIndex = 0; layerIndex < m_newBiases.Length; layerIndex++)
         {
             m_newBiases[layerIndex] = new MyMatrix(m_biases[layerIndex], false);
         }
@@ -210,7 +153,7 @@ public class NeuralNetwork
         }
 
         m_rawValues = new MyMatrix[m_layerCount - 1];
-        for(int layerIndex = 0; layerIndex < m_rawValues.Length; layerIndex++)
+        for (int layerIndex = 0; layerIndex < m_rawValues.Length; layerIndex++)
         {
             m_rawValues[layerIndex] = new MyMatrix(m_layerLengths[layerIndex + 1], 1);
         }
@@ -224,102 +167,29 @@ public class NeuralNetwork
     #endregion
 
     #region Feed Forward
-    private MyMatrix FeedForward(float[] input)
+    public MyMatrix[] GetActivisions(float[] input)
     {
-        MyMatrix output = new MyMatrix(input.Length, 1);
+        MyMatrix[] activisions = new MyMatrix[m_layerCount];
+        MyMatrix activision = new MyMatrix(input);
+        activisions[0] = activision;
 
-        return output;
+        for(int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
+        {
+            activision = GetActivisionFunction(MyMatrix.AddMatrix(MyMatrix.Dot(m_weights[layerIndex], activision), m_biases[layerIndex]));
+            activisions[layerIndex + 1] = activision;
+        }
+
+        return activisions;
     }
-    //private MyMatrix[] GetRawValuesAndActivisions(float[] input)
-    //{
-    //    MyMatrix[] mats = new MyMatrix[m_layerCount];
+    public float[] GetOutput(float[] input)
+    {
+        MyMatrix activision = new MyMatrix(input);
 
-    //    MyMatrix mat = new MyMatrix(m_layerLengths[0], 2);
-    //    mat.SetColumn(input, 0);
-    //    mat.SetColumn(input, 1);
-    //    mats[0] = mat;
-        
-    //    for(int layerIndex = 1; layerIndex < mats.Length; layerIndex++)
-    //    {
-    //        int nodeCount = m_layerLengths[layerIndex];
-    //        mat = new MyMatrix(nodeCount, 1);
+        for (int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
+            activision = GetActivisionFunction(MyMatrix.AddMatrix(MyMatrix.Dot(m_weights[layerIndex], activision), m_biases[layerIndex]));
 
-    //        mats[layerIndex] = mat;
-    //    }
-    //    return mats;
-    //}
-    //private float[] GetOutput(float[] input)
-    //{
-    //    float[] activisionsPreLayer = input;
-    //    float[] activisionsCurrentLayer = new float[0];
-
-    //    // feed forward
-    //    for(int layerIndex = 1; layerIndex < m_layerCount; layerIndex++)
-    //    {
-    //        int preLayerIndex = layerIndex - 1;
-    //        int nodeCountCurrentLayer = m_layerLengths[layerIndex];
-    //        activisionsCurrentLayer = new float[nodeCountCurrentLayer];
-    //        for (int nodeIndex = 0; nodeIndex < nodeCountCurrentLayer; nodeIndex++)
-    //        {
-    //            float activisionValue = 0;
-
-    //            int weightCount = m_layerLengths[preLayerIndex];
-    //            for(int weightIndex = 0; weightIndex < weightCount; weightIndex++)
-    //            {
-    //                int actualNodeIndex = weightIndex;
-    //                int actualWeightIndex = nodeIndex;
-
-    //                float weightValue = m_weights[preLayerIndex][actualNodeIndex][actualWeightIndex];
-    //                float nodeActivision = activisionsPreLayer[actualNodeIndex];
-    //                float rawValue = weightValue * nodeActivision + m_biases[layerIndex][nodeIndex];
-    //                activisionValue += rawValue;
-    //            }
-
-    //            activisionsCurrentLayer[nodeIndex] = GetActivisionFunction(activisionValue);
-    //        }
-
-    //        activisionsPreLayer = activisionsCurrentLayer;
-    //    }
-
-    //    return activisionsCurrentLayer;
-    //}
-    //private float[][] GetActivisions(float[] input)
-    //{
-    //    float[][] activisions = new float[m_layerCount][];
-    //    activisions[0] = input;
-    //    //float[] activisionsPreLayer = input;
-    //    //float[] activisionsCurrentLayer = new float[0];
-
-    //    // feed forward
-    //    for (int layerIndex = 1; layerIndex < m_layerCount; layerIndex++)
-    //    {
-    //        int preLayerIndex = layerIndex - 1;
-    //        int nodeCountCurrentLayer = m_layerLengths[layerIndex];
-    //        float[] activisionsCurrentLayer = new float[nodeCountCurrentLayer];
-    //        for (int nodeIndex = 0; nodeIndex < nodeCountCurrentLayer; nodeIndex++)
-    //        {
-    //            float activisionValue = 0;
-
-    //            int weightCount = m_layerLengths[preLayerIndex];
-    //            for (int weightIndex = 0; weightIndex < weightCount; weightIndex++)
-    //            {
-    //                int actualNodeIndex = weightIndex;
-    //                int actualWeightIndex = nodeIndex;
-
-    //                float weightValue = m_weights[preLayerIndex][actualNodeIndex][actualWeightIndex];
-    //                float nodeActivision = activisions[preLayerIndex][actualNodeIndex];
-    //                float rawValue = weightValue * nodeActivision + m_biases[layerIndex][nodeIndex];
-    //                activisionValue += rawValue;
-    //            }
-
-    //            activisionsCurrentLayer[nodeIndex] = GetActivisionFunction(activisionValue);
-    //        }
-
-    //        activisions[layerIndex] = activisionsCurrentLayer;
-    //    }
-
-    //    return activisions;
-    //}
+        return activision.GetColumnToArray(0);
+    }
     #endregion
 
     #region Training
@@ -354,33 +224,25 @@ public class NeuralNetwork
             m_activisionValues[0] = new MyMatrix(m_batchInputs[batchIndex]);
             for(int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
             {
-                //MyMatrix mat = MyMatrix.Dot(m_weights[layerIndex], m_activisionValues[layerIndex]);
-                //mat = MyMatrix.AddMatrix(mat, m_biases[layerIndex]);
-
                 m_rawValues[layerIndex] = MyMatrix.AddMatrix(MyMatrix.Dot(m_weights[layerIndex], m_activisionValues[layerIndex]), m_biases[layerIndex]);
                 m_activisionValues[layerIndex + 1] = GetActivisionFunction(m_rawValues[layerIndex]);
             }
 
             // back pass, start at the last layer (manually) and loop over the prelayers afterwards
-            m_deltaActivision[m_layerCount - 2] = MyMatrix.MultiplyElementWise(GetCostDrivative(m_batchDesiredOutputs[batchIndex], m_activisionValues[m_layerCount - 1]),  GetSigmoidPrime(m_rawValues[m_layerCount - 2]));
-            m_newBiases[m_layerCount - 2] = m_deltaActivision[m_layerCount - 2];
-            m_newWeights[m_layerCount - 2] = MyMatrix.Dot(m_deltaActivision[m_layerCount - 2], MyMatrix.Transposed(m_activisionValues[m_layerCount - 3]));
-            
-            for(int layerIndex = m_layerCount - 2; layerIndex > 0; layerIndex--)
+            MyMatrix delta = MyMatrix.MultiplyElementWise(GetCostDrivative(m_batchDesiredOutputs[batchIndex], m_activisionValues[m_activisionValues.Length - 1]), GetSigmoidPrime(m_rawValues[m_rawValues.Length - 1]));
+            m_newBiases[m_newBiases.Length - 1] = delta;
+            m_newWeights[m_newWeights.Length - 1] = MyMatrix.Dot(delta, MyMatrix.Transposed(m_activisionValues[m_activisionValues.Length - 2]));
+
+
+            for(int layerIndex = m_layerCount - 1; layerIndex > 1; layerIndex--)
             {
-                MyMatrix mat1 = MyMatrix.Transposed(m_weights[layerIndex - 1 + 1]);
-                MyMatrix mat2 = m_deltaActivision[layerIndex - 1];
-                MyMatrix mat3 = MyMatrix.Dot(mat1, mat2);
-                MyMatrix mat4 = GetActivisionFunctionPrime(m_rawValues[layerIndex - 1]);
-                MyMatrix mat5 = MyMatrix.MultiplyElementWise(mat3, mat4);
+                MyMatrix weightsTransposed = MyMatrix.Transposed(m_weights[m_weights.Length - layerIndex + 1]);
+                delta = MyMatrix.Dot(weightsTransposed, delta);
+                MyMatrix activisionsPrime = GetActivisionFunctionPrime(m_rawValues[m_rawValues.Length - layerIndex]);
+                delta = MyMatrix.MultiplyElementWise(delta, activisionsPrime);
 
-                m_deltaActivision[layerIndex - 1] = mat5;
-                m_newBiases[layerIndex - 1] = m_deltaActivision[layerIndex - 1];
-                m_newWeights[layerIndex - 1] = MyMatrix.Dot(m_deltaActivision[layerIndex - 1], MyMatrix.Transposed(m_activisionValues[layerIndex - 2 + 1]));
-
-                //m_deltaActivision[layerIndex] = MyMatrix.MultiplyElementWise(MyMatrix.Dot(MyMatrix.Transposed(m_weights[layerIndex + 1]), m_deltaActivision[layerIndex]), GetActivisionFunctionPrime(m_rawValues[layerIndex]));
-                //m_newBiases[layerIndex] = m_deltaActivision[layerIndex];
-                //m_newWeights[layerIndex] = MyMatrix.Dot(m_deltaActivision[layerIndex], MyMatrix.Transposed(m_activisionValues[layerIndex - 1 + 1]));
+                m_newBiases[m_newBiases.Length - layerIndex] = delta;
+                m_newWeights[m_newWeights.Length - layerIndex] = MyMatrix.Dot(delta, MyMatrix.Transposed(m_activisionValues[m_activisionValues.Length - layerIndex - 1]));
             }
 
 
@@ -403,108 +265,6 @@ public class NeuralNetwork
             m_weights[layerIndex].AddMatrix(m_newWeights[layerIndex]);
         }
     }
-    //public void PerformBackPropagation()
-    //{
-    //    InitializeBackPropagation();
-
-    //    // perform back propagation on each training example and collect the sum of their error gradients
-    //    for (int batchIndex = 0; batchIndex < m_batchSize; batchIndex++)
-    //    {
-    //        // set the values for the output layer first manually
-    //        int nodeLayerIndex = m_layerCount - 1;
-    //        int nodeCount = m_layerLengths[nodeLayerIndex];
-    //        float[][] activisions = GetActivisions(m_batchInputs[batchIndex]);
-    //        float[] desiredOutputs = m_batchDesiredOutputs[batchIndex];
-    //        for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
-    //        {
-    //            float actualOutput = activisions[m_layerCount - 1][nodeIndex];
-    //            float desiredOutput = desiredOutputs[nodeIndex];
-    //            m_deltaActivision[nodeLayerIndex][nodeIndex] = GetCostDerivative(desiredOutput, actualOutput);
-    //            m_deltaBiases[nodeLayerIndex][nodeIndex] = m_deltaActivision[nodeLayerIndex][nodeIndex];
-    //            // Most of the time, we itereate through the nodes in the next layer and interprete them as the weight index, since we want to have all weights outgoing from
-    //            // one specific node. Now though, we want to have all weights going into a specific node. We achieve this by simply flipping the node index and the weight index.
-    //            int weightLayerIndex = nodeLayerIndex - 1;
-    //            int weightCount = m_layerLengths[weightLayerIndex];
-    //            for(int weightIndex = 0; weightIndex < weightCount; weightIndex++)
-    //            {
-    //                int actualNodeIndex = weightIndex;
-    //                int actualWeightIndex = nodeIndex;
-
-    //                float value = m_deltaActivision[nodeLayerIndex][nodeIndex] * m_weights[weightLayerIndex][actualNodeIndex][actualWeightIndex];
-    //                m_deltaWeights[weightLayerIndex][actualNodeIndex][actualWeightIndex] = value;
-    //            }
-    //        }
-
-    //        // set values for the predecessors
-    //        for(int layerIndex = m_layerCount - 2; layerIndex >= 0; layerIndex--)
-    //        {
-    //            nodeCount = m_layerLengths[layerIndex];
-    //            int weightLayerIndex = layerIndex - 1;
-    //            for(int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
-    //            {
-
-    //            }
-    //        }
-
-    //        // apply gradient
-    //    }
-
-    //    // apply the new values to the network
-    //}
-    //public void InitializeBackPropagation()
-    //{
-    //    m_newBiases = new float[m_layerCount][];
-    //    for(int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
-    //    {
-    //        int nodeCount = m_layerLengths[layerIndex];
-    //        float[] newNodes = new float[nodeCount];
-    //        m_newBiases[layerIndex] = newNodes;
-    //    }
-
-    //    m_newWeights = new float[m_layerCount][][];
-    //    for(int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
-    //    {
-    //        int nodeCount = m_layerLengths[layerIndex];
-    //        float[][] newNodes = new float[nodeCount][];
-    //        int weightCount = m_layerLengths[layerIndex + 1];
-    //        for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
-    //        {
-    //            float[] newWeights = new float[weightCount];
-    //            newNodes[nodeIndex] = newWeights;
-    //        }
-    //        m_newWeights[layerIndex] = newNodes;
-    //    }
-
-    //    m_deltaActivision = new float[m_layerCount][];
-    //    for(int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
-    //    {
-    //        int nodeCount = m_layerLengths[layerIndex];
-    //        float[] deltaOutputNodes = new float[nodeCount];
-    //        m_deltaActivision[layerIndex] = deltaOutputNodes;
-    //    }
-
-    //    m_deltaBiases = new float[m_layerCount][];
-    //    for(int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
-    //    {
-    //        int nodeCount = m_layerLengths[layerIndex];
-    //        float[] deltaBiasNodes = new float[nodeCount];
-    //        m_deltaBiases[layerIndex] = deltaBiasNodes;
-    //    }
-
-    //    m_deltaWeights = new float[m_layerCount][][];
-    //    for (int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
-    //    {
-    //        int nodeCount = m_layerLengths[layerIndex];
-    //        float[][] deltaWeightNodes = new float[nodeCount][];
-    //        int weightCount = m_layerLengths[layerIndex + 1];
-    //        for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
-    //        {
-    //            float[] deltaWeightWeights = new float[weightCount];
-    //            deltaWeightNodes[nodeIndex] = deltaWeightWeights;
-    //        }
-    //        m_deltaWeights[layerIndex] = deltaWeightNodes;
-    //    }
-    //}
     #endregion
 
     #region Activision Function(s)

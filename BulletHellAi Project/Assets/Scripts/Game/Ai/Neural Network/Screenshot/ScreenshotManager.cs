@@ -18,6 +18,7 @@ public class ScreenshotManager : MonoBehaviour
     //[SerializeField] private bool m_ceilScaleToPixelQuads;
 
     [Header("--- Objects ---")]
+    [SerializeField] private List<Transform> m_playerVisualsCapture;
     //public Camera m_playerCaptureCamera;
     //[SerializeField] private TakeScreenshot m_playerScreenshotScript;
     [SerializeField] private List<Transform> m_captureAreas;
@@ -43,6 +44,10 @@ public class ScreenshotManager : MonoBehaviour
         if (s_instance != null)
             Debug.Log("Warning: At least two instances of ScreenshotManager seem to be active!");
         s_instance = this;
+    }
+    private void Start()
+    {
+        SetInitialCaptureSizes();
     }
     #endregion Mono
 
@@ -91,9 +96,42 @@ public class ScreenshotManager : MonoBehaviour
 
         float finalCaptureSize = originalScale.x;
         if (originalScale.x < m_pixelWorldScale)
-            finalCaptureSize = m_pixelWorldScale;
+            finalCaptureSize = m_pixelWorldScale * 1f;
 
         return new Vector3(finalCaptureSize, finalCaptureSize, finalCaptureSize);
+    }
+    public void SetInitialCaptureSizes()
+    {
+        for(int i = 0; i < m_playerVisualsCapture.Count; i++)
+        {
+            m_playerVisualsCapture[i].localScale = GetObstacleScale(m_playerVisualsCapture[i].localScale);
+        }
+    }
+    #endregion
+
+    #region Input Length
+    public int GetInputLayerLengthTotal()
+    {
+        return GetInputLayerLengthEnemy() + GetInputLayerLengthPlayer();
+    }
+    public int GetInputLayerLengthEnemy()
+    {
+        return GetCaptureWidth() * GetCaptureHeight();
+    }
+    public int GetInputLayerLengthPlayer()
+    {
+        float playerHeight = -1;
+        if (m_playerVisualsCapture != null && m_playerVisualsCapture.Count != 0)
+            playerHeight = m_playerVisualsCapture[0].localScale.y;
+        else
+            Debug.Log("Warning: No player visual capture transform found!");
+        float pixelSize = GetPixelToWorldScale(1);
+
+        int height = (int)(playerHeight / pixelSize);
+        if (playerHeight != pixelSize)
+            height += 1;
+
+        return GetCaptureWidth() * height;
     }
     #endregion
 
@@ -117,6 +155,17 @@ public class ScreenshotManager : MonoBehaviour
     public static ScreenshotManager Instance()
     {
         return s_instance;
+    }
+    #endregion
+
+    #region Getter
+    public int GetCaptureWidth()
+    {
+        return m_captureWidth;
+    }
+    public int GetCaptureHeight()
+    {
+        return m_captureHeight;
     }
     #endregion
 }

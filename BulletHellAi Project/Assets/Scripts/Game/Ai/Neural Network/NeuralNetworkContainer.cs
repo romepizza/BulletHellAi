@@ -5,20 +5,25 @@ using UnityEngine;
 public class NeuralNetworkContainer : MonoBehaviour
 {
     [Header("------ Settings ------")]
+    [SerializeField] private bool m_setInputLayerLengthDynamicly;
     [SerializeField] private int[] m_layerLengths;
-
+    [Space]
+    [SerializeField] private NeuralNetwork.ActivisionFunctionType m_activisionType;
+    [SerializeField] private NeuralNetwork.CostFunctionType m_costType;
+    [SerializeField] private NeuralNetwork.InitializationType m_initializationType;
 
     [Header("--- Objects ---")]
     //[SerializeField] private SampleManager m_sampleManager;
     private NeuralNetworkVisualization m_visualization;
-    public NeuralNetworkTrainingManager m_trainingManager { get; private set; }
+    private NeuralNetworkTrainingManager m_trainingManager;
+    private SampleManager m_sampleManager;
 
     [Header("------ Debug ------")]
     bool placeHolder;
     public NeuralNetwork m_network { get; private set; }
 
     #region Mono
-    private void Start()
+    private void Awake()
     {
         if (m_trainingManager == null)
             m_trainingManager = GetComponent<NeuralNetworkTrainingManager>();
@@ -30,13 +35,23 @@ public class NeuralNetworkContainer : MonoBehaviour
         if (m_visualization == null)
             Debug.Log("Warning: NeuralNetworkVisualization not found!");
 
+        if (m_sampleManager == null)
+            m_sampleManager = GetComponent<SampleManager>();
+        if (m_sampleManager == null)
+            Debug.Log("Warning: SampleManager not found!");
+    }
+    private void Start()
+    {
+        if (m_setInputLayerLengthDynamicly)
+            m_layerLengths[0] = m_sampleManager.GetInputLayerLengthDynamicly();
+
         InitializeContainer(new NeuralNetwork(
             m_layerLengths,
             m_trainingManager.GetLearnRate(),
             m_trainingManager.GetBatchSize(),
-            NeuralNetwork.ActivisionFunctionType.Sigmoid,
-            NeuralNetwork.CostFunctionType.Quadratic,
-            NeuralNetwork.InitializationType.Random));
+            m_activisionType,
+            m_costType,
+            m_initializationType));
     }
     #endregion
 
@@ -50,9 +65,13 @@ public class NeuralNetworkContainer : MonoBehaviour
     #endregion
 
     #region Getter
-    public int[] GetLayerLengths()
+    public SampleManager GetSampleManager()
     {
-        return m_layerLengths;
+        return m_sampleManager;
+    }
+    public NeuralNetworkVisualization GetVisualization()
+    {
+        return m_visualization;
     }
     #endregion
 }

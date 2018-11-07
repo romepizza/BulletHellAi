@@ -44,7 +44,7 @@ public class SpawnObstacles : MonoBehaviour
 
         GameObject spawnedObject = Instantiate(m_spawnPrefab, transform);
         spawnedObject.transform.position = getRandomPosition();
-        spawnedObject.GetComponent<IsObstacle>().GetVisualCamera().transform.localScale = ScreenshotManager.Instance().GetObstacleScale(spawnedObject.transform.localScale);
+        spawnedObject.GetComponent<IsObstacle>().GetCaptureCameraTransform().transform.localScale = ScreenshotManager.Instance().GetObstacleScale(spawnedObject.transform.localScale);
         spawnedObject.GetComponent<Rigidbody>().velocity = /*m_levelOrientation.rotation **/ new Vector3(Random.Range(m_directionMin.x, m_directionMax.x), Random.Range(m_directionMin.y, m_directionMax.y), Random.Range(m_directionMin.z, m_directionMax.z));
         
 

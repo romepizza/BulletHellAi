@@ -57,10 +57,14 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     }
     public void TrainNetwork()
     {
-        SampleContainer sample = m_sampleManager.GenerateSample();
+        SampleContainer sampleSource = m_sampleManager.GenerateSampleSource();
+        if (!sampleSource.m_isOkay)
+            return;
 
-        bool update = m_network.AddTrainingData(sample.m_input, sample.m_desiredOutput);
+        bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput);
 
+        SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
+        m_visualization.UpdateActivisions(sampleThis.m_input);
         if (update)
             m_visualization.UpdateVisualization();
     }
@@ -76,9 +80,9 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     #region Getter
     public float GetLearnRate()
     {
-        if(m_learnRate > 0)
+        if(m_learnRate < 0)
         {
-            Debug.Log("Warning: learn rate was set positive! Using negative instead!");
+            Debug.Log("Warning: learn rate was set positive! Using positive instead!");
             return -m_learnRate;
         }
         return m_learnRate;

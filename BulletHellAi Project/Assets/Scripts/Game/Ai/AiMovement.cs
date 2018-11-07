@@ -18,6 +18,7 @@ public class AiMovement : MonoBehaviour {
     [SerializeField] private float m_decisionThreshold;
 
     [Header("--- Objects ---")]
+    [SerializeField] private NeuralNetworkContainer m_networkContainer;
     [SerializeField] private RestrictedArea m_restrictedArea;
 
     [Header("------- Debug -------")]
@@ -31,8 +32,10 @@ public class AiMovement : MonoBehaviour {
     [SerializeField] private bool m_isPressingLeft;
     [SerializeField] private bool m_isPressingRight;
 
-    public enum NetworkOutputInterpretation { RandomAndThreshold, FullyRandom, ThresholdOnly }
+    #region Enums
+    public enum NetworkOutputInterpretation { ThresholdOnly, RandomAndThreshold, Random}
     public enum MovementDecision { DontDecide, Network, Algorithm, Random }
+    #endregion
 
     #region Mono
     void Start()
@@ -116,8 +119,8 @@ public class AiMovement : MonoBehaviour {
     }
     void GetPressingInputViaNetwork()
     {
-        List<float> output = GetOutputViaNetwork();
-        if (output.Count == 0)
+        float[] output = GetOutputViaNetwork();
+        if (output.Length == 0)
             return;
 
         float leftOutput = output[0];
@@ -136,9 +139,26 @@ public class AiMovement : MonoBehaviour {
             if (rightOutput >= m_decisionThreshold)
                 m_isPressingRight = true;
         }
-        if (m_interpretationType == NetworkOutputInterpretation.FullyRandom)
+        if (m_interpretationType == NetworkOutputInterpretation.Random)
         {
-            Debug.Log("Warning: NetworkOutputInterpretation.fullyRandom not implemented yet!");
+            if (m_randomInitialCooldownRdy > Time.time)
+                return;
+
+            // decide left/right
+            
+            float random = Random.Range(0, leftOutput + rightOutput);
+            if (random < leftOutput)
+                m_isPressingLeft = true;
+            else
+                m_isPressingRight = true;
+
+            // decide up/down
+            random = Random.Range(0, upOutput + downOutput);
+            if (random < upOutput)
+                m_isPressingUp = true;
+            else
+                m_isPressingDown = true;
+
         }
         if (m_interpretationType == NetworkOutputInterpretation.RandomAndThreshold)
         {
@@ -202,15 +222,19 @@ public class AiMovement : MonoBehaviour {
     #endregion
 
     #region Get Output Via Network
-    List<float> GetOutputViaNetwork()
+    float[] GetOutputViaNetwork()
     {
-        Debug.Log("Aborted: MovementDecision.network not implemented yet!");
-        List<float> input = GetInputForNetwork();
-        return null;
+        float[] input = GetInputForNetwork();
+        float[] output = m_networkContainer.m_network.GetOutput(input);
+        m_networkContainer.GetVisualization().UpdateActivisions(input);
+        return output;
     }
-    List<float> GetInputForNetwork()
+    float[] GetInputForNetwork()
     {
-        return null;
+        SampleContainer sample = m_networkContainer.GetSampleManager().GenerateSampleThis();
+
+        float[] input = sample.m_input;
+        return input;
     }
     #endregion
 }

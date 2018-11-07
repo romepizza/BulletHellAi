@@ -215,16 +215,32 @@ public class MyMatrix
             newMatrix.m_data[0][y] = m_data[colummnX][y];
         return newMatrix;
     }
+    public float[] GetColumnToArray(int columnIndex)
+    {
+        if(columnIndex >= m_rowCountY)
+        {
+            Debug.Log("Aborted: column index was too high! (param: " + columnIndex + ", max " + (m_rowCountY - 1) + ")");
+        }
+
+        float[] data = new float[m_rowCountY];
+
+        for(int y = 0; y < m_rowCountY; y++)
+        {
+            data[y] = m_data[y][0];
+        }
+
+        return data;
+    }
     public override string ToString()
     {
-        string s = "\n";
+        string s = "";
 
         for(int y = 0; y < m_rowCountY; y++)
         {
             s += "( ";
             for (int x = 0; x < m_columnCountX; x++)
             {
-                s += m_data[y][x] + "; ";
+                s += m_data[y][x].ToString("0.00") + "; ";
             }
             s += " )\n";
         }
