@@ -6,7 +6,8 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
 {
     [Header("------ Settings -------")]
     [SerializeField] private bool m_trainNetwork;
-    [SerializeField] private float m_trainingCooldown;
+    [SerializeField] private float m_trainingCooldownMin;
+    [SerializeField] private float m_trainingCooldownMax;
     [Space]
     [SerializeField] private float m_learnRate;
     [SerializeField] private int m_batchSize;
@@ -35,7 +36,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     }
     private void Start()
     {
-        m_trainingCooldownRdy = Time.time + m_trainingCooldown;
+        m_trainingCooldownRdy = Time.time + Random.Range(m_trainingCooldownMin, m_trainingCooldownMax);
     }
     private void Update()
     {
@@ -51,7 +52,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
 
         if (m_trainingCooldownRdy > Time.time)
             return;
-        m_trainingCooldownRdy = Time.time + m_trainingCooldown;
+        m_trainingCooldownRdy = Time.time + Random.Range(m_trainingCooldownMin, m_trainingCooldownMax);
 
         TrainNetwork();
     }

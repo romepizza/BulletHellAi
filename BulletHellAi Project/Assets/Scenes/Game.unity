@@ -514,7 +514,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_trainNetwork: 1
-  m_trainingCooldown: 0.05
+  m_trainingCooldownMin: 0.1
+  m_trainingCooldownMax: 0.15
   m_learnRate: 0.5
   m_batchSize: 5
 --- !u!114 &55830825
@@ -620,7 +621,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_trainNetwork: 1
-  m_trainingCooldown: 0.05
+  m_trainingCooldownMin: 0.1
+  m_trainingCooldownMax: 0.15
   m_learnRate: 0.1
   m_batchSize: 1
 --- !u!114 &86701458
@@ -878,7 +880,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &165267408
 Transform:
   m_ObjectHideFlags: 0
@@ -3458,7 +3460,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_trainNetwork: 1
-  m_trainingCooldown: 0.05
+  m_trainingCooldownMin: 0.1
+  m_trainingCooldownMax: 0.15
   m_learnRate: 0.5
   m_batchSize: 5
 --- !u!114 &679046725
@@ -3857,7 +3860,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &792005237
 Transform:
   m_ObjectHideFlags: 0
@@ -4012,8 +4015,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dff698e522a75f44f97abebb78d957b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_captureWidth: 2
-  m_captureHeight: 3
+  m_captureWidth: 100
+  m_captureHeight: 150
   m_backgroundHeight: 9
   m_changeObstacleScales: 1
   m_playerVisualsCapture:
@@ -4029,7 +4032,7 @@ MonoBehaviour:
   - {fileID: 1272673908}
   - {fileID: 915821999}
   m_captureAreaSize: {x: 6, y: 9, z: 1}
-  m_pixelWorldScale: 3
+  m_pixelWorldScale: 0.06
 --- !u!1 &820319380
 GameObject:
   m_ObjectHideFlags: 0
@@ -4577,7 +4580,8 @@ MonoBehaviour:
   m_movementSpeed: 8
   m_allowUpDownMovement: 0
   m_movementDecision: 1
-  m_decisionCooldown: 0.1
+  m_decisionCooldownMin: 0.1
+  m_decisionCooldownMax: 0.2
   m_interpretationType: 2
   m_decisionThreshold: 0.5
   m_networkContainer: {fileID: 86701458}
@@ -5134,7 +5138,8 @@ MonoBehaviour:
   m_movementSpeed: 8
   m_allowUpDownMovement: 0
   m_movementDecision: 1
-  m_decisionCooldown: 0.1
+  m_decisionCooldownMin: 0.1
+  m_decisionCooldownMax: 0.2
   m_interpretationType: 2
   m_decisionThreshold: 0.5
   m_networkContainer: {fileID: 679046725}
@@ -5430,7 +5435,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1129505209
 Transform:
   m_ObjectHideFlags: 0
@@ -6447,7 +6452,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1303562659}
   - component: {fileID: 1303562662}
+  - component: {fileID: 1303562663}
   - component: {fileID: 1303562660}
+  - component: {fileID: 1303562664}
   - component: {fileID: 1303562661}
   m_Layer: 0
   m_Name: PlayerObject
@@ -6482,22 +6489,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcd68c617c1ba72488f6209d2f9f13f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_movementSpeed: 8
-  m_slowFactor: 0.5
-  m_allowUpDownMovement: 0
   m_keyUp: 119
   m_keyDown: 115
   m_keyLeft: 97
   m_keyRight: 100
-  m_keySlow: 304
-  m_restrictedArea: {fileID: 229401450}
-  m_forceVector: {x: 0, y: 0, z: 0}
-  m_currentMoveDirectionLocal: {x: 0, y: 0, z: 0}
-  m_isPressingUp: 0
-  m_isPressingDown: 0
-  m_isPressingLeft: 0
-  m_isPressingRight: 0
-  m_isPressingSlow: 0
 --- !u!114 &1303562661
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6523,6 +6518,34 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 0.6, y: 0.4, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1303562663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1303562658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fa8931d0e5b15341aaec5ba8a4c220e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_controllerType: 1
+  m_allowUpDownMovement: 0
+  m_movementSpeed: 8
+  m_restrictedArea: {fileID: 229401450}
+--- !u!114 &1303562664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1303562658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c7f7dca6c2dc0448898ea4458baf9f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_inputType: 0
+  m_screenshotManager: {fileID: 915878715}
 --- !u!1 &1319599753
 GameObject:
   m_ObjectHideFlags: 0
@@ -7215,7 +7238,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d45d4801b10a6c4499905e44122380a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_visualize: 1
+  m_visualize: 0
   m_height: 8
   m_width: 3
   m_marginX: 0.25
@@ -7258,7 +7281,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_trainNetwork: 1
-  m_trainingCooldown: 0.05
+  m_trainingCooldownMin: 0.1
+  m_trainingCooldownMax: 0.15
   m_learnRate: 0.1
   m_batchSize: 1
 --- !u!114 &1430563700
@@ -7760,7 +7784,8 @@ MonoBehaviour:
   m_movementSpeed: 8
   m_allowUpDownMovement: 0
   m_movementDecision: 1
-  m_decisionCooldown: 0.1
+  m_decisionCooldownMin: 0.1
+  m_decisionCooldownMax: 0.2
   m_interpretationType: 2
   m_decisionThreshold: 0.5
   m_networkContainer: {fileID: 1430563700}
@@ -9676,7 +9701,8 @@ MonoBehaviour:
   m_movementSpeed: 8
   m_allowUpDownMovement: 0
   m_movementDecision: 1
-  m_decisionCooldown: 0.1
+  m_decisionCooldownMin: 0.1
+  m_decisionCooldownMax: 0.2
   m_interpretationType: 2
   m_decisionThreshold: 0.5
   m_networkContainer: {fileID: 55830825}

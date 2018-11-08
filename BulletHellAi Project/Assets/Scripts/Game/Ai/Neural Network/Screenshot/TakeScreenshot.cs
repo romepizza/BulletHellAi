@@ -37,6 +37,9 @@ public class TakeScreenshot : MonoBehaviour {
     private int m_currentHeight;
     private int m_currentWidth;
 
+    private float[] m_cacheDataComputed;
+    private float[][] m_cacheDataRaw;
+
     public enum Format { RAW, PNG, JPG, PPM }
 
     #region Monobehaviour
@@ -53,20 +56,6 @@ public class TakeScreenshot : MonoBehaviour {
         Vector2Int size = m_screenshotManager.GetScreenshotSize();
         m_currentHeight = size.y;
         m_currentWidth = size.x;
-
-        #region CAN_BE_DELETED
-        // TODO
-        if (m_renderTexture == null)
-        {
-            //Debug.Log("Info: RenderTexture created automaticly!");
-            m_renderTexture = new RenderTexture(m_currentWidth, m_currentHeight, 24);
-        }
-        m_screenshotTexture = new Texture2D(m_currentWidth, m_currentHeight, TextureFormat.RGB24, false);
-        m_camera.targetTexture = m_renderTexture;
-        RenderTexture.active = m_renderTexture;
-        #endregion
-
-        m_rect = new Rect(0, 0, m_currentWidth, m_currentHeight);
     }
     // Update is called once per frame
     void Update()
@@ -76,6 +65,8 @@ public class TakeScreenshot : MonoBehaviour {
     private void LateUpdate()
     {
         PerformTakeScreenshot(false);
+        m_cacheDataComputed = null;
+        m_cacheDataRaw = null;
     }
     #endregion Monobehaviour
 
@@ -89,8 +80,11 @@ public class TakeScreenshot : MonoBehaviour {
         ShowScreenshot();
         SaveFile();
     }
-    public float[] GetScreenshotComputedData()
+    public float[] GetScreenshotDataComputed()
     {
+        if (m_cacheDataComputed != null)
+            return m_cacheDataComputed;
+
         Texture2D texture = PrepareScreenshot();
 
         int enemyLength = ScreenshotManager.Instance().GetInputLayerLengthEnemy();
@@ -99,7 +93,7 @@ public class TakeScreenshot : MonoBehaviour {
         int dataLength = enemyLength + playerLenth;
         float[] data = new float[dataLength];
 
-        for(int height = 0; height < texture.height; height++)
+        for (int height = 0; height < texture.height; height++)
         {
             for (int width = 0; width < texture.width; width++)
             {
@@ -113,7 +107,7 @@ public class TakeScreenshot : MonoBehaviour {
                 {
                     value = color.r;
                 }
-                else if(color.g > m_activisionThreshold)
+                else if (color.g > m_activisionThreshold)
                 {
                     value = color.g;
                     index += enemyLength;
@@ -126,16 +120,60 @@ public class TakeScreenshot : MonoBehaviour {
         ShowScreenshot();
         SaveFile();
 
+        m_cacheDataComputed = data;
         return data;
     }
+    public float[][] GetScreenshotDataRaw()
+    {
+        if (m_cacheDataRaw != null)
+            return m_cacheDataRaw;
+
+        Texture2D texture = PrepareScreenshot();
+
+        //int dataLength = ScreenshotManager.Instance().GetInputLayerLengthEnemy();
+        float[][] data = new float[m_currentWidth][];
+        for (int x = 0; x < texture.width; x++)
+        {
+            float[] dataY = new float[m_currentHeight];
+            for (int y = 0; y < texture.height; y++)
+            {
+                int index = y * texture.width + x;
+                float value = 0;
+
+                Color color = texture.GetPixel(x, y);
+                // Green = Player / Ai
+                // Red = Obstacle
+                if (color.r > m_activisionThreshold)
+                {
+                    value = -color.r;
+                }
+                else if (color.g > m_activisionThreshold)
+                {
+                    value = color.g;
+                }
+
+                dataY[y] = value;
+            }
+            data[x] = dataY;
+        }
+
+        //ShowScreenshot();
+        //SaveFile();
+
+        m_cacheDataRaw = data;
+        return data;
+    }
+    #endregion
+
+    #region Screenshot Generation
+
     Texture2D PrepareScreenshot()
     {
         Vector2Int size = m_screenshotManager.GetScreenshotSize();
         m_currentHeight = size.y;
         m_currentWidth = size.x;
 
-        m_rect.height = m_currentHeight;
-        m_rect.width = m_currentWidth;
+        m_rect = new Rect(0, 0, m_currentWidth, m_currentHeight);
         m_renderTexture = new RenderTexture(m_currentWidth, m_currentHeight, 24);
         m_screenshotTexture = new Texture2D(m_currentWidth, m_currentHeight, TextureFormat.RGB24, false);
 
@@ -144,8 +182,10 @@ public class TakeScreenshot : MonoBehaviour {
         m_camera.Render();
         RenderTexture.active = m_renderTexture;
         m_screenshotTexture.ReadPixels(m_rect, 0, 0);
-        //m_camera.targetTexture = null;
+        m_camera.targetTexture = null;
         RenderTexture.active = null;
+
+        Destroy(m_renderTexture);
 
         return m_screenshotTexture;
     }

@@ -11,7 +11,8 @@ public class AiMovement : MonoBehaviour {
 
     [Header("--- Movement Decision ---")]
     [SerializeField] private MovementDecision m_movementDecision;
-    [SerializeField] private float m_decisionCooldown;
+    [SerializeField] private float m_decisionCooldownMin;
+    [SerializeField] private float m_decisionCooldownMax;
 
     [Header("----- Neural Network -----")]
     [SerializeField] private NetworkOutputInterpretation m_interpretationType;
@@ -42,7 +43,7 @@ public class AiMovement : MonoBehaviour {
     {
 
     }
-    private void Update()
+    private void FixedUpdate()
     {
         ManageMovement();
     }
@@ -79,7 +80,7 @@ public class AiMovement : MonoBehaviour {
     {
         if (m_decisionCooldownRdy > Time.time)
             return m_currentMoveDirection;
-        m_decisionCooldownRdy = Time.time + m_decisionCooldown;
+        m_decisionCooldownRdy = Time.time + Random.Range(m_decisionCooldownMin, m_decisionCooldownMax);
 
         Vector3 finalMoveDirection = Vector3.zero;
 

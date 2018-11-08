@@ -18,8 +18,9 @@ public class SampleManager : MonoBehaviour
 
     [Header("------ Debug ------")]
     bool b;
-    public List<SampleContainer> m_samples { get; private set; }
-
+    private List<SampleContainer> m_samples;
+    private SampleContainer m_cacheSampleSource;
+    private SampleContainer m_cacheSampleThis;
 
     #region Enums
     public enum InputType { Screenshots, Raycasts, WorldInformation }
@@ -30,11 +31,19 @@ public class SampleManager : MonoBehaviour
     {
         m_samples = new List<SampleContainer>();
     }
+    private void LateUpdate()
+    {
+        m_cacheSampleSource = null;
+        m_cacheSampleThis = null;
+    }
     #endregion
 
     #region Sample Control
     public SampleContainer GenerateSampleSource()
     {
+        if (m_cacheSampleSource != null)
+            return m_cacheSampleSource;
+
         float[] input = GenerateInputSource();
         float[] desiredOutput = GenerateDesiredOutput();
         bool isOkay = CheckFilter(input, desiredOutput);
@@ -42,22 +51,27 @@ public class SampleManager : MonoBehaviour
         SampleContainer sampleContainer = new SampleContainer(input, desiredOutput, isOkay);
         SaveSample(sampleContainer);
 
+        m_cacheSampleSource = sampleContainer;
         return sampleContainer;
     }
     public SampleContainer GenerateSampleThis()
     {
+        if (m_cacheSampleThis != null)
+            return m_cacheSampleThis;
+
         float[] input = GenerateInputThis();
         float[] desiredOutput = null;
 
         SampleContainer sampleContainer = new SampleContainer(input, desiredOutput, true);
         SaveSample(sampleContainer);
 
+        m_cacheSampleThis = sampleContainer;
         return sampleContainer;
     }
 
     private float[] GenerateDesiredOutput()
     {
-        return PlayerMovement.Instance().GenerateInputData();
+        return PlayerMovementManager.Instance().GenerateInputData();
     }
     private void SaveSample(SampleContainer sampleContainer)
     {
@@ -83,7 +97,7 @@ public class SampleManager : MonoBehaviour
     }
     private float[] GenerateInputSourceScreenshot()
     {
-        float[] input = m_screenshotScriptSource.GetScreenshotComputedData();
+        float[] input = m_screenshotScriptSource.GetScreenshotDataComputed();
 
         return input;
     }
@@ -120,7 +134,7 @@ public class SampleManager : MonoBehaviour
     }
     private float[] GenerateInputScreenshotThis()
     {
-        float[] input = m_screenshotScriptThis.GetScreenshotComputedData();
+        float[] input = m_screenshotScriptThis.GetScreenshotDataComputed();
 
         return input;
     }
