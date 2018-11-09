@@ -688,7 +688,7 @@ MonoBehaviour:
   m_allowHDR: 0
   m_fileName: screenshot_ai
   m_folderName: screenshots
-  m_activisionThreshold: 0
+  m_activisionThreshold: 0.1
   m_keyCodeScreenshot: 283
   m_saveFile: 0
   m_showScreenshot: 1
@@ -1411,10 +1411,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78702fe4df1bf404c99324a763b2ce8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_posXRelative: 2.75
-  m_negXRelative: -2.75
+  m_posXRelative: 2.625
+  m_negXRelative: -2.625
   m_posYRelative: -2
-  m_negYRelative: -4.3
+  m_negYRelative: -4.125
   m_showGizmos: 1
   m_centerPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &237517912
@@ -3139,7 +3139,7 @@ MonoBehaviour:
   m_allowHDR: 0
   m_fileName: screenshot_ai
   m_folderName: screenshots
-  m_activisionThreshold: 0
+  m_activisionThreshold: 0.1
   m_keyCodeScreenshot: 283
   m_saveFile: 0
   m_showScreenshot: 1
@@ -4015,8 +4015,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dff698e522a75f44f97abebb78d957b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_captureWidth: 100
-  m_captureHeight: 150
+  m_captureWidth: 2
+  m_captureHeight: 3
   m_backgroundHeight: 9
   m_changeObstacleScales: 1
   m_playerVisualsCapture:
@@ -4032,7 +4032,7 @@ MonoBehaviour:
   - {fileID: 1272673908}
   - {fileID: 915821999}
   m_captureAreaSize: {x: 6, y: 9, z: 1}
-  m_pixelWorldScale: 0.06
+  m_pixelWorldScale: 3
 --- !u!1 &820319380
 GameObject:
   m_ObjectHideFlags: 0
@@ -4367,10 +4367,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78702fe4df1bf404c99324a763b2ce8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_posXRelative: 2.75
-  m_negXRelative: -2.75
+  m_posXRelative: 2.625
+  m_negXRelative: -2.625
   m_posYRelative: -2
-  m_negYRelative: -4.2
+  m_negYRelative: -4.125
   m_showGizmos: 1
   m_centerPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &897582405
@@ -4720,11 +4720,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_camera: {fileID: 602796552}
-  m_format: 0
+  m_format: 1
   m_allowHDR: 0
   m_fileName: screenshot_player
   m_folderName: screenshots
-  m_activisionThreshold: 0
+  m_activisionThreshold: 0.1
   m_keyCodeScreenshot: 282
   m_saveFile: 0
   m_showScreenshot: 1
@@ -6544,8 +6544,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c7f7dca6c2dc0448898ea4458baf9f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_inputType: 0
+  m_inputType: 1
+  m_layerMask:
+    serializedVersion: 2
+    m_Bits: 131072
   m_screenshotManager: {fileID: 915878715}
+  m_visualCapturePlayer: {fileID: 221408366}
+  m_captureArea: {fileID: 2128096160}
 --- !u!1 &1319599753
 GameObject:
   m_ObjectHideFlags: 0
@@ -7188,10 +7193,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78702fe4df1bf404c99324a763b2ce8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_posXRelative: 2.75
-  m_negXRelative: -2.75
+  m_posXRelative: 2.625
+  m_negXRelative: -2.625
   m_posYRelative: -2
-  m_negYRelative: -4.2
+  m_negYRelative: -4.125
   m_showGizmos: 1
   m_centerPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &1430563695
@@ -8731,10 +8736,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78702fe4df1bf404c99324a763b2ce8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_posXRelative: 2.75
-  m_negXRelative: -2.75
+  m_posXRelative: 2.625
+  m_negXRelative: -2.625
   m_posYRelative: -2
-  m_negYRelative: -4.2
+  m_negYRelative: -4.125
   m_showGizmos: 1
   m_centerPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &1916033839
@@ -9166,7 +9171,7 @@ MonoBehaviour:
   m_allowHDR: 0
   m_fileName: screenshot_ai
   m_folderName: screenshots
-  m_activisionThreshold: 0
+  m_activisionThreshold: 0.1
   m_keyCodeScreenshot: 283
   m_saveFile: 0
   m_showScreenshot: 1
@@ -9405,10 +9410,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78702fe4df1bf404c99324a763b2ce8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_posXRelative: 2.75
-  m_negXRelative: -2.75
+  m_posXRelative: 2.625
+  m_negXRelative: -2.625
   m_posYRelative: -2
-  m_negYRelative: -4.2
+  m_negYRelative: -4.125
   m_showGizmos: 1
   m_centerPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &2076876639
@@ -9527,7 +9532,7 @@ MonoBehaviour:
   m_allowHDR: 0
   m_fileName: screenshot_ai
   m_folderName: screenshots
-  m_activisionThreshold: 0
+  m_activisionThreshold: 0.1
   m_keyCodeScreenshot: 283
   m_saveFile: 0
   m_showScreenshot: 1

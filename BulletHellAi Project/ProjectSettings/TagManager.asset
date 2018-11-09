@@ -21,8 +21,8 @@ TagManager:
   - 
   - 
   - Visual Main Camera
-  - Visual Capture Camera
-  - 
+  - Visual Capture Camera Player
+  - Visual Capture Camera Obstacle
   - 
   - 
   - Visual Neural Network

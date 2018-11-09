@@ -76,7 +76,7 @@ public class TakeScreenshot : MonoBehaviour {
         if (!m_isPressingScreenshot && !forceScreenshot)
             return;
 
-        PrepareScreenshot();
+        PrepareScreenshot(false);
         ShowScreenshot();
         SaveFile();
     }
@@ -85,7 +85,7 @@ public class TakeScreenshot : MonoBehaviour {
         if (m_cacheDataComputed != null)
             return m_cacheDataComputed;
 
-        Texture2D texture = PrepareScreenshot();
+        Texture2D texture = PrepareScreenshot(false);
 
         int enemyLength = ScreenshotManager.Instance().GetInputLayerLengthEnemy();
         int playerLenth = ScreenshotManager.Instance().GetInputLayerLengthPlayer();
@@ -123,12 +123,12 @@ public class TakeScreenshot : MonoBehaviour {
         m_cacheDataComputed = data;
         return data;
     }
-    public float[][] GetScreenshotDataRaw()
+    public float[][] GetScreenshotDataRaw(bool forceHdr)
     {
         if (m_cacheDataRaw != null)
             return m_cacheDataRaw;
 
-        Texture2D texture = PrepareScreenshot();
+        Texture2D texture = PrepareScreenshot(forceHdr);
 
         //int dataLength = ScreenshotManager.Instance().GetInputLayerLengthEnemy();
         float[][] data = new float[m_currentWidth][];
@@ -157,7 +157,7 @@ public class TakeScreenshot : MonoBehaviour {
             data[x] = dataY;
         }
 
-        //ShowScreenshot();
+        ShowScreenshot();
         //SaveFile();
 
         m_cacheDataRaw = data;
@@ -167,7 +167,7 @@ public class TakeScreenshot : MonoBehaviour {
 
     #region Screenshot Generation
 
-    Texture2D PrepareScreenshot()
+    Texture2D PrepareScreenshot(bool forceHdr)
     {
         Vector2Int size = m_screenshotManager.GetScreenshotSize();
         m_currentHeight = size.y;
@@ -178,7 +178,7 @@ public class TakeScreenshot : MonoBehaviour {
         m_screenshotTexture = new Texture2D(m_currentWidth, m_currentHeight, TextureFormat.RGB24, false);
 
         m_camera.targetTexture = m_renderTexture;
-        m_camera.allowHDR = m_allowHDR;
+        m_camera.allowHDR = forceHdr ? true : m_allowHDR;
         m_camera.Render();
         RenderTexture.active = m_renderTexture;
         m_screenshotTexture.ReadPixels(m_rect, 0, 0);

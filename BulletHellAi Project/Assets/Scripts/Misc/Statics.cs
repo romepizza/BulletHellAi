@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class Statics : MonoBehaviour
 {
-    public static int s_mainCameraLayer = 15;
-    public static int s_captureCameraLayer = 16;
-    public static int s_neuralNetworkLayer = 20;
+    public static int s_mainCameraLayer { get; private set; }
+    public static int s_captureCameraLayerPlayer { get; private set; }
+    public static int s_captureCameraLayerObstacle { get; private set; }
+    public static int s_neuralNetworkLayer { get; private set; }
 
     [SerializeField] private Camera m_camera;
     private static Camera s_camera;
@@ -15,6 +16,11 @@ public class Statics : MonoBehaviour
     private void Awake()
     {
         s_camera = m_camera;
+
+        s_mainCameraLayer = 15;
+        s_captureCameraLayerPlayer = 16;
+        s_captureCameraLayerObstacle = 17;
+        s_neuralNetworkLayer = 20;
     }
     #endregion
 
