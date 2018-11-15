@@ -50,18 +50,26 @@ public class PlayerMovementManager : MonoBehaviour
 
         bool isPressingLeft = inputData[0] == 1;
         bool isPressingRight = inputData[1] == 1;
-        bool isPressingUp = inputData[2] == 1;
-        bool isPressingDown = inputData[3] == 1;
+        bool isPressingUp = false;
+        bool isPressingDown = false;
+        if (inputData.Length > 2)
+        {
+           isPressingUp = inputData[2] == 1;
+           isPressingDown = inputData[3] == 1;
+        }
 
         m_forceVector = Vector3.zero;
-        if (isPressingUp && !m_restrictedArea.IsOutOfRestrictionPosY(transform.position))
-            m_forceVector.y += m_movementSpeed;// * (m_isPressingSlow ? m_slowFactor : 1);
-        if (isPressingDown && !m_restrictedArea.IsOutOfRestrictionNegY(transform.position))
-            m_forceVector.y -= m_movementSpeed;// * (m_isPressingSlow ? m_slowFactor : 1);
         if (isPressingLeft && !m_restrictedArea.IsOutOfRestrictionNegX(transform.position))
             m_forceVector.x -= m_movementSpeed;// * (m_isPressingSlow ? m_slowFactor : 1);
         if (isPressingRight && !m_restrictedArea.IsOutOfRestrictionPosX(transform.position))
             m_forceVector.x += m_movementSpeed;// * (m_isPressingSlow ? m_slowFactor : 1);
+        if (inputData.Length > 2)
+        {
+            if (isPressingUp && !m_restrictedArea.IsOutOfRestrictionPosY(transform.position))
+                m_forceVector.y += m_movementSpeed;// * (m_isPressingSlow ? m_slowFactor : 1);
+            if (isPressingDown && !m_restrictedArea.IsOutOfRestrictionNegY(transform.position))
+                m_forceVector.y -= m_movementSpeed;// * (m_isPressingSlow ? m_slowFactor : 1);
+        }
 
         m_forceVector *= Time.deltaTime;
     }
@@ -84,7 +92,7 @@ public class PlayerMovementManager : MonoBehaviour
         else if (m_controllerType == ControllerType.Ai)
             inputData = PlayerAiMovement.Instance().GenerateInputData();
 
-        if (!m_allowUpDownMovement)
+        if (inputData.Length > 2 && !m_allowUpDownMovement)
             inputData[2] = inputData[3] = 0;
 
         return inputData;

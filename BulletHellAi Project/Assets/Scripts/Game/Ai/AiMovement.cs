@@ -14,27 +14,28 @@ public class AiMovement : MonoBehaviour {
     [SerializeField] private float m_decisionCooldownMin;
     [SerializeField] private float m_decisionCooldownMax;
 
-    [Header("----- Neural Network -----")]
+    [Header("----- Interpretation Type -----")]
     [SerializeField] private NetworkOutputInterpretation m_interpretationType;
     [SerializeField] private float m_decisionThreshold;
+    [SerializeField] private float m_decisionDynamicRandomThreshold;
 
     [Header("--- Objects ---")]
     [SerializeField] private NeuralNetworkContainer m_networkContainer;
     [SerializeField] private RestrictedArea m_restrictedArea;
 
     [Header("------- Debug -------")]
-    [SerializeField] private Vector3 m_currentMoveDirection;
-    [SerializeField] private float m_decisionCooldownRdy;
-    [SerializeField] private float m_randomInitialCooldownRdy = 1;
+    private Vector3 m_currentMoveDirection;
+    private float m_decisionCooldownRdy;
+    private float m_randomInitialCooldownRdy = 1;
 
 
-    [SerializeField] private bool m_isPressingUp;
-    [SerializeField] private bool m_isPressingDown;
-    [SerializeField] private bool m_isPressingLeft;
-    [SerializeField] private bool m_isPressingRight;
+    private bool m_isPressingUp;
+    private bool m_isPressingDown;
+    private bool m_isPressingLeft;
+    private bool m_isPressingRight;
 
     #region Enums
-    public enum NetworkOutputInterpretation { ThresholdOnly, RandomAndThreshold, Random}
+    public enum NetworkOutputInterpretation { ThresholdOnly, DynamicRandomThreshold, RandomAndThreshold, Random}
     public enum MovementDecision { DontDecide, Network, Algorithm, Random }
     #endregion
 
@@ -126,19 +127,80 @@ public class AiMovement : MonoBehaviour {
 
         float leftOutput = output[0];
         float rightOutput = output[1];
-        float upOutput = output[2];
-        float downOutput = output[3];
+        float upOutput = 0;
+        float downOutput = 0;
+        if (output.Length > 2)
+        {
+            upOutput = output[2];
+            downOutput = output[2];
+        }
 
         if (m_interpretationType == NetworkOutputInterpretation.ThresholdOnly)
         {
-            if (upOutput >= m_decisionThreshold)
-                m_isPressingUp = true;
-            if (downOutput >= m_decisionThreshold)
-                m_isPressingDown = true;
+
             if (leftOutput >= m_decisionThreshold)
                 m_isPressingLeft = true;
             if (rightOutput >= m_decisionThreshold)
                 m_isPressingRight = true;
+            if (output.Length > 2)
+            {
+                if (upOutput >= m_decisionThreshold)
+                    m_isPressingUp = true;
+                if (downOutput >= m_decisionThreshold)
+                    m_isPressingDown = true;
+            }
+        }
+        if (m_interpretationType == NetworkOutputInterpretation.DynamicRandomThreshold)
+        {
+            if (m_randomInitialCooldownRdy > Time.time)
+                return;
+
+            if (leftOutput < rightOutput * m_decisionDynamicRandomThreshold)
+                leftOutput = 0;
+            if (rightOutput < leftOutput * m_decisionDynamicRandomThreshold)
+                rightOutput = 0;
+            if (output.Length > 2)
+            {
+                if (upOutput < downOutput * m_decisionDynamicRandomThreshold)
+                    upOutput = 0;
+                if (downOutput < upOutput * m_decisionDynamicRandomThreshold)
+                    downOutput = 0;
+            }
+            // decide left/right
+            if (leftOutput != 0 || rightOutput != 0)
+            {
+                if (leftOutput == 0)
+                    m_isPressingRight = true;
+                else if (rightOutput == 0)
+                    m_isPressingLeft = true;
+                else
+                {
+                    float random = Random.Range(0, leftOutput + rightOutput);
+                    if (random < leftOutput)
+                        m_isPressingLeft = true;
+                    else
+                        m_isPressingRight = true;
+                }
+            }
+            // decide up/down
+            if (output.Length > 2)
+            {
+                if (upOutput != 0 || downOutput != 0)
+                {
+                    if (upOutput == 0)
+                        m_isPressingDown = true;
+                    else if (downOutput == 0)
+                        m_isPressingUp = true;
+                    else
+                    {
+                        float random = Random.Range(0, upOutput + downOutput);
+                        if (random < upOutput)
+                            m_isPressingUp = true;
+                        else
+                            m_isPressingDown = true;
+                    }
+                }
+            }
         }
         if (m_interpretationType == NetworkOutputInterpretation.Random)
         {
@@ -154,26 +216,33 @@ public class AiMovement : MonoBehaviour {
                 m_isPressingRight = true;
 
             // decide up/down
-            random = Random.Range(0, upOutput + downOutput);
-            if (random < upOutput)
-                m_isPressingUp = true;
-            else
-                m_isPressingDown = true;
-
+            if (output.Length > 2)
+            {
+                random = Random.Range(0, upOutput + downOutput);
+                if (random < upOutput)
+                    m_isPressingUp = true;
+                else
+                    m_isPressingDown = true;
+            }
         }
         if (m_interpretationType == NetworkOutputInterpretation.RandomAndThreshold)
         {
             if (m_randomInitialCooldownRdy > Time.time)
                 return;
 
-            if (upOutput < m_decisionThreshold)
-                upOutput = 0;
-            if (downOutput < m_decisionThreshold)
-                downOutput = 0;
+
             if (leftOutput < m_decisionThreshold)
                 leftOutput = 0;
             if (rightOutput < m_decisionThreshold)
                 rightOutput = 0;
+            if (output.Length > 2)
+            {
+                if (upOutput < m_decisionThreshold)
+                    upOutput = 0;
+                if (downOutput < m_decisionThreshold)
+                    downOutput = 0;
+            }
+
 
             // decide left/right
             if (leftOutput != 0 || rightOutput != 0)
@@ -192,19 +261,22 @@ public class AiMovement : MonoBehaviour {
                 }
             }
             // decide up/down
-            if (upOutput != 0 || downOutput != 0)
+            if (output.Length > 2)
             {
-                if (upOutput == 0)
-                    m_isPressingDown = true;
-                else if (downOutput == 0)
-                    m_isPressingUp = true;
-                else
+                if (upOutput != 0 || downOutput != 0)
                 {
-                    float random = Random.Range(0, upOutput + downOutput);
-                    if (random < upOutput)
+                    if (upOutput == 0)
+                        m_isPressingDown = true;
+                    else if (downOutput == 0)
                         m_isPressingUp = true;
                     else
-                        m_isPressingDown = true;
+                    {
+                        float random = Random.Range(0, upOutput + downOutput);
+                        if (random < upOutput)
+                            m_isPressingUp = true;
+                        else
+                            m_isPressingDown = true;
+                    }
                 }
             }
         }

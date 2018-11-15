@@ -9,6 +9,12 @@ public class TakeScreenshot : MonoBehaviour {
     [Header("------- Settings -------")]
     [SerializeField] private Camera m_camera;
 
+    [Header("--- Pixel Size ---")]
+    [SerializeField] private int m_captureWidth;
+    [SerializeField] private int m_captureHeight;
+    [SerializeField] private float m_backgroundHeight;
+    [SerializeField] private bool m_changeObstacleScales;
+
     [Header("--- Format ---")]
     [SerializeField] private Format m_format;
     [SerializeField] private bool m_allowHDR;
@@ -25,10 +31,13 @@ public class TakeScreenshot : MonoBehaviour {
 
     [Header("--- Objects ---")]
     [SerializeField] private RawImage m_rawImage;
+    [SerializeField] private List<Transform> m_playerVisualsCapture;
+    [SerializeField] private List<Transform> m_captureAreas;
+    [SerializeField] private ScreenshotManager m_screenshotManager;
+    [SerializeField] private SpawnObstacles m_spawner;
 
     [Header("------- Debug -------")]
     //private SampleManager m_sampleManager;
-    private ScreenshotManager m_screenshotManager;
     private RenderTexture m_renderTexture;
     private bool m_isPressingScreenshot;
     private int m_fileNameCounter;
@@ -40,22 +49,29 @@ public class TakeScreenshot : MonoBehaviour {
     private float[] m_cacheDataComputed;
     private float[][] m_cacheDataRaw;
 
+    private int m_lastCaptureWidth;
+    private int m_lastCaptureHeight;
+    private float m_lastBackgroundHeight;
+    private float m_pixelWorldScale;
+    private Vector3 m_captureAreaSize;
+    private Vector3 m_defaultScale;
+
     public enum Format { RAW, PNG, JPG, PPM }
 
-    #region Monobehaviour
+    #region Mono
     // Use this for initialization
+    private void Awake()
+    {
+        m_defaultScale = m_playerVisualsCapture[0].localScale;
+    }
     void Start()
     {
         InitializeStuff();
+        SetCaptureSize();
+        SetCaptureSizesPlayer(0);
     }
     void InitializeStuff()
     {
-        if (m_screenshotManager == null)
-            m_screenshotManager = ScreenshotManager.Instance();
-
-        Vector2Int size = m_screenshotManager.GetScreenshotSize();
-        m_currentHeight = size.y;
-        m_currentWidth = size.x;
     }
     // Update is called once per frame
     void Update()
@@ -64,14 +80,14 @@ public class TakeScreenshot : MonoBehaviour {
     }
     private void LateUpdate()
     {
-        PerformTakeScreenshot(false);
+        TakeScreenshotManually(false);
         m_cacheDataComputed = null;
         m_cacheDataRaw = null;
     }
     #endregion Monobehaviour
 
     #region Screenshot Control
-    public void PerformTakeScreenshot(bool forceScreenshot)
+    public void TakeScreenshotManually(bool forceScreenshot)
     {
         if (!m_isPressingScreenshot && !forceScreenshot)
             return;
@@ -80,17 +96,25 @@ public class TakeScreenshot : MonoBehaviour {
         ShowScreenshot();
         SaveFile();
     }
-    public float[] GetScreenshotDataComputed()
+    public float[] GetScreenshotDataComputed(int captureWidth, int captureHeight, float playerHight, bool show)
     {
-        if (m_cacheDataComputed != null)
-            return m_cacheDataComputed;
+        //if (m_cacheDataComputed != null)
+        //    return m_cacheDataComputed;
+
+
+        m_currentWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
+        m_currentHeight = captureHeight == 0 ? GetCaptureHeight() : captureHeight;
+        playerHight = playerHight == 0 ? GetPlayerHight() : playerHight;
 
         Texture2D texture = PrepareScreenshot(false);
 
-        int enemyLength = ScreenshotManager.Instance().GetInputLayerLengthEnemy();
-        int playerLenth = ScreenshotManager.Instance().GetInputLayerLengthPlayer();
+        int enemyLength = m_currentWidth * m_currentHeight;
+        int playerLength = GetInputLayerLengthPlayer(m_currentWidth, playerHight);
 
-        int dataLength = enemyLength + playerLenth;
+        int dataLength = enemyLength + playerLength;
+        //Debug.Log("E: " + enemyLength);
+        //Debug.Log("P: " + playerLenth);
+        //Debug.Log("Tw: " + texture.width + ", Th: " + texture.height);
         float[] data = new float[dataLength];
 
         for (int height = 0; height < texture.height; height++)
@@ -101,36 +125,45 @@ public class TakeScreenshot : MonoBehaviour {
                 float value = 0;
 
                 Color color = texture.GetPixel(width, height);
-                // Green = Player / Ai
-                // Red = Obstacle
-                if (color.r > m_activisionThreshold)
+                
+                if (color.r > m_activisionThreshold) // Red = Obstacle
                 {
                     value = color.r;
                 }
-                else if (color.g > m_activisionThreshold)
+                else if (index < playerLength && color.g > m_activisionThreshold) // Green = Player / Ai
                 {
                     value = color.g;
                     index += enemyLength;
                 }
 
-                data[index] = value;
+                //try
+                //{
+                    data[index] = value;
+                //}
+                //catch (System.Exception e)
+                //{
+
+                //    Debug.Log("i: " + index);
+                //}
             }
         }
 
-        ShowScreenshot();
+        if(show)
+            ShowScreenshot();
         SaveFile();
 
         m_cacheDataComputed = data;
         return data;
     }
-    public float[][] GetScreenshotDataRaw(bool forceHdr)
+    public float[][] GetScreenshotDataRaw(int captureWidth, int captureHeight, bool forceHdr, bool show)
     {
-        if (m_cacheDataRaw != null)
-            return m_cacheDataRaw;
+        //if (m_cacheDataRaw != null)
+        //    return m_cacheDataRaw;
+        m_currentWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
+        m_currentHeight = captureHeight == 0 ? GetCaptureHeight() : captureHeight;
 
         Texture2D texture = PrepareScreenshot(forceHdr);
-
-        //int dataLength = ScreenshotManager.Instance().GetInputLayerLengthEnemy();
+        
         float[][] data = new float[m_currentWidth][];
         for (int x = 0; x < texture.width; x++)
         {
@@ -157,7 +190,8 @@ public class TakeScreenshot : MonoBehaviour {
             data[x] = dataY;
         }
 
-        ShowScreenshot();
+        if (show)
+            ShowScreenshot();
         //SaveFile();
 
         m_cacheDataRaw = data;
@@ -166,16 +200,15 @@ public class TakeScreenshot : MonoBehaviour {
     #endregion
 
     #region Screenshot Generation
-
     Texture2D PrepareScreenshot(bool forceHdr)
     {
-        Vector2Int size = m_screenshotManager.GetScreenshotSize();
-        m_currentHeight = size.y;
-        m_currentWidth = size.x;
-
         m_rect = new Rect(0, 0, m_currentWidth, m_currentHeight);
         m_renderTexture = new RenderTexture(m_currentWidth, m_currentHeight, 24);
         m_screenshotTexture = new Texture2D(m_currentWidth, m_currentHeight, TextureFormat.RGB24, false);
+
+        //Debug.Log(GetObstacleScale(m_spawner.GetSpawnPrefab().transform.localScale, m_currentWidth));
+        m_spawner.setScaleOfActiveObstacles(GetObstacleScale(m_spawner.GetSpawnPrefab().transform.localScale, m_currentWidth));
+        SetCaptureSizesPlayer(m_currentWidth);
 
         m_camera.targetTexture = m_renderTexture;
         m_camera.allowHDR = forceHdr ? true : m_allowHDR;
@@ -187,20 +220,23 @@ public class TakeScreenshot : MonoBehaviour {
 
         Destroy(m_renderTexture);
 
+        m_spawner.setScaleOfActiveObstacles(GetObstacleScale(m_spawner.GetSpawnPrefab().transform.localScale, 0));
+        SetCaptureSizesPlayer(0);
+
         return m_screenshotTexture;
     }
     void ShowScreenshot()
     {
         if (m_rawImage != null)
         {
-            if (m_showScreenshot)
-            {
+            //if (m_showScreenshot)
+            //{
                 m_rawImage.enabled = true;
                 m_screenshotTexture.Apply();
                 m_rawImage.texture = m_screenshotTexture;
-            }
-            else
-                m_rawImage.enabled = false;
+            //}
+            //else
+            //    m_rawImage.enabled = false;
         }
     }
     void SaveFile()
@@ -243,7 +279,105 @@ public class TakeScreenshot : MonoBehaviour {
     }
     #endregion
 
-    #region misc
+    #region Screenshot Size
+    public float GetPixelToWorldScale(int captureWidth)
+    {
+        return m_captureAreaSize.x / (captureWidth == 0 ? GetCaptureWidth() : captureWidth);
+    }
+    //public Vector2Int GetScreenshotSize()
+    //{
+    //    Vector2Int size = new Vector2Int();
+    //    size.x = GetCaptureWidth();
+    //    size.y = GetCaptureHeight();
+
+    //    return size;
+    //}
+
+    public void SetCaptureSize(/*int captureWidth, int captureHeight*/)
+    {
+        float ratio = (float)GetCaptureWidth() / (float)GetCaptureHeight();
+
+        // change capture area size
+        float finalCaptureAreaWidth = -1;
+        finalCaptureAreaWidth = GetBackgroundHeight() * ratio;
+        m_captureAreaSize = new Vector3(finalCaptureAreaWidth, GetBackgroundHeight(), 1);
+        m_pixelWorldScale = GetPixelToWorldScale(0);
+
+        if (m_captureAreas == null)
+            return;
+
+        for (int i = 0; i < m_captureAreas.Count; i++)
+        {
+            m_captureAreas[i].localScale = m_captureAreaSize;
+        }
+    }
+    public Vector3 GetObstacleScale(Vector3 originalScale, int captureWidth)
+    {
+        if (!m_changeObstacleScales)
+        {
+            return originalScale;
+        }
+
+        if (originalScale == Vector3.zero)
+            return originalScale;
+
+        if (originalScale.x != originalScale.y)
+            Debug.Log("Warning: localScale components weren't the same (" + originalScale.x + "/" + originalScale.y + "). Taking the x-component.");
+
+        float finalCaptureSize = originalScale.x;
+        float pixelWorldScale = GetPixelToWorldScale(captureWidth);
+        if (originalScale.x < pixelWorldScale)
+            finalCaptureSize = pixelWorldScale;
+
+        return new Vector3(finalCaptureSize, finalCaptureSize, finalCaptureSize);
+    }
+    public void SetCaptureSizesPlayer(int captureWidth)
+    {
+        for (int i = 0; i < m_playerVisualsCapture.Count; i++)
+        {
+            Vector3 scale = GetObstacleScale(m_defaultScale, captureWidth);
+            if (scale == Vector3.zero)
+                continue;
+
+            m_playerVisualsCapture[i].localScale = scale;
+        }
+    }
+    #endregion
+
+    #region Input Length
+    public int GetInputLayerLengthTotal(int captureWidth, float playerHeight)
+    {
+        captureWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
+        playerHeight = playerHeight == 0 ? GetPlayerHight() : playerHeight;
+        //Debug.Log("0: " + (GetInputLayerLengthEnemy(captureWidth) + GetInputLayerLengthPlayer(captureWidth)));
+        return GetInputLayerLengthEnemy(captureWidth) + GetInputLayerLengthPlayer(captureWidth, playerHeight);
+    }
+    public int GetInputLayerLengthEnemy(int captureWidth)
+    {
+        captureWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
+        //Debug.Log("1: " + captureWidth * GetCaptureHeight());
+        return captureWidth * GetCaptureHeight();
+    }
+    public int GetInputLayerLengthPlayer(int captureWidth, float playerhight)
+    {
+        float playerHeight = -1;
+        //if (m_playerVisualsCapture != null && m_playerVisualsCapture.Count != 0)
+            playerHeight = playerhight;// m_playerVisualsCapture[0].localScale.y;
+        //else
+        //    Debug.Log("Warning: No player visual capture transform found!");
+        
+        float pixelSize = GetPixelToWorldScale(captureWidth);
+
+        int height = (int)(playerHeight / pixelSize);
+        if (playerHeight != pixelSize)
+            height += 1;
+
+        //Debug.Log("2: " + (captureWidth == 0 ? GetCaptureWidth() : captureWidth) + " * " + height + " = " + (captureWidth == 0 ? GetCaptureWidth() : captureWidth) * height);
+        return (captureWidth == 0 ? GetCaptureWidth() : captureWidth) * height;
+    }
+    #endregion
+
+    #region Misc
     string getFileName()
     {
         string folderName;
@@ -281,10 +415,62 @@ public class TakeScreenshot : MonoBehaviour {
     }
     #endregion
 
+    #region Gizmos
+    private void OnDrawGizmosSelected()
+    {
+        bool change = m_lastCaptureHeight != GetCaptureHeight() && GetCaptureHeight() > 0;
+        change |= m_lastCaptureWidth != GetCaptureWidth() && GetCaptureWidth() > 0;
+        change |= m_lastBackgroundHeight != m_backgroundHeight && m_backgroundHeight > 0;
+
+        if (!change)
+            return;
+
+        SetCaptureSize(/*GetCaptureWidth(), GetCaptureHeight()*/);
+
+        m_lastCaptureWidth = GetCaptureWidth();
+        m_lastCaptureHeight = GetCaptureHeight();
+    }
+    
+    #endregion
+
+
     #region Setter
     //public void SetSampleManager(SampleManager manager)
     //{
     //    m_sampleManager = manager;
     //}
+    #endregion
+
+    #region Getter
+    public int GetCaptureWidth()
+    {
+        if (m_captureWidth <= 0)
+            return m_screenshotManager.GetCaptureWidth();
+        return m_captureWidth;
+    }
+    public int GetCaptureHeight()
+    {
+        if (m_captureHeight <= 0)
+            return m_screenshotManager.GetCaptureHeight();
+        return m_captureHeight;
+    }
+    public float GetBackgroundHeight()
+    {
+        if (m_backgroundHeight <= 0)
+            return m_screenshotManager.GetBackgroundHeight();
+        return m_backgroundHeight;
+    }
+    public bool IsBase()
+    {
+        bool isBase = m_backgroundHeight <= 0;
+        isBase |= m_captureWidth <= 0;
+        isBase |= m_captureHeight <= 0;
+
+        return isBase;
+    }
+    public float GetPlayerHight()
+    {
+        return (m_playerVisualsCapture != null && m_playerVisualsCapture.Count != 0) ? m_playerVisualsCapture[0].localScale.y : 0;
+    }
     #endregion
 }

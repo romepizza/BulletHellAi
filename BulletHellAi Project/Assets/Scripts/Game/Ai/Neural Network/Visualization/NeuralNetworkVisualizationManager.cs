@@ -7,15 +7,18 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
     private static NeuralNetworkVisualizationManager s_instance;
 
     [Header("------- Settings -------")]
+
     [Header("--- Colors ---")]
     [Header("- Activision -")]
     [SerializeField] private Color m_colorMinValueActivision;
     [SerializeField] private Color m_colorAverageValueActivision;
     [SerializeField] private Color m_colorMaxValueActivision;
+
     [Header("- Bias -")]
     [SerializeField] private Color m_colorMinValueBias;
     [SerializeField] private Color m_colorAverageValueBias;
     [SerializeField] private Color m_colorMaxValueBias;
+
     [Header("- Weight -")]
     [SerializeField] private Color m_colorMinValueWeight;
     [SerializeField] private Color m_colorAverageValueWeight;

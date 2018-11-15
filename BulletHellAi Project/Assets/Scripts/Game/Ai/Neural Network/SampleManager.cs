@@ -6,15 +6,19 @@ public class SampleManager : MonoBehaviour
 {
     [Header("------ Settings ------")]
     [SerializeField] private InputType m_inputType;
-    [SerializeField] private bool m_saveSamples;
+    //[SerializeField] private bool m_saveSamples;
 
     [Header("--- Filter ---")]
     [SerializeField] private bool m_tossNoOutputSamples;
 
+    [Header("--- Offline ---")]
+    [SerializeField] private int m_minSamples;
+    [SerializeField] private int m_maxSamples;
 
-    [Header("--- Screenshots ---")]
+    [Header("--- Objects ---")]
     [SerializeField] private TakeScreenshot m_screenshotScriptThis;
     [SerializeField] private TakeScreenshot m_screenshotScriptSource;
+    [SerializeField] private NeuralNetworkTrainingManager m_trainingManager;
 
     [Header("------ Debug ------")]
     bool b;
@@ -29,7 +33,13 @@ public class SampleManager : MonoBehaviour
     #region Mono
     private void Awake()
     {
+        if (m_trainingManager == null)
+            m_trainingManager = GetComponent<NeuralNetworkTrainingManager>();
+        if (m_trainingManager == null)
+            Debug.Log("Warning: Training Manager not found!");
+
         m_samples = new List<SampleContainer>();
+
     }
     private void LateUpdate()
     {
@@ -39,33 +49,52 @@ public class SampleManager : MonoBehaviour
     #endregion
 
     #region Sample Control
-    public SampleContainer GenerateSampleSource()
+    public SampleContainer GenerateSampleSource(bool save)
     {
-        if (m_cacheSampleSource != null)
-            return m_cacheSampleSource;
+        //if (m_cacheSampleSource != null)
+        //    return m_cacheSampleSource;
+
+        float[] desiredOutput = GenerateDesiredOutput();
+        bool isOkay = CheckFilterDesiredOutput(desiredOutput);
+        if (!isOkay)
+            return new SampleContainer(null, null, false);
 
         float[] input = GenerateInputSource();
-        float[] desiredOutput = GenerateDesiredOutput();
-        bool isOkay = CheckFilter(input, desiredOutput);
+        isOkay = CheckFilterInput(input);
+
+        if (!isOkay)
+            return new SampleContainer(null, null, false);
 
         SampleContainer sampleContainer = new SampleContainer(input, desiredOutput, isOkay);
-        SaveSample(sampleContainer);
+
+        if(save)
+            SaveSample(sampleContainer);
 
         m_cacheSampleSource = sampleContainer;
         return sampleContainer;
     }
     public SampleContainer GenerateSampleThis()
     {
-        if (m_cacheSampleThis != null)
-            return m_cacheSampleThis;
+        //if (m_cacheSampleThis != null)
+        //    return m_cacheSampleThis;
 
         float[] input = GenerateInputThis();
         float[] desiredOutput = null;
 
         SampleContainer sampleContainer = new SampleContainer(input, desiredOutput, true);
-        SaveSample(sampleContainer);
+        //SaveSample(sampleContainer);
 
         m_cacheSampleThis = sampleContainer;
+        return sampleContainer;
+    }
+    public SampleContainer GenerateSampleOffline()
+    {
+        if (m_samples.Count < m_minSamples || m_samples.Count == 0)
+            return new SampleContainer(null, null, false);
+
+        int index = Random.Range(0, m_samples.Count - 1);
+        SampleContainer sampleContainer = m_samples[index];
+
         return sampleContainer;
     }
 
@@ -75,8 +104,10 @@ public class SampleManager : MonoBehaviour
     }
     private void SaveSample(SampleContainer sampleContainer)
     {
-        if (m_saveSamples)
-            m_samples.Add(sampleContainer);
+        if (m_samples.Count >= m_maxSamples)
+            m_samples.RemoveAt(Random.Range(0, m_samples.Count - 1));
+        m_samples.Add(sampleContainer);
+        
     }
     #endregion
 
@@ -97,7 +128,7 @@ public class SampleManager : MonoBehaviour
     }
     private float[] GenerateInputSourceScreenshot()
     {
-        float[] input = m_screenshotScriptSource.GetScreenshotDataComputed();
+        float[] input = m_screenshotScriptSource.GetScreenshotDataComputed(m_screenshotScriptThis.GetCaptureWidth(), m_screenshotScriptThis.GetCaptureHeight(), m_screenshotScriptThis.GetPlayerHight(), false);
 
         return input;
     }
@@ -134,7 +165,7 @@ public class SampleManager : MonoBehaviour
     }
     private float[] GenerateInputScreenshotThis()
     {
-        float[] input = m_screenshotScriptThis.GetScreenshotDataComputed();
+        float[] input = m_screenshotScriptThis.GetScreenshotDataComputed(0, 0, 0, true);
 
         return input;
     }
@@ -170,7 +201,7 @@ public class SampleManager : MonoBehaviour
     }
     public int GetInputLayerLengthDynamiclyScreenshot()
     {
-        return ScreenshotManager.Instance().GetInputLayerLengthTotal();
+        return m_screenshotScriptThis.GetInputLayerLengthTotal(0, 0);
     }
     public int GetInputLayerLengthDynamiclyRaycast()
     {
@@ -183,7 +214,7 @@ public class SampleManager : MonoBehaviour
     #endregion
 
     #region Filter
-    private bool CheckFilter(float[] input, float[] desiredOutput)
+    private bool CheckFilterDesiredOutput(float[] desiredOutput)
     {
         bool isOkay = true;
 
@@ -196,6 +227,14 @@ public class SampleManager : MonoBehaviour
                     isOkay = true;
             }
         }
+
+        return isOkay;
+    }
+    private bool CheckFilterInput(float[] input)
+    {
+        bool isOkay = true;
+
+        
 
         return isOkay;
     }

@@ -44,7 +44,9 @@ public class NeuralNetworkContainer : MonoBehaviour
     {
         if (m_setInputLayerLengthDynamicly)
             m_layerLengths[0] = m_sampleManager.GetInputLayerLengthDynamicly();
-
+        if (m_layerLengths[m_layerLengths.Length - 1] <= 0)
+            m_layerLengths[m_layerLengths.Length - 1] = ScreenshotManager.Instance().GetOutputNumber();
+        
         InitializeContainer(new NeuralNetwork(
             m_layerLengths,
             m_trainingManager.GetLearnRate(),

@@ -7,7 +7,8 @@ public class ScreenshotManager : MonoBehaviour
     private static ScreenshotManager s_instance;
 
     [Header("------- Settings -------")]
-    [Header("--- Size ---")]
+    [SerializeField] private int m_outputNodenNumber;
+    [Header("--- Capture Size ---")]
     [SerializeField] private int m_captureWidth;
     [SerializeField] private int m_captureHeight;
     [Header("--- Background ---")]
@@ -19,24 +20,17 @@ public class ScreenshotManager : MonoBehaviour
 
     [Header("--- Objects ---")]
     [SerializeField] private List<Transform> m_playerVisualsCapture;
-    //public Camera m_playerCaptureCamera;
-    //[SerializeField] private TakeScreenshot m_playerScreenshotScript;
     [SerializeField] private List<Transform> m_captureAreas;
-    //[SerializeField] private Transform m_playerCaptureArea;
-    [Space]
-    //public Camera m_aiCaptureCamera;
-    //[SerializeField] private TakeScreenshot m_aiScreenshotScript;
-    //[SerializeField] private Transform m_aiCaptureArea;
-    [Space]
-    //[SerializeField] private Camera m_mainCamera;
+    [SerializeField] private List<TakeScreenshot> m_screenshotScripts;
 
 
     [Header("------- Debug -------")]
     private float m_ratio;
     private int m_lastCaptureWidth;
     private int m_lastCaptureHeight;
-    [SerializeField] private Vector3 m_captureAreaSize;
-    [SerializeField] private float m_pixelWorldScale;
+    private float m_lastBackgroundHeight;
+    private Vector3 m_captureAreaSize;
+    private float m_pixelWorldScale;
 
     #region Mono
     private void Awake()
@@ -45,21 +39,9 @@ public class ScreenshotManager : MonoBehaviour
             Debug.Log("Warning: At least two instances of ScreenshotManager seem to be active!");
         s_instance = this;
     }
-    private void Start()
-    {
-        SetInitialCaptureSizes();
-    }
     #endregion Mono
 
     #region Size
-    public Vector2Int GetScreenshotSize()
-    {
-        Vector2Int size = new Vector2Int();
-        size.x = m_captureWidth;
-        size.y = m_captureHeight;
-
-        return size;
-    }
     public float GetPixelToWorldScale(int size)
     {
         float pixelWidth = m_captureAreaSize.x / m_captureWidth;
@@ -67,87 +49,40 @@ public class ScreenshotManager : MonoBehaviour
 
         return pixelHeight * size;
     }
-    private void SetCaptureSize(int captureWidth, int captureHeight)
+    private void SetCaptureSize(/*int captureWidth, int captureHeight*/)
     {
-        m_captureWidth = captureWidth;
-        m_captureHeight = captureHeight;
+        if (GetCaptureWidth() == 0 || GetCaptureHeight() == 0)
+            return;
 
-        m_ratio = (float)captureWidth / (float)captureHeight;
+        m_ratio = (float)GetCaptureWidth() / (float)GetCaptureHeight();
 
         // change capture area size
         float finalCaptureAreaWidth = m_backgroundHeight * m_ratio;
         m_captureAreaSize = new Vector3(finalCaptureAreaWidth, m_backgroundHeight, 1);
         m_pixelWorldScale = GetPixelToWorldScale(1);
 
-        for(int i = 0; i < m_captureAreas.Count; i++)
+        for (int i = 0; i < m_screenshotScripts.Count; i++)
         {
-            m_captureAreas[i].localScale = m_captureAreaSize;
+            if(m_screenshotScripts[i].IsBase())
+                m_screenshotScripts[i].SetCaptureSize(/*captureWidth, captureHeight*/);
         }
-    }
-    public Vector3 GetObstacleScale(Vector3 originalScale)
-    {
-        if (!m_changeObstacleScales)
-        {
-            return originalScale;
-        }
-
-        if (originalScale.x != originalScale.y)
-            Debug.Log("Warning: localScale components weren't the same (" + originalScale.x + "/" + originalScale.y + "). Taking the x-component.");
-
-        float finalCaptureSize = originalScale.x;
-        if (originalScale.x < m_pixelWorldScale)
-            finalCaptureSize = m_pixelWorldScale * 1f;
-
-        return new Vector3(finalCaptureSize, finalCaptureSize, finalCaptureSize);
-    }
-    public void SetInitialCaptureSizes()
-    {
-        for(int i = 0; i < m_playerVisualsCapture.Count; i++)
-        {
-            m_playerVisualsCapture[i].localScale = GetObstacleScale(m_playerVisualsCapture[i].localScale);
-        }
-    }
-    #endregion
-
-    #region Input Length
-    public int GetInputLayerLengthTotal()
-    {
-        return GetInputLayerLengthEnemy() + GetInputLayerLengthPlayer();
-    }
-    public int GetInputLayerLengthEnemy()
-    {
-        return GetCaptureWidth() * GetCaptureHeight();
-    }
-    public int GetInputLayerLengthPlayer()
-    {
-        float playerHeight = -1;
-        if (m_playerVisualsCapture != null && m_playerVisualsCapture.Count != 0)
-            playerHeight = m_playerVisualsCapture[0].localScale.y;
-        else
-            Debug.Log("Warning: No player visual capture transform found!");
-        float pixelSize = GetPixelToWorldScale(1);
-
-        int height = (int)(playerHeight / pixelSize);
-        if (playerHeight != pixelSize)
-            height += 1;
-
-        return GetCaptureWidth() * height;
     }
     #endregion
 
     #region Gizmos
     private void OnDrawGizmosSelected()
     {
-        bool change = m_lastCaptureHeight != m_captureHeight && m_captureHeight != 0;
-        change |= m_lastCaptureWidth != m_captureWidth && m_captureWidth != 0;
+        bool change = m_lastCaptureHeight != m_captureHeight && m_captureHeight > 0 && m_lastBackgroundHeight != 0;
+        change |= m_lastCaptureWidth != m_captureWidth && m_captureWidth > 0;
+        change |= m_lastBackgroundHeight != m_backgroundHeight && m_backgroundHeight > 0;
 
         if (!change)
             return;
 
-        SetCaptureSize(m_captureWidth, m_captureHeight);
+        SetCaptureSize(/*GetCaptureWidth(), GetCaptureHeight()*/);
 
-        m_lastCaptureWidth = m_captureWidth;
-        m_lastCaptureHeight = m_captureHeight;
+        m_lastCaptureWidth = GetCaptureWidth();
+        m_lastCaptureHeight = GetCaptureHeight();
     }
     #endregion
 
@@ -166,6 +101,14 @@ public class ScreenshotManager : MonoBehaviour
     public int GetCaptureHeight()
     {
         return m_captureHeight;
+    }
+    public float GetBackgroundHeight()
+    {
+        return m_backgroundHeight;
+    }
+    public int GetOutputNumber()
+    {
+        return m_outputNodenNumber;
     }
     #endregion
 }

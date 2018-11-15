@@ -5,15 +5,15 @@ using UnityEngine;
 public class SimpleObstacleCollision : MonoBehaviour {
 
     [SerializeField] private IsObstacle m_obstacleScript;
-    private void OnTriggerEnter(Collider collider)
-    {
-        GameObject colliderObject = collider.gameObject;
-        IsPlayer isPlayerScript = colliderObject.GetComponent<IsPlayer>();
-        if (isPlayerScript == null)
-            return;
+    //private void OnTriggerEnter(Collider collider)
+    //{
+    //    GameObject colliderObject = collider.gameObject;
+    //    IsPlayer isPlayerScript = colliderObject.GetComponent<IsPlayer>();
+    //    if (isPlayerScript == null)
+    //        return;
 
-        m_obstacleScript.GetLevelOptions().RestartGame();
-    }
+    //    m_obstacleScript.GetLevelOptions().RestartGame();
+    //}
     private void OnCollisionEnter(Collision collision)
     {
         GameObject colliderObject = collision.gameObject;

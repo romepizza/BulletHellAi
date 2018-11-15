@@ -10,14 +10,63 @@ public class PlayerAiMovement : MonoBehaviour
     [SerializeField] private InputType m_inputType;
 
     [Header("--- Raycast ---")]
-    [SerializeField] private LayerMask m_layerMask;
+    [SerializeField] private float m_distanceMoveThreshold;
+    [SerializeField] private LayerMask m_layerMaskPlayer;
+    [SerializeField] private LayerMask m_layerMaskEnemy;
+    [SerializeField] private float m_additionalRaycastHeight;
+    [SerializeField] private float m_switchDirectionTimer;
+
+    [Header("--- Misc ---")]
+    [SerializeField] private float m_showCooldown;
 
     [Header("--- Objects ---")]
     [SerializeField] private TakeScreenshot m_screenshotManager;
     [SerializeField] private Transform m_visualCapturePlayer;
     [SerializeField] private Transform m_captureArea;
+
     [Header("------ Debug ------")]
-    bool b;
+     private Vector2Int m_areaSizePixel;
+     private Vector2 m_areaSizeWorld;
+    private float m_pixelSize;
+    private float m_raycastHeight;
+
+    [Space]
+     private float[] m_distances;
+    private List<int> m_playerIndices;
+    private Vector3 m_areaStartPosition;
+    private Vector3 m_raycastPosition;
+
+    [Space]
+    private float m_distanceAhead;
+    private float m_distanceLeftY;
+    private float m_distanceRightY;
+    private float m_distanceLeftX;
+    private float m_distanceRightX;
+
+    [Space]
+     private float m_playerLengthWorld;
+     private int m_playerLengthPixel;
+     private int m_playerPositionPixelMin;
+     private int m_playerPositionPixelMax;
+     private int m_playerPositionPixelCenterMin;
+     private int m_playerPositionPixelCenterMax;
+
+    [Space]
+     private int m_dangerIndexLeft;
+     private int m_dangerIndexRight;
+
+    [Space]
+     private bool m_isMovingLeft;
+     private bool m_isMovingRight;
+     private int m_moveToIndexPositionLeft;
+     private int m_moveToIndexPositionRight;
+     private float m_position;
+     private float m_wantPosition;
+
+    [Space]
+     private float m_actualAdditionalRaycastHeight;
+    private float m_showCooldownRdy;
+    private float m_changeDirectionTimer;
 
     #region Enums
     private enum InputType { Screenshot, Raycast }
@@ -35,6 +84,14 @@ public class PlayerAiMovement : MonoBehaviour
         if (m_screenshotManager == null)
             Debug.Log("Warning: m_screenshotManager is null!");
 	}
+    private void Update()
+    {
+        if(m_showCooldownRdy >= Time.time)
+        {
+            m_screenshotManager.GetScreenshotDataRaw(0, 0, false, true);
+            m_showCooldownRdy = m_showCooldown + Time.time;
+        }
+    }
     #endregion
 
     #region Input Control
@@ -51,9 +108,9 @@ public class PlayerAiMovement : MonoBehaviour
     }
     private float[] GenerateInputDataScreenshot()
     {
-        float[] inputData = new float[4];
+        float[] inputData = new float[ScreenshotManager.Instance().GetOutputNumber()];
 
-        float[][] inputInformation = m_screenshotManager.GetScreenshotDataRaw(false);
+        float[][] inputInformation = m_screenshotManager.GetScreenshotDataRaw(0, 0, false, true);
         int width = inputInformation.Length;
         int height = inputInformation[0].Length;
 
@@ -110,7 +167,7 @@ public class PlayerAiMovement : MonoBehaviour
         }
 
         // set the side dangers correctly if there is not enough space for the player
-        int playerLengthX = (int)Mathf.Ceil(m_visualCapturePlayer.localScale.x / ScreenshotManager.Instance().GetPixelToWorldScale(1));
+        int playerLengthX = (int)Mathf.Ceil(m_visualCapturePlayer.localScale.x / m_screenshotManager.GetPixelToWorldScale(0));
         int sideDanger = 0;
         for (int leftIndex = playerLengthX - 1; leftIndex >= 0; leftIndex--)
         {
@@ -182,32 +239,320 @@ public class PlayerAiMovement : MonoBehaviour
     }
     private float[] GenerateInputDataRaycast()
     {
-        float[] inputData = new float[4];
+        float[] inputData = new float[ScreenshotManager.Instance().GetOutputNumber()];
 
-        Vector2Int pixelCount = new Vector2Int(ScreenshotManager.Instance().GetCaptureWidth(), ScreenshotManager.Instance().GetCaptureHeight());
-        float pixelSize = ScreenshotManager.Instance().GetPixelToWorldScale(1);
-        float playerSizeX = m_visualCapturePlayer.localScale.x;
-
-        float[] distances = new float[pixelCount.x];
+        InitInfo();
 
         // get the distances to the enemy
-        Vector3 raycastPosition = m_captureArea.position;
-        raycastPosition.x -= m_captureArea.localScale.x * 0.5f;
-        raycastPosition.y -= m_captureArea.localScale.y * 0.5f;
-        raycastPosition.x += pixelSize * 0.5f;
-        for (int i = 0; i < distances.Length; i++)
+        SetDistancesRaw();
+        // set the sides as taboo if there is an enemy near the side and its close to the wall
+        SetDistancesSides();
+
+        // get player position
+        SetPlayerIndices();
+
+        // evaluate distances
+        EvaluateDistanceAhead();
+        //Debug.Log("0: " + m_distanceAhead);
+        //Debug.Log("1: " + (m_distanceMoveThreshold - m_actualAdditionalRaycastHeight - 0.01f));
+        //Debug.Log("2: " + (m_distanceAhead >= m_distanceMoveThreshold - m_actualAdditionalRaycastHeight - 0.01f));
+        if (m_distanceAhead >= m_distanceMoveThreshold - m_actualAdditionalRaycastHeight - 0.01f)
+        {
+            //Debug.Log("ASD");
+            return MoveToRaycastposition();
+        }
+        EvaluateDitanceLeftRight();
+        decideDirection();
+
+        return MoveToRaycastposition();
+    }
+    private void InitInfo()
+    {
+        m_areaSizePixel = new Vector2Int(m_screenshotManager.GetCaptureWidth(), m_screenshotManager.GetCaptureHeight());
+        m_areaSizeWorld = new Vector2(m_captureArea.localScale.x, m_captureArea.localScale.y);
+        m_distances = new float[m_areaSizePixel.x];
+        m_pixelSize = m_screenshotManager.GetPixelToWorldScale(0);
+        m_playerLengthWorld = m_visualCapturePlayer.localScale.x;
+        m_playerLengthPixel = (int)Mathf.Ceil(m_playerLengthWorld / m_pixelSize);
+
+        m_actualAdditionalRaycastHeight = Mathf.Min(-m_pixelSize * 0.51f, m_additionalRaycastHeight);
+        m_raycastHeight = m_areaSizeWorld.y - m_actualAdditionalRaycastHeight;
+
+        m_playerIndices = new List<int>();
+        m_playerPositionPixelMin = m_areaSizePixel.x - 1;
+        m_playerPositionPixelMax = 0;
+
+        m_distanceAhead = m_raycastHeight;
+        m_distanceLeftY = m_raycastHeight;
+        m_distanceRightY = m_raycastHeight;
+        m_dangerIndexLeft = m_areaSizePixel.x - 1;
+        m_dangerIndexRight = 0;
+    }
+    private void SetDistancesRaw()
+    {
+        m_raycastPosition = GetRaycastPosition(0);
+        for (int i = 0; i < m_distances.Length; i++)
         {
             RaycastHit hit;
-            if (Physics.Raycast(raycastPosition, Vector3.up, out hit, m_captureArea.localScale.y, m_layerMask))
+            if (Physics.Raycast(m_raycastPosition, Vector3.up, out hit, m_raycastHeight, m_layerMaskEnemy))
             {
-                float distance = (raycastPosition - hit.point).magnitude;
-                distances[i] = distance;
-                Debug.DrawRay(raycastPosition, Vector3.up * distance, Color.Lerp(Color.green, Color.red, Utility.MapValuePercent(0, m_captureArea.localScale.y, distance != 0 ? 1 / distance : 0)));
+                float distance = (m_raycastPosition - hit.point).magnitude;
+                m_distances[i] = distance;
+                Debug.DrawRay(m_raycastPosition, Vector3.up * distance, Color.Lerp(Color.green, Color.red, Utility.MapValuePercent(0, m_raycastHeight, distance != 0 ? distance : 0)));
             }
-            raycastPosition.x += pixelSize;
+            else
+            {
+                m_distances[i] = m_raycastHeight;
+                //Debug.DrawRay(m_raycastPosition, Vector3.up * m_captureArea.localScale.y, Color.green);
+            }
+            m_raycastPosition.x += m_pixelSize;
+        }
+    }
+    private void SetDistancesSides()
+    {
+        float minValue = m_raycastHeight;
+        for (int i = m_playerLengthPixel - 1; i >= 0; i--)
+        {
+            minValue = Mathf.Min(m_distances[i], minValue);
+            m_distances[i] = minValue;
+        }
+        minValue = m_raycastHeight;
+        for (int i = m_areaSizePixel.x - m_playerLengthPixel; i < m_areaSizePixel.x; i++)
+        {
+            minValue = Mathf.Min(m_distances[i], minValue);
+            m_distances[i] = minValue;
+        }
+    }
+    private void SetPlayerIndices()
+    {
+        m_raycastPosition = GetRaycastPosition(0);
+        for (int i = 0; i < m_distances.Length; i++)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(m_raycastPosition, Vector3.up, out hit, m_raycastHeight, m_layerMaskPlayer))
+            {
+                m_playerIndices.Add(i);
+            }
+            m_raycastPosition.x += m_pixelSize;
+        }
+
+        if(m_playerIndices.Count == 0)
+        {
+            Debug.Log("Warning! Player not found via racasts!");
+            return;
+        }
+
+        m_playerPositionPixelMin = m_playerIndices[0];
+        m_playerPositionPixelMax = m_playerIndices[m_playerIndices.Count - 1];
+        int posInt = (m_playerPositionPixelMin + m_playerPositionPixelMax) / 2;
+        float posFloat = (m_playerPositionPixelMin + m_playerPositionPixelMax) * 0.5f;
+        if (posFloat - posInt > 0.1f) // check if the position is not an integer
+        {
+            m_playerPositionPixelCenterMin = posInt;
+            m_playerPositionPixelCenterMax = posInt + 1;
+        }
+        else
+        {
+            m_playerPositionPixelCenterMax = m_playerPositionPixelCenterMin = posInt;
+        }
+    }
+    private void EvaluateDistanceAhead()
+    {
+        // get the minimum distance ahead
+        for (int pixelIndex = m_playerPositionPixelMin; pixelIndex <= m_playerPositionPixelMax; pixelIndex++)
+        {
+            m_distanceAhead = Mathf.Min(m_distanceAhead, m_distances[pixelIndex]);
+        }
+
+        if (m_distanceAhead == m_raycastHeight)
+            return;
+
+        // evaluate the most left and most right indices in which there is danger ahead
+        for (int pixelIndex = m_playerPositionPixelMin; pixelIndex <= m_playerPositionPixelMax; pixelIndex++)
+        {
+            if(m_distances[pixelIndex] == m_distanceAhead)
+            {
+                m_dangerIndexLeft = Mathf.Min(m_dangerIndexLeft, pixelIndex);
+                m_dangerIndexRight = Mathf.Max(m_dangerIndexRight, pixelIndex);
+            }
+        }
+
+        // expand the most left/right indices to the full span of the enemy
+        for(int pixelIndexLeft = m_dangerIndexLeft; pixelIndexLeft >= 0; pixelIndexLeft--)
+        {
+            if (m_distances[pixelIndexLeft] != m_distanceAhead)
+                break;
+
+            m_dangerIndexLeft = pixelIndexLeft;
+        }
+        for (int pixelIndexRight = m_dangerIndexRight; pixelIndexRight < m_areaSizePixel.x; pixelIndexRight++)
+        {
+            if (m_distances[pixelIndexRight] != m_distanceAhead)
+                break;
+
+            m_dangerIndexRight = pixelIndexRight;
+        }
+    }
+    private void EvaluateDitanceLeftRight()
+    {
+        m_distanceLeftX = 0;
+        m_distanceRightX = 0;
+
+        int startIndexLeft = m_dangerIndexLeft == 0 ? m_dangerIndexLeft : m_dangerIndexLeft - 1;
+        int endIndexLeft = startIndexLeft - m_playerLengthPixel + 1;
+        int startIndexRight = m_dangerIndexRight == m_distances.Length - 1 ? m_dangerIndexRight : m_dangerIndexRight + 1;
+        int endIndexRight = startIndexRight + m_playerLengthPixel - 1;
+
+        bool isAtEndLeft = false;
+        bool isAtEndRight = false;
+        do
+        {
+            if (!isAtEndLeft)
+            {
+                for (int pixelIndexLeft = startIndexLeft; pixelIndexLeft >= endIndexLeft; pixelIndexLeft--)
+                {
+                    if (pixelIndexLeft < 0)
+                    {
+                        isAtEndLeft = true;
+                        break;
+                    }
+                    m_distanceLeftY = Mathf.Min(m_distanceLeftY, m_distances[pixelIndexLeft]);
+                }
+                m_moveToIndexPositionLeft = (startIndexLeft + endIndexLeft) / 2;
+                startIndexLeft--;
+                endIndexLeft--;
+                m_distanceLeftX++;
+            }
+
+            if (!isAtEndRight)
+            { 
+                for (int pixelIndexRight = startIndexRight; pixelIndexRight <= endIndexRight; pixelIndexRight++)
+                {
+                    if (pixelIndexRight >= m_distances.Length)
+                    {
+                        isAtEndRight = true;
+                        break;
+                    }
+                    m_distanceRightY = Mathf.Min(m_distanceRightY, m_distances[pixelIndexRight]);
+                }
+                m_moveToIndexPositionRight = (startIndexRight + endIndexRight) / 2;
+                startIndexRight++;
+                endIndexRight++;
+                m_distanceRightX++;
+            }
+
+            // if no obstacle to the left and to the right detected, go to the nearest side
+            //if(m_distanceRightY == m_distanceLeftY)
+            //{
+            //    m_distanceLeftX = m_playerPositionPixelCenterMin - Mathf.Max(0, startIndexLeft);
+            //    m_distanceRightX = Mathf.Min(startIndexRight, m_distances.Length - 1) - m_playerPositionPixelCenterMax;
+            //}
+
+        } while (m_distanceLeftY == m_distanceRightY && m_distanceRightX == m_distanceLeftX && !isAtEndLeft && !isAtEndRight);
+
+        if (isAtEndRight && isAtEndLeft)
+            Debug.Log("Warning!");
+        
+    }
+    private float[] MoveToRaycastposition()
+    {
+        float[] inputData = new float[ScreenshotManager.Instance().GetOutputNumber()];
+        if (!m_isMovingRight && !m_isMovingLeft)
+        {
+            m_changeDirectionTimer += Time.deltaTime;
+            return inputData;
+        }
+        m_position = m_visualCapturePlayer.position.x - GetAreaStartPosition().x;
+        m_wantPosition = m_pixelSize * (0.5f + (m_isMovingLeft ? m_moveToIndexPositionLeft : m_moveToIndexPositionRight));
+
+        if(m_isMovingLeft)
+        {
+            if (m_position <= m_wantPosition)
+                m_isMovingLeft = false;
+            else
+                inputData[0] = 1;
+        }
+        if (m_isMovingRight)
+        {
+            if (m_position >= m_wantPosition)
+                m_isMovingRight = false;
+            else
+                inputData[1] = 1;
         }
 
         return inputData;
+    }
+    private void decideDirection()
+    {
+        if (m_distanceLeftY > m_distanceRightY)
+        {
+            m_isMovingLeft = true;
+            m_isMovingRight = false;
+            //inputData[0] = 1;
+        }
+        else if (m_distanceLeftY < m_distanceRightY)
+        {
+            m_isMovingLeft = false;
+            m_isMovingRight = true;
+            //inputData[1] = 1;
+        }
+        else
+        {
+            if (m_distanceLeftX < m_distanceRightX)
+            {
+                m_isMovingLeft = true;
+                m_isMovingRight = false;
+                //inputData[0] = 1;
+            }
+            else if (m_distanceLeftX > m_distanceRightX)
+            {
+                m_isMovingLeft = false;
+                m_isMovingRight = true;
+                //inputData[1] = 1;
+            }
+            else // go middle
+            {
+                int centerPosInt = (int)(m_areaSizePixel.x * 0.5f);
+                float centerPosFloat = m_areaSizePixel.x * 0.5f;
+
+                int centerPosMin = centerPosInt;
+                int centerPosMax = centerPosInt;
+                if (centerPosFloat - centerPosInt > 0.1f) // check if the position is not an integer
+                    centerPosMax++;
+
+                if (m_playerPositionPixelCenterMin < centerPosMin)// player is on the right half
+                {
+                    m_isMovingLeft = false;
+                    m_isMovingRight = true;
+                }
+                else if (m_playerPositionPixelCenterMax > centerPosMax) // player is on the left half
+                {
+                    m_isMovingLeft = true;
+                    m_isMovingRight = false;
+                }
+                else // if player is in the middle, decide via a timer which increments as the player isn't moving
+                {
+                    if (m_changeDirectionTimer % m_switchDirectionTimer * 2f > m_switchDirectionTimer)
+                    {
+                        m_isMovingLeft = false;
+                        m_isMovingRight = true;
+                    }
+                    else
+                    {
+                        m_isMovingLeft = true;
+                        m_isMovingRight = false;
+                    }
+                }
+            }
+        }
+    }
+    private Vector3 GetRaycastPosition(int index)
+    {
+        return GetAreaStartPosition() + new Vector3(m_pixelSize * (0.5f + index), m_actualAdditionalRaycastHeight, 0);
+    }
+    private Vector3 GetAreaStartPosition()
+    {
+        return m_captureArea.position - new Vector3(m_areaSizeWorld.x * 0.5f, m_areaSizeWorld.y * 0.5f, 0);
     }
     #endregion
 

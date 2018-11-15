@@ -26,17 +26,20 @@ public class PlayerMovement : MonoBehaviour
     #region Input Control
     public float[] GenerateInputDataPlayer()
     {
-        float[] input = new float[4];
+        float[] input = new float[ScreenshotManager.Instance().GetOutputNumber()];
 
         if (Input.GetKey(m_keyLeft))
             input[0] = 1;
         if (Input.GetKey(m_keyRight))
             input[1] = 1;
-        if (Input.GetKey(m_keyUp))
-            input[2] = 1;
-        if (Input.GetKey(m_keyDown))
-            input[3] = 1;
+        if (input.Length > 2)
+        {
+            if (Input.GetKey(m_keyUp))
+                input[2] = 1;
+            if (Input.GetKey(m_keyDown))
+                input[3] = 1;
 
+        }
         return input;
     }
     #endregion
