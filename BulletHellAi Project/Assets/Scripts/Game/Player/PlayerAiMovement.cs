@@ -229,7 +229,14 @@ public class PlayerAiMovement : MonoBehaviour
 
         bool stay = dangerAhead == 0 ||  (dangerAhead < dangerLeft && dangerAhead < dangerRight);
         if (stay)
+        {
+            if (ScreenshotManager.Instance().GetOutputNumber() == 3)
+                inputData[2] = 1;
+            if(ScreenshotManager.Instance().GetOutputNumber() == 5)
+                inputData[4] = 1;
             return inputData;
+        }
+
         bool goLeft = dangerLeft < dangerRight || (dangerLeft == dangerRight && (playerPositionMin.x + playerPositionMax.x) * 0.5f >= width * 0.5f);
         bool goRight = !goLeft;
         inputData[0] = goLeft ? 1 : 0;
@@ -239,7 +246,7 @@ public class PlayerAiMovement : MonoBehaviour
     }
     private float[] GenerateInputDataRaycast()
     {
-        float[] inputData = new float[ScreenshotManager.Instance().GetOutputNumber()];
+        //float[] inputData = new float[ScreenshotManager.Instance().GetOutputNumber()];
 
         InitInfo();
 
@@ -460,6 +467,10 @@ public class PlayerAiMovement : MonoBehaviour
         if (!m_isMovingRight && !m_isMovingLeft)
         {
             m_changeDirectionTimer += Time.deltaTime;
+            if (ScreenshotManager.Instance().GetOutputNumber() == 3)
+                inputData[2] = 1;
+            if (ScreenshotManager.Instance().GetOutputNumber() == 5)
+                inputData[4] = 1;
             return inputData;
         }
         m_position = m_visualCapturePlayer.position.x - GetAreaStartPosition().x;

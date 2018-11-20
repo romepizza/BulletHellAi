@@ -6,13 +6,21 @@ using UnityEngine.UI;
 public class NeuralNetworkTrainingManager : MonoBehaviour
 {
     [Header("------ Settings -------")]
+    [Header("--- Learn Type ---")]
+    [SerializeField] private UpdateType m_updateType;
+
+    [Header("--- Learn Rate ---")]
     [SerializeField] private float m_learnRate;
     [SerializeField] private int m_batchSize;
+    [SerializeField] private int m_curveRange;
+    [SerializeField] private AnimationCurve m_curve;
+
     [Header("--- Online Learning ---")]
     [SerializeField] private bool m_trainNetworkOnline;
     [SerializeField] private bool m_saveSamplesOnline;
     [SerializeField] private float m_trainingCooldownOnlineMin;
     [SerializeField] private float m_trainingCooldownOnlineMax;
+
     [Header("--- Offline Learning ---")]
     [SerializeField] private bool m_trainNetworkOffline;
     [SerializeField] private int m_trainingUnits;
@@ -21,6 +29,10 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     [Space]
     [SerializeField] private float m_trainingCooldownOfflineGatherMin;
     [SerializeField] private float m_trainingCooldownOfflineGatherMax;
+
+    [Header("--- Stop Learning ---")]
+    [SerializeField] private int m_stopAtMaximumUnitCount;
+
     [Header("--- Objects ---")]
     [SerializeField] private Text m_unitCountText;
 
@@ -34,6 +46,11 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     private float m_trainingCooldownRdyOfflineGather;
 
     private int m_trainingUnitssCompleted;
+
+
+    #region Enums
+    private enum UpdateType { SGD, Momentum, NAG, Adam }
+    #endregion
 
     #region Mono
     private void Awake()
@@ -63,7 +80,10 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     #region Training
     private void ManageTraining()
     {
-        if(m_trainNetworkOnline && m_trainingCooldownRdyOnline < Time.time)
+        if (m_stopAtMaximumUnitCount > 0 && m_trainingUnitssCompleted >= m_stopAtMaximumUnitCount)
+            m_trainNetworkOnline = m_trainNetworkOffline = false;
+
+        if (m_trainNetworkOnline && m_trainingCooldownRdyOnline < Time.time)
         {
             TrainNetworkOnline();
             m_trainingCooldownRdyOnline = Time.time + Random.Range(m_trainingCooldownOnlineMin, m_trainingCooldownOnlineMax);
@@ -93,7 +113,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         if (!sampleSource.m_isOkay)
             return;
 
-        bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput);
+        bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitssCompleted));
         UpdateTraningCount();
 
         SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
@@ -107,7 +127,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         if (!sampleSource.m_isOkay)
             return;
 
-        bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput);
+        bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitssCompleted));
         UpdateTraningCount();
 
         SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
@@ -117,11 +137,16 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     }
     private void GatherNetworkOffline()
     {
-        SampleContainer sampleSource = m_sampleManager.GenerateSampleSource(true);
+        /*SampleContainer sampleSource =*/ m_sampleManager.GenerateSampleSource(true);
     }
     #endregion
-
+    
     #region Misc
+    private float GetLearnRate(int unitNumber)
+    {
+        float learnRate = m_learnRate * m_curve.Evaluate(unitNumber / (m_curveRange == 0 ? 1 : m_curveRange));
+        return learnRate;
+    }
     public void SetNetwork(NeuralNetwork network)
     {
         m_network = network;

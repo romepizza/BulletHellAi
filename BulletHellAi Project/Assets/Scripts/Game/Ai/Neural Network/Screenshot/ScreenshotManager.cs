@@ -44,7 +44,6 @@ public class ScreenshotManager : MonoBehaviour
     #region Size
     public float GetPixelToWorldScale(int size)
     {
-        float pixelWidth = m_captureAreaSize.x / m_captureWidth;
         float pixelHeight = m_captureAreaSize.y / m_captureHeight;
 
         return pixelHeight * size;

@@ -32,7 +32,15 @@ public class PlayerMovement : MonoBehaviour
             input[0] = 1;
         if (Input.GetKey(m_keyRight))
             input[1] = 1;
-        if (input.Length > 2)
+        
+        if(input[0] == 0 && input[1] == 0)
+        {
+            if (ScreenshotManager.Instance().GetOutputNumber() == 3)
+                input[2] = 1;
+            if (ScreenshotManager.Instance().GetOutputNumber() == 5)
+                input[4] = 1;
+        }
+        if (ScreenshotManager.Instance().GetOutputNumber() >= 4)
         {
             if (Input.GetKey(m_keyUp))
                 input[2] = 1;

@@ -52,7 +52,7 @@ public class PlayerMovementManager : MonoBehaviour
         bool isPressingRight = inputData[1] == 1;
         bool isPressingUp = false;
         bool isPressingDown = false;
-        if (inputData.Length > 2)
+        if (inputData.Length > 3)
         {
            isPressingUp = inputData[2] == 1;
            isPressingDown = inputData[3] == 1;
@@ -63,7 +63,7 @@ public class PlayerMovementManager : MonoBehaviour
             m_forceVector.x -= m_movementSpeed;// * (m_isPressingSlow ? m_slowFactor : 1);
         if (isPressingRight && !m_restrictedArea.IsOutOfRestrictionPosX(transform.position))
             m_forceVector.x += m_movementSpeed;// * (m_isPressingSlow ? m_slowFactor : 1);
-        if (inputData.Length > 2)
+        if (inputData.Length > 3)
         {
             if (isPressingUp && !m_restrictedArea.IsOutOfRestrictionPosY(transform.position))
                 m_forceVector.y += m_movementSpeed;// * (m_isPressingSlow ? m_slowFactor : 1);
@@ -92,7 +92,7 @@ public class PlayerMovementManager : MonoBehaviour
         else if (m_controllerType == ControllerType.Ai)
             inputData = PlayerAiMovement.Instance().GenerateInputData();
 
-        if (inputData.Length > 2 && !m_allowUpDownMovement)
+        if (inputData.Length > 3 && !m_allowUpDownMovement)
             inputData[2] = inputData[3] = 0;
 
         return inputData;

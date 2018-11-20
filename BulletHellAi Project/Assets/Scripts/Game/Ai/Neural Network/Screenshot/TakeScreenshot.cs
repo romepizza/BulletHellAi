@@ -170,7 +170,6 @@ public class TakeScreenshot : MonoBehaviour {
             float[] dataY = new float[m_currentHeight];
             for (int y = 0; y < texture.height; y++)
             {
-                int index = y * texture.width + x;
                 float value = 0;
 
                 Color color = texture.GetPixel(x, y);
@@ -205,10 +204,12 @@ public class TakeScreenshot : MonoBehaviour {
         m_rect = new Rect(0, 0, m_currentWidth, m_currentHeight);
         m_renderTexture = new RenderTexture(m_currentWidth, m_currentHeight, 24);
         m_screenshotTexture = new Texture2D(m_currentWidth, m_currentHeight, TextureFormat.RGB24, false);
+        m_screenshotTexture.filterMode = FilterMode.Point;
 
         //Debug.Log(GetObstacleScale(m_spawner.GetSpawnPrefab().transform.localScale, m_currentWidth));
         m_spawner.setScaleOfActiveObstacles(GetObstacleScale(m_spawner.GetSpawnPrefab().transform.localScale, m_currentWidth));
         SetCaptureSizesPlayer(m_currentWidth);
+
 
         m_camera.targetTexture = m_renderTexture;
         m_camera.allowHDR = forceHdr ? true : m_allowHDR;

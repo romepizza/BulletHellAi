@@ -127,22 +127,29 @@ public class AiMovement : MonoBehaviour {
 
         float leftOutput = output[0];
         float rightOutput = output[1];
+        
         float upOutput = 0;
         float downOutput = 0;
-        if (output.Length > 2)
+        if (output.Length > 3)
         {
             upOutput = output[2];
-            downOutput = output[2];
+            downOutput = output[3];
+        }
+
+        float noOutput = 0;
+        if (output.Length == 3 || output.Length == 5)
+        {
+            noOutput = output.Length == 3 ? output[2] : output[4];
         }
 
         if (m_interpretationType == NetworkOutputInterpretation.ThresholdOnly)
         {
-
+            Debug.Log("Warning: NetworkOutputInterpretation.ThresholdOnly not recommended!");
             if (leftOutput >= m_decisionThreshold)
                 m_isPressingLeft = true;
             if (rightOutput >= m_decisionThreshold)
                 m_isPressingRight = true;
-            if (output.Length > 2)
+            if (output.Length > 3)
             {
                 if (upOutput >= m_decisionThreshold)
                     m_isPressingUp = true;
@@ -155,36 +162,56 @@ public class AiMovement : MonoBehaviour {
             if (m_randomInitialCooldownRdy > Time.time)
                 return;
 
-            if (leftOutput < rightOutput * m_decisionDynamicRandomThreshold)
-                leftOutput = 0;
-            if (rightOutput < leftOutput * m_decisionDynamicRandomThreshold)
-                rightOutput = 0;
-            if (output.Length > 2)
+            // Threshold
+            if (output.Length == 2)
+            {
+                if (leftOutput < rightOutput * m_decisionDynamicRandomThreshold)
+                    leftOutput = 0;
+                if (rightOutput < leftOutput * m_decisionDynamicRandomThreshold)
+                    rightOutput = 0;
+            }
+            if (output.Length == 3)
+            {
+                float max = Mathf.Max(leftOutput, upOutput, noOutput);
+                if (leftOutput <= max * m_decisionDynamicRandomThreshold)
+                    leftOutput = 0;
+                if (rightOutput <= max * m_decisionDynamicRandomThreshold)
+                    rightOutput = 0;
+                if (noOutput <= max * m_decisionDynamicRandomThreshold)
+                    noOutput = 0;
+            }
+            if (output.Length > 3)
             {
                 if (upOutput < downOutput * m_decisionDynamicRandomThreshold)
                     upOutput = 0;
                 if (downOutput < upOutput * m_decisionDynamicRandomThreshold)
                     downOutput = 0;
             }
+
             // decide left/right
             if (leftOutput != 0 || rightOutput != 0)
             {
-                if (leftOutput == 0)
+                if (leftOutput == 0 && noOutput == 0)
                     m_isPressingRight = true;
-                else if (rightOutput == 0)
+                else if (rightOutput == 0 && noOutput == 0)
                     m_isPressingLeft = true;
+                else if (rightOutput == 0 && leftOutput == 0)
+                    ;
                 else
                 {
-                    float random = Random.Range(0, leftOutput + rightOutput);
+                    float random = Random.Range(0, leftOutput + rightOutput + noOutput);
                     if (random < leftOutput)
                         m_isPressingLeft = true;
-                    else
+                    else if (random < leftOutput + rightOutput)
                         m_isPressingRight = true;
+                    else
+                        ;
                 }
             }
             // decide up/down
-            if (output.Length > 2)
+            if (output.Length > 3)
             {
+                Debug.Log("Warning: Code not uptodate!");
                 if (upOutput != 0 || downOutput != 0)
                 {
                     if (upOutput == 0)
@@ -204,6 +231,7 @@ public class AiMovement : MonoBehaviour {
         }
         if (m_interpretationType == NetworkOutputInterpretation.Random)
         {
+            Debug.Log("Warning: Code not uptodate!");
             if (m_randomInitialCooldownRdy > Time.time)
                 return;
 
@@ -216,8 +244,9 @@ public class AiMovement : MonoBehaviour {
                 m_isPressingRight = true;
 
             // decide up/down
-            if (output.Length > 2)
+            if (output.Length > 3)
             {
+                
                 random = Random.Range(0, upOutput + downOutput);
                 if (random < upOutput)
                     m_isPressingUp = true;
@@ -227,6 +256,7 @@ public class AiMovement : MonoBehaviour {
         }
         if (m_interpretationType == NetworkOutputInterpretation.RandomAndThreshold)
         {
+            Debug.Log("Warning: Code not uptodate!");
             if (m_randomInitialCooldownRdy > Time.time)
                 return;
 
@@ -235,7 +265,7 @@ public class AiMovement : MonoBehaviour {
                 leftOutput = 0;
             if (rightOutput < m_decisionThreshold)
                 rightOutput = 0;
-            if (output.Length > 2)
+            if (output.Length > 3)
             {
                 if (upOutput < m_decisionThreshold)
                     upOutput = 0;
@@ -261,7 +291,7 @@ public class AiMovement : MonoBehaviour {
                 }
             }
             // decide up/down
-            if (output.Length > 2)
+            if (output.Length > 3)
             {
                 if (upOutput != 0 || downOutput != 0)
                 {

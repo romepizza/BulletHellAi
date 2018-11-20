@@ -317,6 +317,19 @@ public class NeuralNetworkVisualization : MonoBehaviour
                     valueContainerNode = activision.gameObject.AddComponent<NeuralNetworkValueContainer>();
                 valueContainerNode.m_value = value;
                 values[nodeIndex] = value;
+
+                // set the color of activisions and biases in the input layer
+                if(layerIndex == 0)
+                {
+                    Transform bias = m_nodeTransforms[layerIndex][nodeIndex];
+
+                    renderer = bias.GetComponent<Renderer>();
+                    mpb = new MaterialPropertyBlock();
+                    mpb.SetColor("_Color", color);
+                    renderer.material.EnableKeyword("_EMISSION");
+                    mpb.SetColor("_EmissionColor", color);
+                    renderer.SetPropertyBlock(mpb);
+                }
             }
 
             valueContainerLayer.m_valuesActivision = values;

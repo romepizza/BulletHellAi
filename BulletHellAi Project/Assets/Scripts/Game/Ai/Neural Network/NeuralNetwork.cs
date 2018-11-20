@@ -36,7 +36,7 @@ public class NeuralNetwork
 
     // Enums
     public enum ActivisionFunctionType { Sigmoid }
-    public enum CostFunctionType { Quadratic }
+    public enum CostFunctionType { CrossEntropy, Quadratic }
     public enum InitializationType { Zero, Random }
 
 
@@ -193,20 +193,20 @@ public class NeuralNetwork
     #endregion
 
     #region Training
-    public bool AddTrainingData(float[] input, float[] desiredOutput)
+    public bool AddTrainingData(float[] input, float[] desiredOutput, float learnRate)
     {
         m_batchInputs[m_currentBatchIndex] = input;
         m_batchDesiredOutputs[m_currentBatchIndex] = desiredOutput;
         m_currentBatchIndex++;
         if(m_currentBatchIndex >= m_batchSize)
         {
-            PerformBackPropagation();
+            PerformBackPropagation(learnRate);
             InitializeBatch();
             return true;
         }
         return false;
     }
-    public void PerformBackPropagation()
+    public void PerformBackPropagation(float learnRate)
     {
         ClearMatrixArray(m_newBiases);
         ClearMatrixArray(m_newWeights);
@@ -229,7 +229,7 @@ public class NeuralNetwork
             }
 
             // back pass, start at the last layer (manually) and loop over the prelayers afterwards
-            MyMatrix delta = MyMatrix.MultiplyElementWise(GetCostDrivative(m_batchDesiredOutputs[batchIndex], m_activisionValues[m_activisionValues.Length - 1]), GetSigmoidPrime(m_rawValues[m_rawValues.Length - 1]));
+            MyMatrix delta = GetCostDerivative(m_rawValues[m_rawValues.Length - 1], m_batchDesiredOutputs[batchIndex], m_activisionValues[m_activisionValues.Length - 1]);// MyMatrix.MultiplyElementWise(GetCostDrivative(m_batchDesiredOutputs[batchIndex], m_activisionValues[m_activisionValues.Length - 1]), GetSigmoidPrime(m_rawValues[m_rawValues.Length - 1]));
             m_newBiases[m_newBiases.Length - 1] = delta;
             m_newWeights[m_newWeights.Length - 1] = MyMatrix.Dot(delta, MyMatrix.Transposed(m_activisionValues[m_activisionValues.Length - 2]));
 
@@ -256,12 +256,12 @@ public class NeuralNetwork
         // set the final values
         for(int layerIndex = 0; layerIndex < m_biases.Length; layerIndex++)
         {
-            m_newBiases[layerIndex].MultiplyByFactor(m_learnRate / m_batchSize);
+            m_newBiases[layerIndex].MultiplyByFactor((learnRate <= 0 ? m_learnRate : learnRate) / m_batchSize);
             m_biases[layerIndex].AddMatrix(m_newBiases[layerIndex]);
         }
         for (int layerIndex = 0; layerIndex < m_weights.Length; layerIndex++)
         {
-            m_newWeights[layerIndex].MultiplyByFactor(m_learnRate / m_batchSize);
+            m_newWeights[layerIndex].MultiplyByFactor((learnRate <= 0 ? m_learnRate : learnRate) / m_batchSize);
             m_weights[layerIndex].AddMatrix(m_newWeights[layerIndex]);
         }
     }
@@ -345,12 +345,14 @@ public class NeuralNetwork
             return null;
         }
 
-        if (m_costFunctionType == CostFunctionType.Quadratic)
+        if (m_costFunctionType == CostFunctionType.CrossEntropy)
+            return GetCostCrossEntropy(desiredOutput, actualOutput);
+        else if (m_costFunctionType == CostFunctionType.Quadratic)
             return GetCostQuadratic(desiredOutput, actualOutput);
 
         return null;
     }
-    private MyMatrix GetCostDrivative(float[] desiredOutput, MyMatrix actualOutput)
+    private MyMatrix GetCostDerivative(MyMatrix rawValues, float[] desiredOutput, MyMatrix actualOutput)
     {
         if (desiredOutput.Length != actualOutput.m_rowCountY)
         {
@@ -358,16 +360,44 @@ public class NeuralNetwork
             return null;
         }
 
-        if (m_costFunctionType == CostFunctionType.Quadratic)
-            return GetCostQuadraticDerivative(desiredOutput, actualOutput);
+        if (m_costFunctionType == CostFunctionType.CrossEntropy)
+            return GetCostCrossEntropyDerivative(rawValues, desiredOutput, actualOutput);
+        else if(m_costFunctionType == CostFunctionType.Quadratic)
+            return GetCostQuadraticDerivative(rawValues, desiredOutput, actualOutput);
 
         return null;
+    }
+
+    // Cross Entropy
+    private float GetCostCrossEntropy(float desiredOutput, float actualOutput)
+    {
+        Debug.Log("Warning: Not implemented yet!");
+        return (desiredOutput - actualOutput) * (desiredOutput - actualOutput);
+    }
+    private MyMatrix GetCostCrossEntropy(float[] desiredOutput, MyMatrix actualOutput)
+    {
+        MyMatrix costMatrix = new MyMatrix(actualOutput, false);
+        for (int y = 0; y < costMatrix.m_rowCountY; y++)
+            costMatrix.m_data[y][0] = GetCostCrossEntropy(desiredOutput[y], actualOutput.m_data[y][0]);
+        return costMatrix;
+    }
+
+    private float GetCostCrossEntropyDerivative(float desiredOutput, float actualOutput)
+    {
+        return desiredOutput - actualOutput;
+    }
+    private MyMatrix GetCostCrossEntropyDerivative(MyMatrix rawValues, float[] desiredOutput, MyMatrix actualOutput)
+    {
+        MyMatrix costMatrix = new MyMatrix(actualOutput, false);
+        for (int y = 0; y < costMatrix.m_rowCountY; y++)
+            costMatrix.m_data[y][0] = GetCostCrossEntropyDerivative(desiredOutput[y], actualOutput.m_data[y][0]);
+        return costMatrix;
     }
 
     // Quadratic
     private float GetCostQuadratic(float desiredOutput, float actualOutput)
     {
-        return (desiredOutput - actualOutput) * (desiredOutput - actualOutput);
+        return 0.5f * (desiredOutput - actualOutput) * (desiredOutput - actualOutput);
     }
     private MyMatrix GetCostQuadratic(float[] desiredOutput, MyMatrix actualOutput)
     {
@@ -379,15 +409,19 @@ public class NeuralNetwork
 
     private float GetCostQuadraticDerivative(float desiredOutput, float actualOutput)
     {
-        return 2f * (desiredOutput - actualOutput);
+        return (desiredOutput - actualOutput);
     }
-    private MyMatrix GetCostQuadraticDerivative(float[] desiredOutput, MyMatrix actualOutput)
+    private MyMatrix GetCostQuadraticDerivative(MyMatrix rawValues, float[] desiredOutput, MyMatrix actualOutput)
     {
         MyMatrix costMatrix = new MyMatrix(actualOutput, false);
         for (int y = 0; y < costMatrix.m_rowCountY; y++)
             costMatrix.m_data[y][0] = GetCostQuadraticDerivative(desiredOutput[y], actualOutput.m_data[y][0]);
+
+        costMatrix = MyMatrix.MultiplyElementWise(costMatrix, GetSigmoidPrime(rawValues));
         return costMatrix;
     }
+
+    
     #endregion
 
     #region Misc

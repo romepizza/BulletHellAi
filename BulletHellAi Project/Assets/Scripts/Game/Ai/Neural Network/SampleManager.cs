@@ -14,6 +14,7 @@ public class SampleManager : MonoBehaviour
     [Header("--- Offline ---")]
     [SerializeField] private int m_minSamples;
     [SerializeField] private int m_maxSamples;
+    [SerializeField] private int m_batchSize;
 
     [Header("--- Objects ---")]
     [SerializeField] private TakeScreenshot m_screenshotScriptThis;
@@ -91,6 +92,8 @@ public class SampleManager : MonoBehaviour
     {
         if (m_samples.Count < m_minSamples || m_samples.Count == 0)
             return new SampleContainer(null, null, false);
+
+        //SampleContainer container = new SampleContainer(null, null, true);
 
         int index = Random.Range(0, m_samples.Count - 1);
         SampleContainer sampleContainer = m_samples[index];
@@ -220,12 +223,9 @@ public class SampleManager : MonoBehaviour
 
         if(m_tossNoOutputSamples)
         {
+            if(desiredOutput[0] == 0 && desiredOutput[1] == 0)
             isOkay = false;
-            for(int i = 0; i < desiredOutput.Length; i++)
-            {
-                if (desiredOutput[i] != 0)
-                    isOkay = true;
-            }
+            
         }
 
         return isOkay;

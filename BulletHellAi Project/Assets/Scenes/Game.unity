@@ -288,7 +288,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 123
+  m_Text: 
 --- !u!222 &23733342
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -296,6 +296,40 @@ CanvasRenderer:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 23733339}
   m_CullTransparentMesh: 0
+--- !u!1 &33126445
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 33126446}
+  m_Layer: 5
+  m_Name: Ai (2)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &33126446
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 33126445}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.0000001, y: 1.0000001, z: 1.0000001}
+  m_Children:
+  - {fileID: 172484812}
+  m_Father: {fileID: 1967643863}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -0.000061035156, y: -0.000015258789}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &35619761
 GameObject:
   m_ObjectHideFlags: 0
@@ -546,8 +580,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d45d4801b10a6c4499905e44122380a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_visualize: 1
-  m_height: 8
+  m_visualize: 0
+  m_height: 7
   m_width: 3
   m_marginX: 0.25
   m_marginY: 0.25
@@ -555,10 +589,10 @@ MonoBehaviour:
   m_nodesScaleFactorGlobal: 0.5
   m_weightsScaleFactorGloal: 0.5
   m_nodesScaleFactorLayerWise:
-  - 0.5
+  - 0.2
   m_weightsScaleFactorLayerWise:
-  - 0.5
-  m_relativePosition: {x: 4.5, y: 1.25, z: 0}
+  - 0.1
+  m_relativePosition: {x: 4.5, y: 1.5, z: 0}
   m_relativeRotation: {x: 0, y: 0, z: 0}
   m_parentTransform: {fileID: 124577603}
 --- !u!114 &55830823
@@ -574,8 +608,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_inputType: 0
   m_tossNoOutputSamples: 1
-  m_minSamples: 10
-  m_maxSamples: 100
+  m_minSamples: 50
+  m_maxSamples: 500
+  m_batchSize: 0
   m_screenshotScriptThis: {fileID: 646858566}
   m_screenshotScriptSource: {fileID: 915878715}
   m_trainingManager: {fileID: 0}
@@ -590,19 +625,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f60038825e3e3e47a727f844126fc69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_learnRate: 3
+  m_updateType: 0
+  m_learnRate: 0.2
   m_batchSize: 1
+  m_curveRange: 5000
+  m_curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.19717258
+      value: 0.45129803
+      inSlope: -1.2684203
+      outSlope: -1.2684203
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0.1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   m_trainNetworkOnline: 1
-  m_saveSamplesOnline: 0
-  m_trainingCooldownOnlineMin: 0.03
-  m_trainingCooldownOnlineMax: 0.05
+  m_saveSamplesOnline: 1
+  m_trainingCooldownOnlineMin: 0.01
+  m_trainingCooldownOnlineMax: 0.02
   m_trainNetworkOffline: 1
-  m_trainingUnits: 0
-  m_trainingCooldownOfflineMin: 0.05
-  m_trainingCooldownOfflineMax: 0.1
-  m_trainingCooldownOfflineGatherMin: 0
-  m_trainingCooldownOfflineGatherMax: 0
-  m_unitCountText: {fileID: 0}
+  m_trainingUnits: 1
+  m_trainingCooldownOfflineMin: 0.04
+  m_trainingCooldownOfflineMax: 0.05
+  m_trainingCooldownOfflineGatherMin: 100
+  m_trainingCooldownOfflineGatherMax: 100
+  m_stopAtMaximumUnitCount: 0
+  m_unitCountText: {fileID: 731183809}
 --- !u!114 &55830825
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -615,10 +686,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_setInputLayerLengthDynamicly: 1
-  m_layerLengths: ffffffff04000000ffffffff
+  m_layerLengths: ffffffff0a000000ffffffff
   m_activisionType: 0
   m_costType: 0
-  m_initializationType: 0
+  m_initializationType: 1
 --- !u!1 &86701453
 GameObject:
   m_ObjectHideFlags: 0
@@ -632,7 +703,7 @@ GameObject:
   - component: {fileID: 86701456}
   - component: {fileID: 86701455}
   m_Layer: 0
-  m_Name: NeuralNetwork Ai Screenshot
+  m_Name: NeuralNetwork Ai Screenshot (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -664,7 +735,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_visualize: 0
-  m_height: 8
+  m_height: 7
   m_width: 3
   m_marginX: 0.25
   m_marginY: 0.25
@@ -672,10 +743,10 @@ MonoBehaviour:
   m_nodesScaleFactorGlobal: 0.5
   m_weightsScaleFactorGloal: 0.5
   m_nodesScaleFactorLayerWise:
-  - 0.1
+  - 0.25
   m_weightsScaleFactorLayerWise:
-  - 0.16
-  m_relativePosition: {x: 4.5, y: 1.25, z: 0}
+  - 0.1
+  m_relativePosition: {x: 4.5, y: 1.5, z: 0}
   m_relativeRotation: {x: 0, y: 0, z: 0}
   m_parentTransform: {fileID: 366113195}
 --- !u!114 &86701456
@@ -691,8 +762,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_inputType: 0
   m_tossNoOutputSamples: 1
-  m_minSamples: 10
+  m_minSamples: 50
   m_maxSamples: 500
+  m_batchSize: 1
   m_screenshotScriptThis: {fileID: 2079204714}
   m_screenshotScriptSource: {fileID: 915878715}
   m_trainingManager: {fileID: 0}
@@ -707,19 +779,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f60038825e3e3e47a727f844126fc69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_learnRate: 2
+  m_updateType: 0
+  m_learnRate: 0.1
   m_batchSize: 1
+  m_curveRange: 10000
+  m_curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.09945058
+      value: 0.26834673
+      inSlope: -0.8051999
+      outSlope: -0.8051999
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.08102078
+    - serializedVersion: 3
+      time: 1
+      value: 0.05
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   m_trainNetworkOnline: 1
   m_saveSamplesOnline: 1
   m_trainingCooldownOnlineMin: 0.01
   m_trainingCooldownOnlineMax: 0.02
   m_trainNetworkOffline: 1
-  m_trainingUnits: 0
-  m_trainingCooldownOfflineMin: 0.01
-  m_trainingCooldownOfflineMax: 0.02
-  m_trainingCooldownOfflineGatherMin: 0.01
-  m_trainingCooldownOfflineGatherMax: 0.02
-  m_unitCountText: {fileID: 0}
+  m_trainingUnits: 1
+  m_trainingCooldownOfflineMin: 0.04
+  m_trainingCooldownOfflineMax: 0.05
+  m_trainingCooldownOfflineGatherMin: 100
+  m_trainingCooldownOfflineGatherMax: 100
+  m_stopAtMaximumUnitCount: 0
+  m_unitCountText: {fileID: 172484813}
 --- !u!114 &86701458
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -732,10 +840,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_setInputLayerLengthDynamicly: 1
-  m_layerLengths: ffffffff05000000ffffffff
+  m_layerLengths: ffffffff06000000ffffffff
   m_activisionType: 0
   m_costType: 0
-  m_initializationType: 0
+  m_initializationType: 1
 --- !u!1 &86943499
 GameObject:
   m_ObjectHideFlags: 0
@@ -779,8 +887,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_camera: {fileID: 564706866}
-  m_captureWidth: 0
-  m_captureHeight: 0
+  m_captureWidth: 4
+  m_captureHeight: 6
   m_backgroundHeight: 0
   m_changeObstacleScales: 1
   m_format: 1
@@ -998,7 +1106,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &165267408
 Transform:
   m_ObjectHideFlags: 0
@@ -1028,12 +1136,88 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_startGameKeyCode: 50
-  m_meanConsiderNumber: 5
+  m_meanConsiderNumber: 10
+  m_meanThresholdTime: 4
   m_objectSpawner: {fileID: 696235007}
   m_textCurrent: {fileID: 35619763}
   m_textLast: {fileID: 1643067074}
   m_textMean: {fileID: 2096974796}
   m_textMax: {fileID: 1134462619}
+--- !u!1 &172484811
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 172484812}
+  - component: {fileID: 172484814}
+  - component: {fileID: 172484813}
+  m_Layer: 5
+  m_Name: TextTotalUnitCount Ai (2)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &172484812
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 172484811}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_Children: []
+  m_Father: {fileID: 33126446}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 155, y: -140}
+  m_SizeDelta: {x: 160, y: 30}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &172484813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 172484811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_RaycastTarget: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
+      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 42
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 4
+    m_MaxSize: 80
+    m_Alignment: 0
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 1
+    m_VerticalOverflow: 1
+    m_LineSpacing: 1
+  m_Text: 
+--- !u!222 &172484814
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 172484811}
+  m_CullTransparentMesh: 0
 --- !u!1 &191525061
 GameObject:
   m_ObjectHideFlags: 0
@@ -3366,8 +3550,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_camera: {fileID: 1646453344}
-  m_captureWidth: 0
-  m_captureHeight: 0
+  m_captureWidth: 8
+  m_captureHeight: 12
   m_backgroundHeight: 0
   m_changeObstacleScales: 1
   m_format: 1
@@ -3669,7 +3853,7 @@ MonoBehaviour:
   m_nodesScaleFactorLayerWise:
   - 0.5
   m_weightsScaleFactorLayerWise:
-  - 0.5
+  - 0.15
   m_relativePosition: {x: 4.5, y: 1.5, z: 0}
   m_relativeRotation: {x: 0, y: 0, z: 0}
   m_parentTransform: {fileID: 656479463}
@@ -3686,8 +3870,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_inputType: 0
   m_tossNoOutputSamples: 1
-  m_minSamples: 20
+  m_minSamples: 50
   m_maxSamples: 500
+  m_batchSize: 1
   m_screenshotScriptThis: {fileID: 86943501}
   m_screenshotScriptSource: {fileID: 915878715}
   m_trainingManager: {fileID: 0}
@@ -3702,18 +3887,45 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f60038825e3e3e47a727f844126fc69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_learnRate: 0.1
+  m_updateType: 0
+  m_learnRate: 0.25
   m_batchSize: 1
+  m_curveRange: 0
+  m_curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   m_trainNetworkOnline: 1
   m_saveSamplesOnline: 1
   m_trainingCooldownOnlineMin: 0.01
   m_trainingCooldownOnlineMax: 0.02
   m_trainNetworkOffline: 1
-  m_trainingUnits: 5
-  m_trainingCooldownOfflineMin: 0.01
-  m_trainingCooldownOfflineMax: 0.02
+  m_trainingUnits: 1
+  m_trainingCooldownOfflineMin: 0.04
+  m_trainingCooldownOfflineMax: 0.05
   m_trainingCooldownOfflineGatherMin: 100
   m_trainingCooldownOfflineGatherMax: 100
+  m_stopAtMaximumUnitCount: 0
   m_unitCountText: {fileID: 1175252979}
 --- !u!114 &679046725
 MonoBehaviour:
@@ -3727,10 +3939,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_setInputLayerLengthDynamicly: 1
-  m_layerLengths: ffffffffffffffff
+  m_layerLengths: ffffffff06000000ffffffff
   m_activisionType: 0
   m_costType: 0
-  m_initializationType: 0
+  m_initializationType: 1
 --- !u!1 &687665765
 GameObject:
   m_ObjectHideFlags: 0
@@ -3816,6 +4028,8 @@ GameObject:
   m_Component:
   - component: {fileID: 696235008}
   - component: {fileID: 696235009}
+  - component: {fileID: 696235010}
+  - component: {fileID: 696235011}
   m_Layer: 0
   m_Name: SpawnObstacles Ai Screenshot
   m_TagString: Untagged
@@ -3852,9 +4066,45 @@ MonoBehaviour:
   m_relativeRestrictionPos: {x: 2.99, y: 5, z: 0}
   m_relativeRestrictionNeg: {x: -2.99, y: 5, z: 0}
   m_showGizmos: 1
-  m_spawnSequences: []
+  m_spawnSequences:
+  - {fileID: 696235010}
   m_levelOptions: {fileID: 165267409}
   m_screenshotScript: {fileID: 646858566}
+--- !u!114 &696235010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 696235007}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15854005dbe81bf429222cedfaa6869c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_width: 0
+  m_spawnForScreenshot: 1
+  m_directionMin: {x: 0, y: -25, z: 0}
+  m_directionMax: {x: 0, y: -25, z: 0}
+  m_cooldownMin: 0.2
+  m_cooldownMax: 0.2
+--- !u!114 &696235011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 696235007}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 108772c00fbb6b241bad412e8ae05add, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_width: 8
+  m_ignoreNumber: 2
+  m_directionMin: {x: 0, y: -15, z: 0}
+  m_directionMax: {x: 0, y: -15, z: 0}
+  m_cooldownMin: 0.1
+  m_cooldownMax: 0.1
+  m_index: 1
 --- !u!1 &728841468
 GameObject:
   m_ObjectHideFlags: 0
@@ -3889,6 +4139,81 @@ RectTransform:
   m_AnchoredPosition: {x: -0.000061035156, y: -0.000015258789}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &731183807
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 731183808}
+  - component: {fileID: 731183810}
+  - component: {fileID: 731183809}
+  m_Layer: 5
+  m_Name: TextTotalUnitCount Ai (3)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &731183808
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 731183807}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_Children: []
+  m_Father: {fileID: 1464012225}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 355, y: -140}
+  m_SizeDelta: {x: 160, y: 30}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &731183809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 731183807}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 708705254, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_RaycastTarget: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
+      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 42
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 4
+    m_MaxSize: 80
+    m_Alignment: 0
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 1
+    m_VerticalOverflow: 1
+    m_LineSpacing: 1
+  m_Text: 
+--- !u!222 &731183810
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 731183807}
+  m_CullTransparentMesh: 0
 --- !u!1 &736194847
 GameObject:
   m_ObjectHideFlags: 0
@@ -4006,6 +4331,7 @@ GameObject:
   - component: {fileID: 757601961}
   - component: {fileID: 757601962}
   - component: {fileID: 757601963}
+  - component: {fileID: 757601964}
   m_Layer: 0
   m_Name: SpawnObstacles Ai Screenshot
   m_TagString: Untagged
@@ -4037,7 +4363,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00f68f88ba2224b489dfe1e45c7f8ab9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_spawnPrefab: {fileID: 1358917423948542, guid: 720ae1f2fef51eb4a9f3e66a0d2d0a0c,
+  m_spawnPrefab: {fileID: 1358917423948542, guid: 92158422127763342a0b096d49aa44b6,
     type: 2}
   m_relativeRestrictionPos: {x: 2.99, y: 5, z: 0}
   m_relativeRestrictionNeg: {x: -2.99, y: 5, z: 0}
@@ -4059,10 +4385,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_width: 0
   m_spawnForScreenshot: 1
-  m_directionMin: {x: 0, y: -20, z: 0}
-  m_directionMax: {x: 0, y: -20, z: 0}
-  m_cooldownMin: 0.3
-  m_cooldownMax: 0.3
+  m_directionMin: {x: 0, y: -25, z: 0}
+  m_directionMax: {x: 0, y: -25, z: 0}
+  m_cooldownMin: 0.2
+  m_cooldownMax: 0.2
+--- !u!114 &757601964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 757601960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 108772c00fbb6b241bad412e8ae05add, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_width: 8
+  m_ignoreNumber: 2
+  m_directionMin: {x: 0, y: -15, z: 0}
+  m_directionMax: {x: 0, y: -15, z: 0}
+  m_cooldownMin: 0.1
+  m_cooldownMax: 0.1
+  m_index: 1
 --- !u!1 &768167604
 GameObject:
   m_ObjectHideFlags: 0
@@ -4184,7 +4528,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_startGameKeyCode: 50
-  m_meanConsiderNumber: 5
+  m_meanConsiderNumber: 10
+  m_meanThresholdTime: 4
   m_objectSpawner: {fileID: 757601960}
   m_textCurrent: {fileID: 1336135403}
   m_textLast: {fileID: 1674753009}
@@ -4759,7 +5104,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 1339204537}
+  m_Father: {fileID: 1668353446}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &901997170
@@ -4773,7 +5118,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00f68f88ba2224b489dfe1e45c7f8ab9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_spawnPrefab: {fileID: 1358917423948542, guid: 720ae1f2fef51eb4a9f3e66a0d2d0a0c,
+  m_spawnPrefab: {fileID: 1358917423948542, guid: 92158422127763342a0b096d49aa44b6,
     type: 2}
   m_relativeRestrictionPos: {x: 2.99, y: 5, z: 0}
   m_relativeRestrictionNeg: {x: -2.99, y: 5, z: 0}
@@ -4795,10 +5140,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_width: 0
   m_spawnForScreenshot: 1
-  m_directionMin: {x: 0, y: -35, z: 0}
-  m_directionMax: {x: 0, y: -35, z: 0}
-  m_cooldownMin: 0.15
-  m_cooldownMax: 0.15
+  m_directionMin: {x: 0, y: -50, z: 0}
+  m_directionMax: {x: 0, y: -50, z: 0}
+  m_cooldownMin: 0.1
+  m_cooldownMax: 0.1
 --- !u!114 &901997172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4810,11 +5155,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 108772c00fbb6b241bad412e8ae05add, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_width: 4
-  m_directionMin: {x: 0, y: -25, z: 0}
-  m_directionMax: {x: 0, y: -25, z: 0}
-  m_cooldownMin: 0.3
-  m_cooldownMax: 0.3
+  m_width: 6
+  m_ignoreNumber: 1
+  m_directionMin: {x: 0, y: -45, z: 0}
+  m_directionMax: {x: 0, y: -45, z: 0}
+  m_cooldownMin: 0.1
+  m_cooldownMax: 0.1
   m_index: 1
 --- !u!1 &907267918
 GameObject:
@@ -4905,14 +5251,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 948e698d1637b42458b96277e628ed3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_movementSpeed: 8
+  m_movementSpeed: 10
   m_allowUpDownMovement: 0
   m_movementDecision: 1
-  m_decisionCooldownMin: 0
-  m_decisionCooldownMax: 0
+  m_decisionCooldownMin: 0.04
+  m_decisionCooldownMax: 0.05
   m_interpretationType: 1
   m_decisionThreshold: 0.5
-  m_decisionDynamicRandomThreshold: 0.9
+  m_decisionDynamicRandomThreshold: 0.6
   m_networkContainer: {fileID: 86701458}
   m_restrictedArea: {fileID: 1430038337}
 --- !u!65 &908459383
@@ -5042,8 +5388,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_camera: {fileID: 602796552}
-  m_captureWidth: 0
-  m_captureHeight: 0
+  m_captureWidth: 6
+  m_captureHeight: 9
   m_backgroundHeight: 0
   m_changeObstacleScales: 1
   m_format: 1
@@ -5262,7 +5608,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1339204537}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &960457521
 BoxCollider:
@@ -5543,14 +5889,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 948e698d1637b42458b96277e628ed3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_movementSpeed: 8
+  m_movementSpeed: 10
   m_allowUpDownMovement: 0
   m_movementDecision: 1
-  m_decisionCooldownMin: 0
-  m_decisionCooldownMax: 0
+  m_decisionCooldownMin: 0.04
+  m_decisionCooldownMax: 0.05
   m_interpretationType: 1
   m_decisionThreshold: 0.5
-  m_decisionDynamicRandomThreshold: 0.9
+  m_decisionDynamicRandomThreshold: 0.6
   m_networkContainer: {fileID: 679046725}
   m_restrictedArea: {fileID: 889169949}
 --- !u!65 &1059589819
@@ -5838,7 +6184,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1129505209
 Transform:
   m_ObjectHideFlags: 0
@@ -5868,7 +6214,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_startGameKeyCode: 50
-  m_meanConsiderNumber: 5
+  m_meanConsiderNumber: 10
+  m_meanThresholdTime: 4
   m_objectSpawner: {fileID: 1420683264}
   m_textCurrent: {fileID: 1778048275}
   m_textLast: {fileID: 1899740354}
@@ -6245,7 +6592,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_startGameKeyCode: 50
-  m_meanConsiderNumber: 5
+  m_meanConsiderNumber: 10
+  m_meanThresholdTime: 4
   m_objectSpawner: {fileID: 1995769905}
   m_textCurrent: {fileID: 1150367929}
   m_textLast: {fileID: 255834040}
@@ -7079,7 +7427,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_controllerType: 1
   m_allowUpDownMovement: 0
-  m_movementSpeed: 20
+  m_movementSpeed: 15
   m_restrictedArea: {fileID: 229401450}
 --- !u!114 &1303562664
 MonoBehaviour:
@@ -7093,7 +7441,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_inputType: 1
-  m_distanceMoveThreshold: 9
+  m_distanceMoveThreshold: 6
   m_layerMaskPlayer:
     serializedVersion: 2
     m_Bits: 65536
@@ -7360,10 +7708,9 @@ Transform:
   m_Children:
   - {fileID: 534669905}
   - {fileID: 229401449}
-  - {fileID: 901997169}
   - {fileID: 960457519}
   m_Father: {fileID: 1668353446}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1391816878
 GameObject:
@@ -7662,6 +8009,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1420683265}
   - component: {fileID: 1420683266}
+  - component: {fileID: 1420683267}
+  - component: {fileID: 1420683268}
   m_Layer: 0
   m_Name: SpawnObstacles Ai Screenshot
   m_TagString: Untagged
@@ -7693,14 +8042,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00f68f88ba2224b489dfe1e45c7f8ab9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_spawnPrefab: {fileID: 1358917423948542, guid: 720ae1f2fef51eb4a9f3e66a0d2d0a0c,
+  m_spawnPrefab: {fileID: 1358917423948542, guid: 92158422127763342a0b096d49aa44b6,
     type: 2}
   m_relativeRestrictionPos: {x: 2.99, y: 5, z: 0}
   m_relativeRestrictionNeg: {x: -2.99, y: 5, z: 0}
   m_showGizmos: 1
-  m_spawnSequences: []
+  m_spawnSequences:
+  - {fileID: 1420683267}
   m_levelOptions: {fileID: 1129505210}
   m_screenshotScript: {fileID: 2079204714}
+--- !u!114 &1420683267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1420683264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15854005dbe81bf429222cedfaa6869c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_width: 0
+  m_spawnForScreenshot: 1
+  m_directionMin: {x: 0, y: -25, z: 0}
+  m_directionMax: {x: 0, y: -25, z: 0}
+  m_cooldownMin: 0.2
+  m_cooldownMax: 0.2
+--- !u!114 &1420683268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1420683264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 108772c00fbb6b241bad412e8ae05add, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_width: 8
+  m_ignoreNumber: 2
+  m_directionMin: {x: 0, y: -15, z: 0}
+  m_directionMax: {x: 0, y: -15, z: 0}
+  m_cooldownMin: 0.1
+  m_cooldownMax: 0.1
+  m_index: 1
 --- !u!1 &1426016030
 GameObject:
   m_ObjectHideFlags: 0
@@ -7876,9 +8261,9 @@ MonoBehaviour:
   m_nodesScaleFactorGlobal: 0.5
   m_weightsScaleFactorGloal: 0.5
   m_nodesScaleFactorLayerWise:
-  - 0.5
+  - 1
   m_weightsScaleFactorLayerWise:
-  - 0.5
+  - 1
   m_relativePosition: {x: 4.5, y: 1.5, z: 0}
   m_relativeRotation: {x: 0, y: 0, z: 0}
   m_parentTransform: {fileID: 1626970022}
@@ -7895,8 +8280,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_inputType: 0
   m_tossNoOutputSamples: 1
-  m_minSamples: 20
-  m_maxSamples: 50
+  m_minSamples: 50
+  m_maxSamples: 500
+  m_batchSize: 1
   m_screenshotScriptThis: {fileID: 1997370656}
   m_screenshotScriptSource: {fileID: 915878715}
   m_trainingManager: {fileID: 0}
@@ -7911,18 +8297,54 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f60038825e3e3e47a727f844126fc69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_updateType: 0
   m_learnRate: 0.5
   m_batchSize: 1
+  m_curveRange: 0
+  m_curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.26764277
+      value: 0.46097586
+      inSlope: -1.2684203
+      outSlope: -1.2684203
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0.1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   m_trainNetworkOnline: 1
   m_saveSamplesOnline: 1
   m_trainingCooldownOnlineMin: 0.01
   m_trainingCooldownOnlineMax: 0.02
   m_trainNetworkOffline: 1
   m_trainingUnits: 1
-  m_trainingCooldownOfflineMin: 0.1
-  m_trainingCooldownOfflineMax: 0.2
+  m_trainingCooldownOfflineMin: 0.04
+  m_trainingCooldownOfflineMax: 0.05
   m_trainingCooldownOfflineGatherMin: 100
   m_trainingCooldownOfflineGatherMax: 100
+  m_stopAtMaximumUnitCount: 0
   m_unitCountText: {fileID: 23733341}
 --- !u!114 &1430563700
 MonoBehaviour:
@@ -7939,7 +8361,7 @@ MonoBehaviour:
   m_layerLengths: ffffffffffffffff
   m_activisionType: 0
   m_costType: 0
-  m_initializationType: 0
+  m_initializationType: 1
 --- !u!1 &1463565677
 GameObject:
   m_ObjectHideFlags: 0
@@ -8017,6 +8439,40 @@ CanvasRenderer:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1463565677}
   m_CullTransparentMesh: 0
+--- !u!1 &1464012224
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1464012225}
+  m_Layer: 5
+  m_Name: Ai (3)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1464012225
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1464012224}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.0000001, y: 1.0000001, z: 1.0000001}
+  m_Children:
+  - {fileID: 731183808}
+  m_Father: {fileID: 1967643863}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -0.000061035156, y: -0.000045776367}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1471359597
 GameObject:
   m_ObjectHideFlags: 0
@@ -8420,14 +8876,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 948e698d1637b42458b96277e628ed3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_movementSpeed: 8
+  m_movementSpeed: 12
   m_allowUpDownMovement: 0
   m_movementDecision: 1
-  m_decisionCooldownMin: 0
-  m_decisionCooldownMax: 0
+  m_decisionCooldownMin: 0.04
+  m_decisionCooldownMax: 0.05
   m_interpretationType: 1
   m_decisionThreshold: 0.5
-  m_decisionDynamicRandomThreshold: 0.9
+  m_decisionDynamicRandomThreshold: 0.6
   m_networkContainer: {fileID: 1430563700}
   m_restrictedArea: {fileID: 1905735339}
 --- !u!114 &1574333623
@@ -8836,6 +9292,7 @@ Transform:
   m_Children:
   - {fileID: 1303562659}
   - {fileID: 915878714}
+  - {fileID: 901997169}
   - {fileID: 1339204537}
   m_Father: {fileID: 1392880779}
   m_RootOrder: 0
@@ -8852,7 +9309,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_startGameKeyCode: 49
-  m_meanConsiderNumber: 5
+  m_meanConsiderNumber: 10
+  m_meanThresholdTime: 4
   m_objectSpawner: {fileID: 901997168}
   m_textCurrent: {fileID: 1420090922}
   m_textLast: {fileID: 643063637}
@@ -9772,6 +10230,8 @@ RectTransform:
   - {fileID: 2018746442}
   - {fileID: 1904368577}
   - {fileID: 728841469}
+  - {fileID: 33126446}
+  - {fileID: 1464012225}
   m_Father: {fileID: 935420912}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -9790,6 +10250,7 @@ GameObject:
   - component: {fileID: 1995769906}
   - component: {fileID: 1995769907}
   - component: {fileID: 1995769908}
+  - component: {fileID: 1995769909}
   m_Layer: 0
   m_Name: SpawnObstacles Ai Screenshot
   m_TagString: Untagged
@@ -9821,7 +10282,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00f68f88ba2224b489dfe1e45c7f8ab9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_spawnPrefab: {fileID: 1358917423948542, guid: 720ae1f2fef51eb4a9f3e66a0d2d0a0c,
+  m_spawnPrefab: {fileID: 1358917423948542, guid: 92158422127763342a0b096d49aa44b6,
     type: 2}
   m_relativeRestrictionPos: {x: 2.99, y: 5, z: 0}
   m_relativeRestrictionNeg: {x: -2.99, y: 5, z: 0}
@@ -9843,10 +10304,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_width: 0
   m_spawnForScreenshot: 1
-  m_directionMin: {x: 0, y: -20, z: 0}
-  m_directionMax: {x: 0, y: -20, z: 0}
-  m_cooldownMin: 0.3
-  m_cooldownMax: 0.3
+  m_directionMin: {x: 0, y: -25, z: 0}
+  m_directionMax: {x: 0, y: -25, z: 0}
+  m_cooldownMin: 0.2
+  m_cooldownMax: 0.2
+--- !u!114 &1995769909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1995769905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 108772c00fbb6b241bad412e8ae05add, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_width: 8
+  m_ignoreNumber: 2
+  m_directionMin: {x: 0, y: -15, z: 0}
+  m_directionMax: {x: 0, y: -15, z: 0}
+  m_cooldownMin: 0.1
+  m_cooldownMax: 0.1
+  m_index: 1
 --- !u!1 &1996283448
 GameObject:
   m_ObjectHideFlags: 0
@@ -9966,8 +10445,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_camera: {fileID: 1079113077}
-  m_captureWidth: 0
-  m_captureHeight: 0
+  m_captureWidth: 2
+  m_captureHeight: 3
   m_backgroundHeight: 0
   m_changeObstacleScales: 1
   m_format: 1
@@ -10569,14 +11048,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 948e698d1637b42458b96277e628ed3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_movementSpeed: 8
+  m_movementSpeed: 12
   m_allowUpDownMovement: 0
   m_movementDecision: 1
-  m_decisionCooldownMin: 0
-  m_decisionCooldownMax: 0
+  m_decisionCooldownMin: 0.04
+  m_decisionCooldownMax: 0.05
   m_interpretationType: 1
-  m_decisionThreshold: 0.5
-  m_decisionDynamicRandomThreshold: 0.7
+  m_decisionThreshold: 0.9
+  m_decisionDynamicRandomThreshold: 0.6
   m_networkContainer: {fileID: 55830825}
   m_restrictedArea: {fileID: 2045586614}
 --- !u!65 &2088742403

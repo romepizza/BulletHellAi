@@ -13,6 +13,7 @@ public class LevelOptions : MonoBehaviour
     [SerializeField] private KeyCode m_startGameKeyCode;
 
     [SerializeField] private int m_meanConsiderNumber;
+    [SerializeField] private float m_meanThresholdTime;
 
     [Header("--- Objets ---")]
     [SerializeField] private GameObject m_objectSpawner;
@@ -107,24 +108,27 @@ public class LevelOptions : MonoBehaviour
         m_textLast.text = "" + m_currentTime.ToString("0.00");
 
         // mean time
-        if (m_times.Count < m_meanConsiderNumber)
+        if (m_currentTime >= m_meanThresholdTime)
         {
-            if (m_times.Count > 1)
-                m_timeMean *= m_times.Count;
+            if (m_times.Count < m_meanConsiderNumber)
+            {
+                if (m_times.Count > 1)
+                    m_timeMean *= m_times.Count;
 
-            m_times.Enqueue(m_currentTime);
-            m_timeMean += m_currentTime;
-            m_timeMean /= m_times.Count;
-        }
-        else
-        {
-            float oldValue = m_times.Dequeue();
-            m_timeMean -= oldValue / (m_times.Count + 1);
-            m_times.Enqueue(m_currentTime);
-            m_timeMean += m_currentTime / m_times.Count;
-        }
+                m_times.Enqueue(m_currentTime);
+                m_timeMean += m_currentTime;
+                m_timeMean /= m_times.Count;
+            }
+            else
+            {
+                float oldValue = m_times.Dequeue();
+                m_timeMean -= oldValue / (m_times.Count + 1);
+                m_times.Enqueue(m_currentTime);
+                m_timeMean += m_currentTime / m_times.Count;
+            }
 
-        m_textMean.text = "" + m_timeMean.ToString("0.00");
+            m_textMean.text = "" + m_timeMean.ToString("0.00");
+        }
     }
     #endregion
 

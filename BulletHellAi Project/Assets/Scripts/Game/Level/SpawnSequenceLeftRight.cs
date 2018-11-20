@@ -6,6 +6,7 @@ public class SpawnSequenceLeftRight : SpawnSequence
 {
     [Header("------- Settings -------")]
     [SerializeField] private int m_width;
+    [SerializeField] private int m_ignoreNumber;
     [SerializeField] private Vector3 m_directionMin;
     [SerializeField] private Vector3 m_directionMax;
     [SerializeField] private float m_cooldownMin;
@@ -29,11 +30,11 @@ public class SpawnSequenceLeftRight : SpawnSequence
         m_index += m_direction;
         int index = m_index;
         int width = m_width <= 0 ? m_spawnScript.GetScreenshotScript().GetCaptureWidth() : m_width;
-        if (m_direction < 0 && m_index <= 0)
+        if (m_direction < 0 && m_index <= m_ignoreNumber - 1)
         {
             dontSpawn = true;
         }
-        if (m_direction > 0 && m_index >= width - 1)
+        if (m_direction > 0 && m_index >= width - m_ignoreNumber)
         {
             dontSpawn = true;
         }

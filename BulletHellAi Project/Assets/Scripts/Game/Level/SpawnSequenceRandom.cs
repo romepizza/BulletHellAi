@@ -36,6 +36,7 @@ public class SpawnSequenceRandom : SpawnSequence
         }
         else
             randomPosition = (pos + neg) * 0.5f + (Random.Range(-0.5f, 0.5f) * (neg - pos));
+
         sequence.position = randomPosition;
         sequence.velocity = new Vector3(Random.Range(m_directionMin.x, m_directionMax.x), Random.Range(m_directionMin.y, m_directionMax.y), Random.Range(m_directionMin.z, m_directionMax.z));
 
