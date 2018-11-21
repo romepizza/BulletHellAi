@@ -2,6 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public struct NNSMSaveData
+{
+    public SampleManager.InputType m_inputType;
+
+    public bool m_tossNoOutputSamples;
+
+    public int m_minSamples;
+    public int m_maxSamples;
+    public int m_batchSize;
+
+    public List<SampleContainer> m_samples;
+
+    public NNTSSaveData m_screenshotData;
+}
+
 public class SampleManager : MonoBehaviour
 {
     [Header("------ Settings ------")]
@@ -16,13 +32,15 @@ public class SampleManager : MonoBehaviour
     [SerializeField] private int m_maxSamples;
     [SerializeField] private int m_batchSize;
 
+    [Header("--- Save / Load ---")]
+    [SerializeField] private bool m_keepSamples;
+
     [Header("--- Objects ---")]
     [SerializeField] private TakeScreenshot m_screenshotScriptThis;
     [SerializeField] private TakeScreenshot m_screenshotScriptSource;
-    [SerializeField] private NeuralNetworkTrainingManager m_trainingManager;
+    private NeuralNetworkTrainingManager m_trainingManager;
 
     [Header("------ Debug ------")]
-    bool b;
     private List<SampleContainer> m_samples;
     private SampleContainer m_cacheSampleSource;
     private SampleContainer m_cacheSampleThis;
@@ -107,8 +125,10 @@ public class SampleManager : MonoBehaviour
     }
     private void SaveSample(SampleContainer sampleContainer)
     {
-        if (m_samples.Count >= m_maxSamples)
+        while (m_maxSamples >= 0 && m_samples.Count > m_maxSamples)
+        {
             m_samples.RemoveAt(Random.Range(0, m_samples.Count - 1));
+        }
         m_samples.Add(sampleContainer);
         
     }
@@ -237,6 +257,54 @@ public class SampleManager : MonoBehaviour
         
 
         return isOkay;
+    }
+    #endregion
+
+    #region Save / Load
+    public NNSMSaveData SaveData()
+    {
+        NNSMSaveData data = new NNSMSaveData
+        {
+            m_inputType = m_inputType,
+            m_tossNoOutputSamples = m_tossNoOutputSamples,
+
+            m_minSamples = m_minSamples,
+            m_maxSamples = m_maxSamples,
+            m_batchSize = m_batchSize,
+
+            m_screenshotData = m_screenshotScriptThis.SaveData()
+        };
+
+        if (m_keepSamples)
+        {
+            data.m_samples = new List<SampleContainer>();
+            foreach(SampleContainer sample in m_samples)
+                data.m_samples.Add(sample);
+        }
+
+        return data;
+    }
+    public void LoadData(NNSMSaveData data)
+    {
+        m_screenshotScriptThis.LoadData(data.m_screenshotData);
+
+        m_inputType = data.m_inputType;
+        m_tossNoOutputSamples = data.m_tossNoOutputSamples;
+
+        m_minSamples = data.m_minSamples;
+        m_maxSamples = data.m_maxSamples;
+        m_batchSize = data.m_batchSize;
+
+        if(m_keepSamples)
+        {
+            m_samples.Clear();
+            foreach (SampleContainer sample in data.m_samples)
+                m_samples.Add(sample);
+        }
+    }
+    public void ApplyData()
+    {
+        
     }
     #endregion
 

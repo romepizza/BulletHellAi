@@ -329,12 +329,12 @@ public class AiMovement : MonoBehaviour {
     {
         float[] input = GetInputForNetwork();
         float[] output = m_networkContainer.m_network.GetOutput(input);
-        m_networkContainer.GetVisualization().UpdateActivisions(input);
+        m_networkContainer.m_visualization.UpdateActivisions(input);
         return output;
     }
     float[] GetInputForNetwork()
     {
-        SampleContainer sample = m_networkContainer.GetSampleManager().GenerateSampleThis();
+        SampleContainer sample = m_networkContainer.m_sampleManager.GenerateSampleThis();
 
         float[] input = sample.m_input;
         return input;

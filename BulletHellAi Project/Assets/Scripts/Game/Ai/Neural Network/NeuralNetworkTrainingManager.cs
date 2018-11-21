@@ -3,6 +3,37 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+[System.Serializable]
+public struct NNTMSaveData
+{
+    public NeuralNetworkTrainingManager.UpdateType m_updateType;
+
+    public float m_learnRate;
+    public int m_batchSize;
+    public int m_curveRange;
+    public AnimationCurve m_curve;
+     
+    public bool m_trainNetworkOnline;
+    public bool m_saveSamplesOnline;
+    public float m_trainingCooldownOnlineMin;
+    public float m_trainingCooldownOnlineMax;
+     
+    public bool m_trainNetworkOffline;
+    public int m_trainingUnits;
+    public float m_trainingCooldownOfflineMin;
+    public float m_trainingCooldownOfflineMax;
+    public float m_trainingCooldownOfflineGatherMin;
+    public float m_trainingCooldownOfflineGatherMax;
+     
+    public int m_stopAtMaximumUnitCount;
+     
+    public float m_trainingCooldownRdyOnline;
+    public float m_trainingCooldownRdyOffline;
+    public float m_trainingCooldownRdyOfflineGather;
+     
+    public int m_trainingUnitssCompleted;
+}
+
 public class NeuralNetworkTrainingManager : MonoBehaviour
 {
     [Header("------ Settings -------")]
@@ -49,7 +80,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
 
 
     #region Enums
-    private enum UpdateType { SGD, Momentum, NAG, Adam }
+    public enum UpdateType { SGD, Momentum, NAG, Adam }
     #endregion
 
     #region Mono
@@ -156,6 +187,72 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         m_trainingUnitssCompleted++;
         if(m_unitCountText != null)
             m_unitCountText.text = "" + m_trainingUnitssCompleted;
+    }
+    #endregion
+
+    #region Save / Load
+    public NNTMSaveData SaveData()
+    {
+        NNTMSaveData data = new NNTMSaveData
+        {
+            m_learnRate                                = m_learnRate,
+            m_batchSize                                = m_batchSize,
+            m_curveRange                               = m_curveRange,
+            m_curve                                    = m_curve,
+                                                       
+            m_trainNetworkOnline                       = m_trainNetworkOnline,
+            m_saveSamplesOnline                        = m_saveSamplesOnline,
+            m_trainingCooldownOnlineMin                = m_trainingCooldownOnlineMin,
+            m_trainingCooldownOnlineMax                = m_trainingCooldownOnlineMax,
+                                                       
+            m_trainNetworkOffline                      = m_trainNetworkOffline,
+            m_trainingUnits                            = m_trainingUnits,
+            m_trainingCooldownOfflineMin               = m_trainingCooldownOfflineMin,
+            m_trainingCooldownOfflineMax               = m_trainingCooldownOfflineMax,
+            m_trainingCooldownOfflineGatherMin         = m_trainingCooldownOfflineGatherMin,
+            m_trainingCooldownOfflineGatherMax         = m_trainingCooldownOfflineGatherMax,
+                                                       
+            m_stopAtMaximumUnitCount                   = m_stopAtMaximumUnitCount,
+                                                       
+            m_trainingCooldownRdyOnline                = m_trainingCooldownRdyOnline,
+            m_trainingCooldownRdyOffline               = m_trainingCooldownRdyOffline,
+            m_trainingCooldownRdyOfflineGather         = m_trainingCooldownRdyOfflineGather,
+                                                       
+            m_trainingUnitssCompleted                  = m_trainingUnitssCompleted,
+        };
+
+        return data;
+    }
+    public void LoadData(NNTMSaveData data)
+    {
+        m_learnRate = data.m_learnRate;
+        m_batchSize = data.m_batchSize;
+        m_curveRange = data.m_curveRange;
+        m_curve = data.m_curve;
+
+        m_trainNetworkOnline = data.m_trainNetworkOnline;
+        m_saveSamplesOnline = data.m_saveSamplesOnline;
+        m_trainingCooldownOnlineMin = data.m_trainingCooldownOnlineMin;
+        m_trainingCooldownOnlineMax = data.m_trainingCooldownOnlineMax;
+
+        m_trainNetworkOffline = data.m_trainNetworkOffline;
+        m_trainingUnits = data.m_trainingUnits;
+        m_trainingCooldownOfflineMin = data.m_trainingCooldownOfflineMin;
+        m_trainingCooldownOfflineMax = data.m_trainingCooldownOfflineMax;
+        m_trainingCooldownOfflineGatherMin = data.m_trainingCooldownOfflineGatherMin;
+        m_trainingCooldownOfflineGatherMax = data.m_trainingCooldownOfflineGatherMax;
+
+        m_stopAtMaximumUnitCount = data.m_stopAtMaximumUnitCount;
+
+        m_trainingCooldownRdyOnline = data.m_trainingCooldownRdyOnline;
+        m_trainingCooldownRdyOffline = data.m_trainingCooldownRdyOffline;
+        m_trainingCooldownRdyOfflineGather = data.m_trainingCooldownRdyOfflineGather;
+
+        m_trainingUnitssCompleted = data.m_trainingUnitssCompleted;
+    }
+    public void ApplyData()
+    {
+
     }
     #endregion
 

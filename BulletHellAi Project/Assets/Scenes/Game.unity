@@ -580,6 +580,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d45d4801b10a6c4499905e44122380a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_visualize: 0
   m_height: 7
   m_width: 3
@@ -606,6 +607,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f3defb90b71e4d48844d63ce189230f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_inputType: 0
   m_tossNoOutputSamples: 1
   m_minSamples: 50
@@ -625,6 +627,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f60038825e3e3e47a727f844126fc69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_updateType: 0
   m_learnRate: 0.2
   m_batchSize: 1
@@ -685,11 +688,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26c455054a0c753489ff426753eb7c0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_setInputLayerLengthDynamicly: 1
+  testVar: 0
   m_layerLengths: ffffffff0a000000ffffffff
   m_activisionType: 0
   m_costType: 0
   m_initializationType: 1
+  m_dataFileName: NN_3
 --- !u!1 &86701453
 GameObject:
   m_ObjectHideFlags: 0
@@ -734,6 +738,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d45d4801b10a6c4499905e44122380a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_visualize: 0
   m_height: 7
   m_width: 3
@@ -760,6 +765,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f3defb90b71e4d48844d63ce189230f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_inputType: 0
   m_tossNoOutputSamples: 1
   m_minSamples: 50
@@ -779,6 +785,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f60038825e3e3e47a727f844126fc69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_updateType: 0
   m_learnRate: 0.1
   m_batchSize: 1
@@ -839,11 +846,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26c455054a0c753489ff426753eb7c0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_setInputLayerLengthDynamicly: 1
+  testVar: 0
   m_layerLengths: ffffffff06000000ffffffff
   m_activisionType: 0
   m_costType: 0
   m_initializationType: 1
+  m_dataFileName: NN_2
 --- !u!1 &86943499
 GameObject:
   m_ObjectHideFlags: 0
@@ -3842,6 +3850,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d45d4801b10a6c4499905e44122380a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_visualize: 1
   m_height: 7
   m_width: 3
@@ -3868,6 +3877,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f3defb90b71e4d48844d63ce189230f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_inputType: 0
   m_tossNoOutputSamples: 1
   m_minSamples: 50
@@ -3887,6 +3897,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f60038825e3e3e47a727f844126fc69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_updateType: 0
   m_learnRate: 0.25
   m_batchSize: 1
@@ -3938,11 +3949,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26c455054a0c753489ff426753eb7c0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_setInputLayerLengthDynamicly: 1
+  testVar: 0
   m_layerLengths: ffffffff06000000ffffffff
   m_activisionType: 0
   m_costType: 0
   m_initializationType: 1
+  m_dataFileName: NN_1
 --- !u!1 &687665765
 GameObject:
   m_ObjectHideFlags: 0
@@ -8252,6 +8264,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d45d4801b10a6c4499905e44122380a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_visualize: 1
   m_height: 7
   m_width: 3
@@ -8278,6 +8291,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f3defb90b71e4d48844d63ce189230f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_inputType: 0
   m_tossNoOutputSamples: 1
   m_minSamples: 50
@@ -8297,6 +8311,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f60038825e3e3e47a727f844126fc69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  testVar: 0
   m_updateType: 0
   m_learnRate: 0.5
   m_batchSize: 1
@@ -8357,11 +8372,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26c455054a0c753489ff426753eb7c0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_setInputLayerLengthDynamicly: 1
+  testVar: 0
   m_layerLengths: ffffffffffffffff
   m_activisionType: 0
   m_costType: 0
   m_initializationType: 1
+  m_dataFileName: NN_0
 --- !u!1 &1463565677
 GameObject:
   m_ObjectHideFlags: 0

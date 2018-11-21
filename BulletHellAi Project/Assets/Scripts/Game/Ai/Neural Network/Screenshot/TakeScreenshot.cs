@@ -4,6 +4,20 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
 
+[System.Serializable]
+public struct NNTSSaveData
+{
+    public int m_captureWidth;
+    public int m_captureHeight;
+    public float m_backgroundHeight;
+    public bool m_changeObstacleScales;
+
+    public TakeScreenshot.Format m_format;
+    public bool m_allowHDR;
+
+    public float m_activisionThreshold;
+}
+
 public class TakeScreenshot : MonoBehaviour {
 
     [Header("------- Settings -------")]
@@ -66,12 +80,8 @@ public class TakeScreenshot : MonoBehaviour {
     }
     void Start()
     {
-        InitializeStuff();
         SetCaptureSize();
         SetCaptureSizesPlayer(0);
-    }
-    void InitializeStuff()
-    {
     }
     // Update is called once per frame
     void Update()
@@ -285,14 +295,6 @@ public class TakeScreenshot : MonoBehaviour {
     {
         return m_captureAreaSize.x / (captureWidth == 0 ? GetCaptureWidth() : captureWidth);
     }
-    //public Vector2Int GetScreenshotSize()
-    //{
-    //    Vector2Int size = new Vector2Int();
-    //    size.x = GetCaptureWidth();
-    //    size.y = GetCaptureHeight();
-
-    //    return size;
-    //}
 
     public void SetCaptureSize(/*int captureWidth, int captureHeight*/)
     {
@@ -381,14 +383,14 @@ public class TakeScreenshot : MonoBehaviour {
     #region Misc
     string getFileName()
     {
-        string folderName;
+        string directory;
         string fileName;
 
         // set default folder name
         if (m_folderName == null || m_folderName.Length == 0)
-            folderName = "screenshots";
+            directory = "screenshots";
         else
-            folderName = m_folderName;
+            directory = m_folderName;
 
         // set default file name
         if (m_fileName == null || m_fileName.Length == 0)
@@ -397,14 +399,14 @@ public class TakeScreenshot : MonoBehaviour {
             fileName = m_fileName;
 
         if (Application.isEditor)
-            folderName = Path.GetFullPath(Application.dataPath + "/../" + folderName);
+            directory = Path.GetFullPath(Application.dataPath + "/../" + directory);
         else
-            folderName = Application.dataPath + "/" + folderName;
+            directory = Application.dataPath + "/" + directory;
 
 
-        System.IO.Directory.CreateDirectory(folderName);
+        System.IO.Directory.CreateDirectory(directory);
 
-        fileName = string.Format("{0}/{1}_{2}x{3}_{4}.{5}", folderName, fileName, m_currentWidth, m_currentHeight, m_fileNameCounter, m_format.ToString().ToLower());
+        fileName = string.Format("{0}/{1}_{2}x{3}_{4}.{5}", directory, fileName, m_currentWidth, m_currentHeight, m_fileNameCounter, m_format.ToString().ToLower());
 
         m_fileNameCounter++;
 
@@ -431,7 +433,45 @@ public class TakeScreenshot : MonoBehaviour {
         m_lastCaptureWidth = GetCaptureWidth();
         m_lastCaptureHeight = GetCaptureHeight();
     }
-    
+
+    #endregion
+
+    #region Save / Load
+    public NNTSSaveData SaveData()
+    {
+        NNTSSaveData data = new NNTSSaveData
+        {
+            m_captureWidth         = m_captureWidth,
+            m_captureHeight        = m_captureHeight,
+            m_backgroundHeight     = m_backgroundHeight,
+            m_changeObstacleScales = m_changeObstacleScales,
+                                   
+            m_format               = m_format,
+            m_allowHDR             = m_allowHDR,
+                                  
+            m_activisionThreshold  = m_activisionThreshold
+        };
+
+        return data;
+    }
+    public void LoadData(NNTSSaveData data)
+    {
+        m_captureWidth = data.m_captureWidth;
+        m_captureHeight = data.m_captureHeight;
+        m_backgroundHeight = data.m_backgroundHeight;
+        m_changeObstacleScales = data.m_changeObstacleScales;
+
+        m_format = data.m_format;
+        m_allowHDR = data.m_allowHDR;
+
+        m_activisionThreshold = data.m_activisionThreshold;
+
+    }
+    public void ApplyData()
+    {
+        SetCaptureSize();
+        SetCaptureSizesPlayer(0);
+    }
     #endregion
 
 

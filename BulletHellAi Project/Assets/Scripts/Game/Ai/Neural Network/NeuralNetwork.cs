@@ -2,9 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public struct NNSaveData
+{
+    public int[] m_layerLengths;
+    public MyMatrix[] m_biases;
+    public MyMatrix[] m_weights;
+}
+
 public class NeuralNetwork
 {
-    
     // Options
     private float m_learnRate;
     private int m_batchSize;
@@ -47,9 +54,9 @@ public class NeuralNetwork
         int batchSize,
         ActivisionFunctionType activisionType,
         CostFunctionType costType,
-        InitializationType initializationType)
+        InitializationType initializationType
+        )
     {
-
         m_layerLengths = layerLengths;
         m_layerCount = m_layerLengths.Length;
         m_learnRate = learnRate;
@@ -65,27 +72,69 @@ public class NeuralNetwork
         m_costFunctionType = costType;
         m_initializationType = initializationType;
 
-        InitializeBiases();
-        InitializeWeights();
+      
+        InitializeBiases(null);
+        InitializeWeights(null);
         InitializeBatch();
 
         InitializeBackPropagation();
 
         //m_activisionFunctionType = ActivisionFunctionType.Sigmoid;
     }
-    private void InitializeBiases()
+    public NeuralNetwork(
+        int[] layerLengths,
+        float learnRate,
+        int batchSize,
+        ActivisionFunctionType activisionType,
+        CostFunctionType costType,
+        InitializationType initializationType,
+        NNSaveData data
+        )
+    {
+        m_layerLengths = data.m_layerLengths;
+        m_layerCount = data.m_layerLengths.Length;
+        m_learnRate = learnRate;
+
+        if (batchSize <= 0)
+        {
+            Debug.Log("Info: batch size was <= 0 (" + batchSize + "). It was set to a default value of 1!");
+            m_batchSize = 1;
+        }
+        m_batchSize = batchSize;
+
+        m_activisionFunctionType = activisionType;
+        m_costFunctionType = costType;
+        m_initializationType = initializationType;
+
+        InitializeBiases(data.m_biases);
+        InitializeWeights(data.m_weights);
+
+        InitializeBatch();
+        InitializeBackPropagation();
+
+        //m_activisionFunctionType = ActivisionFunctionType.Sigmoid;
+    }
+    private void InitializeBiases(MyMatrix[] data)
     {
         m_biases = new MyMatrix[m_layerCount - 1];
         for (int layerIndex = 1; layerIndex < m_layerCount; layerIndex++)
         {
             int nodeCount = m_layerLengths[layerIndex];
             MyMatrix mat = new MyMatrix(nodeCount, 1);
-            if (m_initializationType == InitializationType.Random)
-                mat.SetRandomValues(0f, 1f);
+            if (data == null)
+            {
+                if (m_initializationType == InitializationType.Random)
+                    mat.SetRandomValues(-1f, 1f);
+            }
+            else
+            {
+                for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
+                    mat.m_data[nodeIndex][0] = data[layerIndex].m_data[nodeIndex][0];
+            }
             m_biases[layerIndex - 1] = mat;
         }
     }
-    private void InitializeWeights()
+    private void InitializeWeights(MyMatrix[] data)
     {
         m_weights = new MyMatrix[m_layerCount - 1];
         for (int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
@@ -93,8 +142,19 @@ public class NeuralNetwork
             int nodeCount = m_layerLengths[layerIndex + 1];
             int weightCount = m_layerLengths[layerIndex];
             MyMatrix mat = new MyMatrix(nodeCount, weightCount);
-            if (m_initializationType == InitializationType.Random)
-                mat.SetRandomValues(0f, 1f);
+            if (data == null)
+            {
+                if (m_initializationType == InitializationType.Random)
+                    mat.SetRandomValues(-1f, 1f);
+            }
+            else
+            {
+                for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
+                {
+                    for (int weightIndex = 0; weightIndex < weightCount; weightIndex++)
+                        mat.m_data[nodeIndex][weightIndex] = data[layerIndex].m_data[nodeIndex][weightIndex];
+                }
+            }
             m_weights[layerIndex] = mat;
         }
     }
@@ -429,6 +489,25 @@ public class NeuralNetwork
     {
         for (int layerIndex = 0; layerIndex < mats.Length; layerIndex++)
             mats[layerIndex].ClearMatrix();
+    }
+    #endregion
+
+    #region Save / Load
+    public NNSaveData SaveData()
+    {
+        NNSaveData data = new NNSaveData {
+            
+        };
+
+        return data;
+    }
+    public void LoadData(NNSaveData data)
+    {
+        
+    }
+    public void ApplyData()
+    {
+
     }
     #endregion
 

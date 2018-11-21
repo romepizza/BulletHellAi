@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public struct NNVSaveData
+{
+
+}
+
 public class NeuralNetworkVisualization : MonoBehaviour
 {
     [Header("------- Settings -------")]
@@ -24,6 +30,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
     
     [Header("--- Objects ---")]
     [SerializeField] private Transform m_parentTransform;
+    private NeuralNetworkContainer m_networkContainer;
 
     [Header("------- Debug -------")]
     //private Vector3 m_originPosition;
@@ -35,10 +42,18 @@ public class NeuralNetworkVisualization : MonoBehaviour
     private int m_layerCount;
     //private Camera m_camera;
     private Vector2 m_cameraCanvasSize;
+    private bool m_isDestroyed = true;
 
     private NeuralNetworkVisualizationManager m_manager;
 
     private enum OrientationType { TopToDown, DownToTop, LeftToRight, RightToLeft }
+
+    #region Mono
+    private void Awake()
+    {
+        m_networkContainer = GetComponent<NeuralNetworkContainer>();
+    }
+    #endregion
 
     #region Creation
     public void CreateVisualization(NeuralNetworkContainer networkContainer)//, Vector3 position, Vector3 rotation, float size)
@@ -59,6 +74,8 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
         m_parentTransform.position += m_relativePosition;
         m_parentTransform.Rotate(m_relativeRotation);
+
+        m_isDestroyed = false;
     }
     private void CreateObjects()
     {
@@ -202,7 +219,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
     #region Update
     public void UpdateVisualization()
     {
-        if (!m_visualize)
+        if (!m_visualize || m_isDestroyed)
             return;
 
         UpdateLayer();
@@ -272,7 +289,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
     }
     public void UpdateActivisions(float[] input)
     {
-        if (!m_visualize)
+        if (!m_visualize || m_isDestroyed)
             return;
 
         MyMatrix[] activisions = m_network.GetActivisions(input);
@@ -397,13 +414,40 @@ public class NeuralNetworkVisualization : MonoBehaviour
     #endregion
 
     #region Manage State
-    public void SetActive(bool value)
+    public void DestroySelf()
+    {
+        m_isDestroyed = true;
+
+        m_layerTransforms = null;
+        m_nodeTransforms = null;
+        m_activisionTransforms = null;
+        m_weightTransforms = null;
+
+        foreach (Transform child in m_parentTransform.transform)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+    #endregion
+
+    #region Save / Load
+    public NNVSaveData SaveData()
+    {
+        NNVSaveData data = new NNVSaveData
+        {
+            
+        };
+
+        return data;
+    }
+    public void LoadData(NNVSaveData data)
     {
 
     }
-    public void DestroySelf()
+    public void ApplyData()
     {
-        //Destroy(gameObject);
+        DestroySelf();
+        CreateVisualization(m_networkContainer);
     }
     #endregion
 

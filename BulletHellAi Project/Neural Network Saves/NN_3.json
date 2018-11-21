@@ -1,0 +1,93 @@
+{
+    "m_trainingData": {
+        "m_updateType": 0,
+        "m_learnRate": 0.20000000298023225,
+        "m_batchSize": 1,
+        "m_curveRange": 5000,
+        "m_curve": {
+            "serializedVersion": "2",
+            "m_Curve": [
+                {
+                    "serializedVersion": "3",
+                    "time": 0.0,
+                    "value": 1.0,
+                    "inSlope": 0.0,
+                    "outSlope": 0.0,
+                    "tangentMode": 0,
+                    "weightedMode": 0,
+                    "inWeight": 0.0,
+                    "outWeight": 0.0
+                },
+                {
+                    "serializedVersion": "3",
+                    "time": 0.19717258214950562,
+                    "value": 0.4512980282306671,
+                    "inSlope": -1.2684203386306763,
+                    "outSlope": -1.2684203386306763,
+                    "tangentMode": 0,
+                    "weightedMode": 0,
+                    "inWeight": 0.3333333432674408,
+                    "outWeight": 0.3333333432674408
+                },
+                {
+                    "serializedVersion": "3",
+                    "time": 1.0,
+                    "value": 0.10000000149011612,
+                    "inSlope": 0.0,
+                    "outSlope": 0.0,
+                    "tangentMode": 0,
+                    "weightedMode": 0,
+                    "inWeight": 0.0,
+                    "outWeight": 0.0
+                }
+            ],
+            "m_PreInfinity": 2,
+            "m_PostInfinity": 2,
+            "m_RotationOrder": 4
+        },
+        "m_trainNetworkOnline": true,
+        "m_saveSamplesOnline": true,
+        "m_trainingCooldownOnlineMin": 0.009999999776482582,
+        "m_trainingCooldownOnlineMax": 0.019999999552965165,
+        "m_trainNetworkOffline": true,
+        "m_trainingUnits": 1,
+        "m_trainingCooldownOfflineMin": 0.03999999910593033,
+        "m_trainingCooldownOfflineMax": 0.05000000074505806,
+        "m_trainingCooldownOfflineGatherMin": 100.0,
+        "m_trainingCooldownOfflineGatherMax": 100.0,
+        "m_stopAtMaximumUnitCount": 0,
+        "m_trainingCooldownRdyOnline": 0.010226348415017128,
+        "m_trainingCooldownRdyOffline": 0.04990334436297417,
+        "m_trainingCooldownRdyOfflineGather": 100.0,
+        "m_trainingUnitssCompleted": 0
+    },
+    "m_sampleData": {
+        "m_inputType": 0,
+        "m_tossNoOutputSamples": true,
+        "m_minSamples": 50,
+        "m_maxSamples": 500,
+        "m_batchSize": 0,
+        "m_screenshotData": {
+            "m_captureWidth": 8,
+            "m_captureHeight": 12,
+            "m_backgroundHeight": 0.0,
+            "m_changeObstacleScales": true,
+            "m_format": 1,
+            "m_allowHDR": false,
+            "m_activisionThreshold": 0.10000000149011612
+        }
+    },
+    "m_visuilizationData": {},
+    "m_networkData": {
+        "testVar": 2
+    },
+    "m_layerLengths": [
+        104,
+        10,
+        2
+    ],
+    "m_dataFileName": "NN_3",
+    "m_activisionType": 0,
+    "m_costType": 0,
+    "m_initializationType": 1
+}
