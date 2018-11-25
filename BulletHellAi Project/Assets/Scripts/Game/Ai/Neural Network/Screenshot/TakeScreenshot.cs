@@ -22,15 +22,21 @@ public struct CacheData
 {
     public int captureWidth;
     public int captureHeight;
-    public float playerHight;
+    public float playerHeight;
 
-    public bool Equals(int captureWidth, int captureHeight, float playerHight)
+    public float[] dataComputed;
+    public float[][] dataRaw;
+
+    public bool Equals(int captureWidth, int captureHeight, float playerHeight)
     {
+        //Debug.Log(string.Format("w: {0}, {1}", this.captureWidth, captureHeight));
+        //Debug.Log(string.Format("h: {0}, {1}", this.captureHeight, captureHeight));
+        //Debug.Log(string.Format("p: {0}, {1}", this.playerHeight, playerHeight));
         if (this.captureWidth > captureWidth * 1.0001f || this.captureWidth < captureWidth * 0.9999f)
             return false;
         if (this.captureHeight > captureHeight * 1.0001f || this.captureHeight < captureHeight * 0.9999f)
             return false;
-        if (this.playerHight > playerHight * 1.0001f || this.playerHight < playerHight * 0.9999f)
+        if (this.playerHeight > playerHeight * 1.0001f || this.playerHeight < playerHeight * 0.9999f)
             return false;
 
         return true;
@@ -79,8 +85,8 @@ public class TakeScreenshot : MonoBehaviour {
     private int m_currentHeight;
     private int m_currentWidth;
 
-    private Dictionary<CacheData, float[]> m_cacheDataComputed = new Dictionary<CacheData, float[]>();
-    private Dictionary<CacheData, float[][]> m_cacheDataRaw = new Dictionary<CacheData, float[][]>();
+    private List<CacheData> m_cacheDataComputed = new List<CacheData>();
+    private List<CacheData> m_cacheDataRaw = new List<CacheData>();
 
     private int m_lastCaptureWidth;
     private int m_lastCaptureHeight;
@@ -134,13 +140,13 @@ public class TakeScreenshot : MonoBehaviour {
         m_currentHeight = captureHeight == 0 ? GetCaptureHeight() : captureHeight;
         playerHight = playerHight == 0 ? GetPlayerHight() : playerHight;
 
-        foreach (CacheData cacheData in m_cacheDataComputed.Keys)
+        foreach (CacheData cacheData in m_cacheDataComputed)
         {
-            
             if (cacheData.Equals(m_currentWidth, m_currentHeight, playerHight))
-                return m_cacheDataComputed[cacheData];
+            {
+                return cacheData.dataComputed;
+            }
         }
-        Debug.Log("0: " + m_cacheDataComputed.Count);
 
         Texture2D texture = PrepareScreenshot(false);
 
@@ -188,7 +194,7 @@ public class TakeScreenshot : MonoBehaviour {
             ShowScreenshot();
         SaveFile();
 
-        m_cacheDataComputed.Add(new CacheData { captureWidth = m_captureWidth, captureHeight = m_captureHeight, playerHight = playerHight }, data);// new CacheData { captureWidth = captureWidth, captureHeight = captureHeight, playerHight = playerHight }; ;
+        m_cacheDataComputed.Add(new CacheData { captureWidth = m_captureWidth, captureHeight = m_captureHeight, playerHeight = playerHight, dataComputed = data });// new CacheData { captureWidth = captureWidth, captureHeight = captureHeight, playerHight = playerHight }; ;
         return data;
     }
     public float[][] GetScreenshotDataRaw(int captureWidth, int captureHeight, bool forceHdr, bool show)
@@ -199,12 +205,11 @@ public class TakeScreenshot : MonoBehaviour {
         m_currentWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
         m_currentHeight = captureHeight == 0 ? GetCaptureHeight() : captureHeight;
 
-        Debug.Log("1: " + m_cacheDataRaw.Count);
-        foreach (CacheData cacheData in m_cacheDataRaw.Keys)
+        //Debug.Log("1: " + m_cacheDataRaw.Count);
+        foreach (CacheData cacheData in m_cacheDataRaw)
         {
-
             if (cacheData.Equals(m_currentWidth, m_currentHeight, 0))
-                return m_cacheDataRaw[cacheData];
+                return cacheData.dataRaw;
         }
 
         Texture2D texture = PrepareScreenshot(forceHdr);
@@ -238,7 +243,7 @@ public class TakeScreenshot : MonoBehaviour {
             ShowScreenshot();
         SaveFile();
 
-        m_cacheDataRaw.Add(new CacheData { captureWidth = m_captureWidth, captureHeight = m_captureHeight, playerHight = 0 }, data);
+        m_cacheDataRaw.Add(new CacheData { captureWidth = m_captureWidth, captureHeight = m_captureHeight, playerHeight = 0, dataRaw = data });
         return data;
     }
     #endregion
