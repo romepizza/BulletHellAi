@@ -25,7 +25,7 @@ public class LevelOptions : MonoBehaviour
 
     [Header("------ Debug -------")]
     private bool m_isRunning;
-    private bool m_isPressingGameStart;
+    private bool m_isPressingGameStart = true;
     private float m_currentTime;
     private float m_timeLast;
     private float m_timeMean;
@@ -34,7 +34,12 @@ public class LevelOptions : MonoBehaviour
     private Queue<float> m_times = new Queue<float>();
     //public float m_currentAiTime;
 
+
     #region Mono
+    private void Start()
+    {
+        StartGame();
+    }
     public void Update()
     {
         GetInput();

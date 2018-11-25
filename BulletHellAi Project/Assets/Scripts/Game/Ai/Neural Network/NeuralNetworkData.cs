@@ -15,6 +15,7 @@ public class NeuralNetworkData
             sw.WriteLine(JsonUtility.ToJson(container, true));
         }
     }
+    
 
     public static NNCSaveData Load(string fileName)
     {
@@ -22,13 +23,23 @@ public class NeuralNetworkData
         if(!File.Exists(path))
         {
             Debug.Log("Aborted: Path doesn't exist! (" + path + ")");
-            return new NNCSaveData();
+            return new NNCSaveData { m_isCorrupted = true };
         }
 
         using (StreamReader sr = new StreamReader(path))
         {
             return JsonUtility.FromJson<NNCSaveData>(sr.ReadToEnd());
         }
+    }
+    public static NNCSaveData Load(TextAsset dataFile)
+    {
+        if(dataFile == null)
+        {
+            Debug.Log("Aborted: dataFile was null!");
+            return new NNCSaveData { m_isCorrupted = true };
+        }
+
+        return JsonUtility.FromJson<NNCSaveData>(dataFile.text);
     }
 
     private static string GetDirectoryPath()
@@ -38,7 +49,7 @@ public class NeuralNetworkData
         directoryName = "Neural Network Saves";
 
         if (Application.isEditor)
-            directoryName = Path.GetFullPath(Application.dataPath + "/../" + directoryName);
+            directoryName = Path.GetFullPath(Application.dataPath + "/" + directoryName);
         else
             directoryName = Application.dataPath + "/" + directoryName;
 

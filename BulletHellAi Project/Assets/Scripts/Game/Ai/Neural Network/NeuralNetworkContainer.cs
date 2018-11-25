@@ -6,6 +6,8 @@ using System.IO;
 [System.Serializable]
 public struct NNCSaveData
 {
+    public bool m_isCorrupted;
+
     public NNTMSaveData m_trainingData;
     public NNSMSaveData m_sampleData;
     public NNVSaveData m_visuilizationData;
@@ -14,26 +16,37 @@ public struct NNCSaveData
     public int[] m_layerLengths;
     public string m_dataFileName;
     public NeuralNetwork.ActivisionFunctionType m_activisionType;
+    public NeuralNetwork.ActivisionFunctionType m_activisionTypeOutput;
     public NeuralNetwork.CostFunctionType m_costType;
     public NeuralNetwork.InitializationType m_initializationType;
+
+    public float m_activisionConstant;
 }
 
 public class NeuralNetworkContainer : MonoBehaviour
 {
-    public int testVar;
     [Header("------ Settings ------")]
     //[SerializeField] private bool m_setInputLayerLengthDynamicly;
     [SerializeField] private int[] m_layerLengths;
     [Space]
     [SerializeField] private NeuralNetwork.ActivisionFunctionType m_activisionType;
+    [SerializeField] private NeuralNetwork.ActivisionFunctionType m_activisionTypeOutput;
     [SerializeField] private NeuralNetwork.CostFunctionType m_costType;
     [SerializeField] private NeuralNetwork.InitializationType m_initializationType;
 
+    [Header("--- Other Hyperparameter ---")]
+    [SerializeField] private float m_activisionConstant;
+
     [Header("--- Save / Load ---")]
+    [SerializeField] private bool m_save;
+    [SerializeField] private bool m_loadFile;
+    [SerializeField] private TextAsset m_dataFile;
+    [SerializeField] private bool m_loadPath;
     [SerializeField] private string m_dataFileName;
 
     [Header("--- Objects ---")]
-    //[SerializeField] private SampleManager m_sampleManager;
+    [SerializeField] private AiMovement m_movementManager;
+
     bool placeHolder0;
     public NeuralNetworkVisualization m_visualization { get; private set; }
     public NeuralNetworkTrainingManager m_trainingManager { get; private set; }
@@ -72,9 +85,19 @@ public class NeuralNetworkContainer : MonoBehaviour
             m_layerLengths,
             m_trainingManager.GetLearnRate(),
             m_trainingManager.GetBatchSize(),
+            m_trainingManager.GetDropoutRate(),
+            m_trainingManager.GetWeightDecayRate(),
             m_activisionType,
+            m_activisionTypeOutput,
             m_costType,
-            m_initializationType));
+            m_initializationType,
+            m_activisionConstant));
+
+        //SaveContainer(m_dataFileName);
+    }
+    private void Update()
+    {
+        CheckLoadOrSave();
     }
     #endregion
 
@@ -84,9 +107,6 @@ public class NeuralNetworkContainer : MonoBehaviour
         m_network = network;
         m_visualization.CreateVisualization(this);//, transform.position, transform.rotation.eulerAngles, 10f);
         m_trainingManager.SetNetwork(network);
-
-        SaveContainer(m_dataFileName);
-        LoadContainer(m_dataFileName);
     }
     #endregion
 
@@ -94,10 +114,13 @@ public class NeuralNetworkContainer : MonoBehaviour
     private void LoadData(NNCSaveData data)
     {
         m_layerLengths = data.m_layerLengths;
-        m_dataFileName = data.m_dataFileName;
+        //m_dataFileName = data.m_dataFileName;
         m_activisionType = data.m_activisionType;
+        m_activisionTypeOutput = data.m_activisionTypeOutput;
         m_costType = data.m_costType;
         m_initializationType = data.m_initializationType;
+
+        m_activisionConstant = data.m_activisionConstant;
     }
     private void ApplyData()
     {
@@ -112,19 +135,26 @@ public class NeuralNetworkContainer : MonoBehaviour
             m_visuilizationData = m_visualization.SaveData(),
             m_networkData = m_network.SaveData(),
 
+
             m_layerLengths = m_layerLengths,
             m_dataFileName = fileName,
             m_activisionType = m_activisionType,
+            m_activisionTypeOutput = m_activisionTypeOutput,
             m_costType = m_costType,
-            m_initializationType = m_initializationType
+            m_initializationType = m_initializationType,
+            m_activisionConstant = m_activisionConstant
         };
 
 
         NeuralNetworkData.Save(data, fileName);
     }
-    private void LoadContainer(string fileName)
+    private void LoadContainer(NNCSaveData data)
     {
-        NNCSaveData data = NeuralNetworkData.Load(fileName);
+        if (data.m_isCorrupted)
+        {
+            Debug.Log("Aborted: loading data is corrupted!");
+            return;
+        }
 
         LoadData(data);
         m_trainingManager.LoadData(data.m_trainingData);
@@ -132,15 +162,44 @@ public class NeuralNetworkContainer : MonoBehaviour
         m_visualization.LoadData(data.m_visuilizationData);
         m_network.LoadData(data.m_networkData);
 
+        InitializeContainer(new NeuralNetwork(
+            data.m_networkData,
+            m_layerLengths,
+            m_trainingManager.GetLearnRate(),
+            m_trainingManager.GetBatchSize(),
+            m_trainingManager.GetDropoutRate(),
+            m_trainingManager.GetWeightDecayRate(),
+            m_activisionType,
+            m_activisionTypeOutput,
+            m_costType,
+            m_initializationType,
+            m_activisionConstant
+            ));
+
         ApplyData();
         m_trainingManager.ApplyData();
         m_sampleManager.ApplyData();
         m_visualization.ApplyData();
         m_network.ApplyData();
     }
-    private void ApplyContainer(NeuralNetworkData network)
-    {
 
+    private void CheckLoadOrSave()
+    {
+        if(m_save)
+        {
+            SaveContainer(m_dataFileName);
+            m_save = false;
+        }
+        if (m_loadPath)
+        {
+            LoadContainer(NeuralNetworkData.Load(m_dataFileName));
+            m_loadPath = false;
+        }
+        if(m_loadFile)
+        {
+            LoadContainer(NeuralNetworkData.Load(m_dataFile));
+            m_loadFile = false;
+        }
     }
     #endregion
 

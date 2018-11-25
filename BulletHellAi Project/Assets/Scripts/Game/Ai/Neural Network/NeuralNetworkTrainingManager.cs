@@ -12,12 +12,15 @@ public struct NNTMSaveData
     public int m_batchSize;
     public int m_curveRange;
     public AnimationCurve m_curve;
-     
+
+    public float m_regularizationKeepRate;
+
+    public float m_weightDecayRate;
     public bool m_trainNetworkOnline;
     public bool m_saveSamplesOnline;
     public float m_trainingCooldownOnlineMin;
     public float m_trainingCooldownOnlineMax;
-     
+    
     public bool m_trainNetworkOffline;
     public int m_trainingUnits;
     public float m_trainingCooldownOfflineMin;
@@ -46,6 +49,12 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     [SerializeField] private int m_curveRange;
     [SerializeField] private AnimationCurve m_curve;
 
+    [Header("--- Regularization ---")]
+    [SerializeField] private float m_dropoutKeepRate = 1;
+
+    [Header("--- WeightDecay ---")]
+    [SerializeField] private float m_weightDecayRate;
+
     [Header("--- Online Learning ---")]
     [SerializeField] private bool m_trainNetworkOnline;
     [SerializeField] private bool m_saveSamplesOnline;
@@ -60,7 +69,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     [Space]
     [SerializeField] private float m_trainingCooldownOfflineGatherMin;
     [SerializeField] private float m_trainingCooldownOfflineGatherMax;
-
+    
     [Header("--- Stop Learning ---")]
     [SerializeField] private int m_stopAtMaximumUnitCount;
 
@@ -145,12 +154,15 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
             return;
 
         bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitssCompleted));
-        UpdateTraningCount();
+
 
         SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
         m_visualization.UpdateActivisions(sampleThis.m_input);
         if (update)
+        {
+            UpdateTraningCount();
             m_visualization.UpdateVisualization();
+        }
     }
     public void TrainNetworkOffline()
     {
@@ -159,12 +171,14 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
             return;
 
         bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitssCompleted));
-        UpdateTraningCount();
 
         SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
         m_visualization.UpdateActivisions(sampleThis.m_input);
         if (update)
+        {
+            UpdateTraningCount();
             m_visualization.UpdateVisualization();
+        }
     }
     private void GatherNetworkOffline()
     {
@@ -199,7 +213,11 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
             m_batchSize                                = m_batchSize,
             m_curveRange                               = m_curveRange,
             m_curve                                    = m_curve,
-                                                       
+
+            m_regularizationKeepRate                   = m_dropoutKeepRate,
+
+            m_weightDecayRate                          = m_weightDecayRate,
+
             m_trainNetworkOnline                       = m_trainNetworkOnline,
             m_saveSamplesOnline                        = m_saveSamplesOnline,
             m_trainingCooldownOnlineMin                = m_trainingCooldownOnlineMin,
@@ -229,6 +247,10 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         m_batchSize = data.m_batchSize;
         m_curveRange = data.m_curveRange;
         m_curve = data.m_curve;
+
+        m_dropoutKeepRate = data.m_regularizationKeepRate;
+
+        m_weightDecayRate = data.m_weightDecayRate;
 
         m_trainNetworkOnline = data.m_trainNetworkOnline;
         m_saveSamplesOnline = data.m_saveSamplesOnline;
@@ -278,6 +300,14 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     public bool GetTrainOffline()
     {
         return m_trainNetworkOffline;
+    }
+    public float GetDropoutRate()
+    {
+        return m_dropoutKeepRate;
+    }
+    public float GetWeightDecayRate()
+    {
+        return m_weightDecayRate;
     }
     #endregion
 }

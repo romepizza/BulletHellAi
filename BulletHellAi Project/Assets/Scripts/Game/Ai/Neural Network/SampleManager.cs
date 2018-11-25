@@ -304,7 +304,7 @@ public class SampleManager : MonoBehaviour
     }
     public void ApplyData()
     {
-        
+        m_screenshotScriptThis.ApplyData();
     }
     #endregion
 

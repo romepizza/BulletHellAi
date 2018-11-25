@@ -1,0 +1,206 @@
+{
+    "m_isCorrupted": false,
+    "m_trainingData": {
+        "m_updateType": 0,
+        "m_learnRate": 1.0,
+        "m_batchSize": 20,
+        "m_curveRange": 0,
+        "m_curve": {
+            "serializedVersion": "2",
+            "m_Curve": [
+                {
+                    "serializedVersion": "3",
+                    "time": 0.0,
+                    "value": 1.0,
+                    "inSlope": 0.0,
+                    "outSlope": 0.0,
+                    "tangentMode": 0,
+                    "weightedMode": 0,
+                    "inWeight": 0.0,
+                    "outWeight": 0.0
+                },
+                {
+                    "serializedVersion": "3",
+                    "time": 0.3051183521747589,
+                    "value": 0.7851641178131104,
+                    "inSlope": -1.2684203386306763,
+                    "outSlope": -1.2684203386306763,
+                    "tangentMode": 0,
+                    "weightedMode": 0,
+                    "inWeight": 0.3333333432674408,
+                    "outWeight": 0.3333333432674408
+                },
+                {
+                    "serializedVersion": "3",
+                    "time": 1.0,
+                    "value": 0.5,
+                    "inSlope": 0.0,
+                    "outSlope": 0.0,
+                    "tangentMode": 0,
+                    "weightedMode": 0,
+                    "inWeight": 0.0,
+                    "outWeight": 0.0
+                }
+            ],
+            "m_PreInfinity": 2,
+            "m_PostInfinity": 2,
+            "m_RotationOrder": 4
+        },
+        "m_regularizationKeepRate": 0.8999999761581421,
+        "m_weightDecayRate": 0.00009999999747378752,
+        "m_trainNetworkOnline": true,
+        "m_saveSamplesOnline": true,
+        "m_trainingCooldownOnlineMin": 0.009999999776482582,
+        "m_trainingCooldownOnlineMax": 0.009999999776482582,
+        "m_trainNetworkOffline": true,
+        "m_trainingUnits": 5,
+        "m_trainingCooldownOfflineMin": 100.0,
+        "m_trainingCooldownOfflineMax": 100.0,
+        "m_trainingCooldownOfflineGatherMin": 0.0,
+        "m_trainingCooldownOfflineGatherMax": 0.0,
+        "m_stopAtMaximumUnitCount": 0,
+        "m_trainingCooldownRdyOnline": 0.009999999776482582,
+        "m_trainingCooldownRdyOffline": 100.0,
+        "m_trainingCooldownRdyOfflineGather": 0.0,
+        "m_trainingUnitssCompleted": 0
+    },
+    "m_sampleData": {
+        "m_inputType": 0,
+        "m_tossNoOutputSamples": true,
+        "m_minSamples": 200,
+        "m_maxSamples": 1000,
+        "m_batchSize": 1,
+        "m_screenshotData": {
+            "m_captureWidth": 0,
+            "m_captureHeight": 0,
+            "m_backgroundHeight": 0.0,
+            "m_changeObstacleScales": true,
+            "m_format": 1,
+            "m_allowHDR": false,
+            "m_activisionThreshold": 0.10000000149011612
+        }
+    },
+    "m_visuilizationData": {
+        "m_visualize": false,
+        "m_height": 7.0,
+        "m_width": 3.0,
+        "m_marginX": 0.25,
+        "m_marginY": 0.25,
+        "m_orientation": 2,
+        "m_nodesScaleFactorGlobal": 0.5,
+        "m_weightsScaleFactorGloal": 0.5,
+        "m_nodesScaleFactorLayerWise": [
+            0.5
+        ],
+        "m_weightsScaleFactorLayerWise": [
+            0.10000000149011612,
+            0.25,
+            0.25,
+            0.25
+        ],
+        "m_relativePosition": {
+            "x": 4.5,
+            "y": 1.5,
+            "z": 0.0
+        },
+        "m_relativeRotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        }
+    },
+    "m_networkData": {
+        "m_biases": [
+            {
+                "data": [
+                    0.17796719074249268,
+                    0.0115431547164917
+                ],
+                "array": []
+            }
+        ],
+        "m_weights": [
+            {
+                "data": [],
+                "array": [
+                    {
+                        "data": [
+                            -0.7942876815795898,
+                            0.8658533096313477,
+                            -0.26761019229888918,
+                            0.13578832149505616,
+                            -0.6025693416595459,
+                            0.4873668849468231,
+                            -0.31312787532806399,
+                            -0.10051023960113526,
+                            -0.9827473163604736,
+                            0.396391361951828,
+                            0.3612458407878876,
+                            -0.4947625398635864,
+                            -0.3314272165298462,
+                            -0.6892070770263672,
+                            0.3825659453868866,
+                            0.04335677623748779,
+                            -0.10457980632781983,
+                            0.22401344776153565,
+                            -0.12368285655975342,
+                            0.8819851875305176,
+                            0.12393748760223389,
+                            -0.1450875997543335,
+                            0.742668867111206,
+                            0.9072237014770508,
+                            -0.09494149684906006,
+                            0.19942820072174073,
+                            0.6964583396911621,
+                            0.17336547374725343
+                        ],
+                        "array": []
+                    },
+                    {
+                        "data": [
+                            0.45133301615715029,
+                            -0.5691370964050293,
+                            -0.9411561489105225,
+                            0.8607954978942871,
+                            -0.24701178073883058,
+                            -0.6841380596160889,
+                            -0.21035635471343995,
+                            -0.4934810400009155,
+                            0.9892237186431885,
+                            -0.02373063564300537,
+                            -0.543062686920166,
+                            0.9816529750823975,
+                            0.9694638252258301,
+                            0.8918764591217041,
+                            -0.24245822429656983,
+                            0.8822033405303955,
+                            0.8247411251068115,
+                            0.46938034892082217,
+                            -0.35006606578826907,
+                            -0.6328115463256836,
+                            -0.5771353244781494,
+                            -0.8426852226257324,
+                            0.4663374125957489,
+                            0.849895715713501,
+                            -0.8704323768615723,
+                            0.8873491287231445,
+                            -0.6990711688995361,
+                            0.31969329714775088
+                        ],
+                        "array": []
+                    }
+                ]
+            }
+        ]
+    },
+    "m_layerLengths": [
+        28,
+        2
+    ],
+    "m_dataFileName": "NN_1",
+    "m_activisionType": 2,
+    "m_activisionTypeOutput": 4,
+    "m_costType": 0,
+    "m_initializationType": 0,
+    "m_activisionConstant": 0.009999999776482582
+}

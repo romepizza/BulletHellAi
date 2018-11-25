@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AiMovement : MonoBehaviour {
 
@@ -19,9 +20,14 @@ public class AiMovement : MonoBehaviour {
     [SerializeField] private float m_decisionThreshold;
     [SerializeField] private float m_decisionDynamicRandomThreshold;
 
+    [Header("--- Display Cost ---")]
+    [SerializeField] private bool m_displayCost;
+
+
     [Header("--- Objects ---")]
     [SerializeField] private NeuralNetworkContainer m_networkContainer;
     [SerializeField] private RestrictedArea m_restrictedArea;
+    [SerializeField] private Text m_costText;
 
     [Header("------- Debug -------")]
     private Vector3 m_currentMoveDirection;
@@ -330,6 +336,7 @@ public class AiMovement : MonoBehaviour {
         float[] input = GetInputForNetwork();
         float[] output = m_networkContainer.m_network.GetOutput(input);
         m_networkContainer.m_visualization.UpdateActivisions(input);
+        //UpdateCostText(m_networkContainer.m_network.GetCost(PlayerMovementManager.Instance().GenerateInputData(), output));
         return output;
     }
     float[] GetInputForNetwork()
@@ -338,6 +345,22 @@ public class AiMovement : MonoBehaviour {
 
         float[] input = sample.m_input;
         return input;
+    }
+    #endregion
+
+    #region Misc
+    private void UpdateCostText(float cost)
+    {
+        if (m_costText == null)
+            return;
+
+        if(!m_displayCost)
+        {
+            m_costText.enabled = false;
+            return;
+        }
+
+        m_costText.text = (cost != 0 ? 1 / cost : 0).ToString("0.000");
     }
     #endregion
 }

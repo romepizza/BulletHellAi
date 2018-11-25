@@ -5,7 +5,20 @@ using UnityEngine;
 [System.Serializable]
 public struct NNVSaveData
 {
+    public bool m_visualize;
+    public float m_height;
+    public float m_width;
+    public float m_marginX;
+    public float m_marginY;
+    public NeuralNetworkVisualization.OrientationType m_orientation;
 
+    public float m_nodesScaleFactorGlobal;
+    public float m_weightsScaleFactorGloal;
+    public float[] m_nodesScaleFactorLayerWise;
+    public float[] m_weightsScaleFactorLayerWise;
+
+    public Vector3 m_relativePosition;
+    public Vector3 m_relativeRotation;
 }
 
 public class NeuralNetworkVisualization : MonoBehaviour
@@ -46,7 +59,9 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
     private NeuralNetworkVisualizationManager m_manager;
 
-    private enum OrientationType { TopToDown, DownToTop, LeftToRight, RightToLeft }
+    #region Enums
+    public enum OrientationType { TopToDown, DownToTop, LeftToRight, RightToLeft }
+    #endregion
 
     #region Mono
     private void Awake()
@@ -61,6 +76,8 @@ public class NeuralNetworkVisualization : MonoBehaviour
         if (!m_visualize)
             return;
 
+        m_isDestroyed = false;
+
         m_manager = NeuralNetworkVisualizationManager.Instance();
         m_network = networkContainer.m_network;
         m_layerCount = m_network.m_layerCount;
@@ -72,10 +89,11 @@ public class NeuralNetworkVisualization : MonoBehaviour
         PositionObjects();
         UpdateVisualization();
 
+        m_parentTransform.position = m_parentTransform.parent.transform.position;
         m_parentTransform.position += m_relativePosition;
+        m_parentTransform.rotation = m_parentTransform.parent.transform.rotation;
         m_parentTransform.Rotate(m_relativeRotation);
 
-        m_isDestroyed = false;
     }
     private void CreateObjects()
     {
@@ -244,17 +262,21 @@ public class NeuralNetworkVisualization : MonoBehaviour
     }
     private void UpdateBiases()
     {
-        float minValueBias = float.MaxValue;
-        float maxValueBias = float.MinValue;
+        float[] minValues = new float[m_layerCount];
+        float[] maxValues = new float[m_layerCount];
+        //float minValueBias = float.MaxValue;
+        //float maxValueBias = float.MinValue;
         // get min / max value
         for (int layerIndex = 1; layerIndex < m_layerCount; layerIndex++)
         {
+            minValues[layerIndex] = float.MaxValue;
+            maxValues[layerIndex] = float.MinValue;
             int nodeCount = m_network.m_layerLengths[layerIndex];
             for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
             {
                 float value = m_network.GetBias(layerIndex, nodeIndex);
-                minValueBias = Mathf.Min(value, minValueBias);
-                maxValueBias = Mathf.Max(value, maxValueBias);
+                minValues[layerIndex] = Mathf.Min(value, minValues[layerIndex]);
+                maxValues[layerIndex] = Mathf.Max(value, maxValues[layerIndex]);
 
                 NeuralNetworkValueContainer valueContainer = m_nodeTransforms[layerIndex][nodeIndex].GetComponent<NeuralNetworkValueContainer>();
                 if (valueContainer == null)
@@ -272,7 +294,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
                 Transform node = m_nodeTransforms[layerIndex][nodeIndex];
 
                 float value = m_network.GetBias(layerIndex, nodeIndex);
-                float mappedValue = Utility.MapValuePercent(minValueBias, maxValueBias, value);
+                float mappedValue = Utility.MapValuePercent(minValues[layerIndex], maxValues[layerIndex], value);
                 if (mappedValue > 0.5f)
                     color = Color.Lerp(m_manager.GetColorBiasAverage(), m_manager.GetColorBiasMax(), (mappedValue - 0.5f) * 2f);
                 else
@@ -354,11 +376,16 @@ public class NeuralNetworkVisualization : MonoBehaviour
     }
     private void UpdateWeights()
     {
-        float minValueWeight = float.MaxValue;
-        float maxValueWeight = float.MinValue;
+        float[] minValues = new float[m_layerCount];
+        float[] maxValues = new float[m_layerCount];
+        //float minValueWeight = float.MaxValue;
+        //float maxValueWeight = float.MinValue;
         // get min / max value
         for (int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
         {
+            minValues[layerIndex] = float.MaxValue;
+            maxValues[layerIndex] = float.MinValue;
+
             int nodeCount = m_network.m_layerLengths[layerIndex];
             int weightCount = m_network.m_layerLengths[layerIndex + 1];
             for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
@@ -371,8 +398,8 @@ public class NeuralNetworkVisualization : MonoBehaviour
                 for (int weightIndex = 0; weightIndex < weightCount; weightIndex++)
                 {
                     float value = m_network.GetWeight(layerIndex, nodeIndex, weightIndex);
-                    minValueWeight = Mathf.Min(value, minValueWeight);
-                    maxValueWeight = Mathf.Max(value, maxValueWeight);
+                    minValues[layerIndex] = Mathf.Min(value, minValues[layerIndex]);
+                    maxValues[layerIndex] = Mathf.Max(value, maxValues[layerIndex]);
 
                     NeuralNetworkValueContainer valueContainerWeight = m_weightTransforms[layerIndex][nodeIndex][weightIndex].GetComponent<NeuralNetworkValueContainer>();
                     if (valueContainerWeight == null)
@@ -398,7 +425,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
                     Transform weight = m_weightTransforms[layerIndex][nodeIndex][weightIndex];
 
                     float value = m_network.GetWeight(layerIndex, nodeIndex, weightIndex);
-                    float mappedValue = Utility.MapValuePercent(minValueWeight, maxValueWeight, value);
+                    float mappedValue = Utility.MapValuePercent(minValues[layerIndex], maxValues[layerIndex], value);
 
                     if (mappedValue > 0.5f)
                         color = Color.Lerp(m_manager.GetColorWeightAverage(), m_manager.GetColorWeightMax(), (mappedValue - 0.5f) * 2f);
@@ -435,14 +462,40 @@ public class NeuralNetworkVisualization : MonoBehaviour
     {
         NNVSaveData data = new NNVSaveData
         {
-            
+            m_visualize = m_visualize,
+            m_height =  m_height,
+            m_width =  m_width,
+            m_marginX =  m_marginX,
+            m_marginY = m_marginY,
+            m_orientation = m_orientation,
+
+            m_nodesScaleFactorGlobal = m_nodesScaleFactorGlobal,
+            m_weightsScaleFactorGloal = m_weightsScaleFactorGloal,
+            m_nodesScaleFactorLayerWise = m_nodesScaleFactorLayerWise,
+            m_weightsScaleFactorLayerWise = m_weightsScaleFactorLayerWise,
+
+            m_relativePosition = m_relativePosition,
+            m_relativeRotation = m_relativeRotation
         };
 
         return data;
     }
     public void LoadData(NNVSaveData data)
     {
+        m_visualize = data.m_visualize;
+        m_height = data.m_height;
+        m_width = data.m_width;
+        m_marginX = data.m_marginX;
+        m_marginY = data.m_marginY;
+        m_orientation = data.m_orientation;
 
+        m_nodesScaleFactorGlobal = data.m_nodesScaleFactorGlobal;
+        m_weightsScaleFactorGloal = data.m_weightsScaleFactorGloal;
+        m_nodesScaleFactorLayerWise = data.m_nodesScaleFactorLayerWise;
+        m_weightsScaleFactorLayerWise = data.m_weightsScaleFactorLayerWise;
+
+        m_relativePosition = data.m_relativePosition;
+        m_relativeRotation = data.m_relativeRotation;
     }
     public void ApplyData()
     {

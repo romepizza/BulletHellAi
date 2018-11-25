@@ -18,6 +18,25 @@ public struct NNTSSaveData
     public float m_activisionThreshold;
 }
 
+public struct CacheData
+{
+    public int captureWidth;
+    public int captureHeight;
+    public float playerHight;
+
+    public bool Equals(int captureWidth, int captureHeight, float playerHight)
+    {
+        if (this.captureWidth > captureWidth * 1.0001f || this.captureWidth < captureWidth * 0.9999f)
+            return false;
+        if (this.captureHeight > captureHeight * 1.0001f || this.captureHeight < captureHeight * 0.9999f)
+            return false;
+        if (this.playerHight > playerHight * 1.0001f || this.playerHight < playerHight * 0.9999f)
+            return false;
+
+        return true;
+    }
+}
+
 public class TakeScreenshot : MonoBehaviour {
 
     [Header("------- Settings -------")]
@@ -60,8 +79,8 @@ public class TakeScreenshot : MonoBehaviour {
     private int m_currentHeight;
     private int m_currentWidth;
 
-    private float[] m_cacheDataComputed;
-    private float[][] m_cacheDataRaw;
+    private Dictionary<CacheData, float[]> m_cacheDataComputed = new Dictionary<CacheData, float[]>();
+    private Dictionary<CacheData, float[][]> m_cacheDataRaw = new Dictionary<CacheData, float[][]>();
 
     private int m_lastCaptureWidth;
     private int m_lastCaptureHeight;
@@ -91,8 +110,8 @@ public class TakeScreenshot : MonoBehaviour {
     private void LateUpdate()
     {
         TakeScreenshotManually(false);
-        m_cacheDataComputed = null;
-        m_cacheDataRaw = null;
+        m_cacheDataComputed.Clear();
+        m_cacheDataRaw.Clear();
     }
     #endregion Monobehaviour
 
@@ -108,13 +127,20 @@ public class TakeScreenshot : MonoBehaviour {
     }
     public float[] GetScreenshotDataComputed(int captureWidth, int captureHeight, float playerHight, bool show)
     {
-        //if (m_cacheDataComputed != null)
-        //    return m_cacheDataComputed;
-
+        //CacheData cacheData = new CacheData { captureWidth = captureWidth, captureHeight = captureHeight, playerHight = playerHight };
+        
 
         m_currentWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
         m_currentHeight = captureHeight == 0 ? GetCaptureHeight() : captureHeight;
         playerHight = playerHight == 0 ? GetPlayerHight() : playerHight;
+
+        foreach (CacheData cacheData in m_cacheDataComputed.Keys)
+        {
+            
+            if (cacheData.Equals(m_currentWidth, m_currentHeight, playerHight))
+                return m_cacheDataComputed[cacheData];
+        }
+        Debug.Log("0: " + m_cacheDataComputed.Count);
 
         Texture2D texture = PrepareScreenshot(false);
 
@@ -162,15 +188,24 @@ public class TakeScreenshot : MonoBehaviour {
             ShowScreenshot();
         SaveFile();
 
-        m_cacheDataComputed = data;
+        m_cacheDataComputed.Add(new CacheData { captureWidth = m_captureWidth, captureHeight = m_captureHeight, playerHight = playerHight }, data);// new CacheData { captureWidth = captureWidth, captureHeight = captureHeight, playerHight = playerHight }; ;
         return data;
     }
     public float[][] GetScreenshotDataRaw(int captureWidth, int captureHeight, bool forceHdr, bool show)
     {
-        //if (m_cacheDataRaw != null)
-        //    return m_cacheDataRaw;
+        //CacheData cacheData = new CacheData { captureWidth = captureWidth, captureHeight = captureHeight };
+        
+
         m_currentWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
         m_currentHeight = captureHeight == 0 ? GetCaptureHeight() : captureHeight;
+
+        Debug.Log("1: " + m_cacheDataRaw.Count);
+        foreach (CacheData cacheData in m_cacheDataRaw.Keys)
+        {
+
+            if (cacheData.Equals(m_currentWidth, m_currentHeight, 0))
+                return m_cacheDataRaw[cacheData];
+        }
 
         Texture2D texture = PrepareScreenshot(forceHdr);
         
@@ -201,9 +236,9 @@ public class TakeScreenshot : MonoBehaviour {
 
         if (show)
             ShowScreenshot();
-        //SaveFile();
+        SaveFile();
 
-        m_cacheDataRaw = data;
+        m_cacheDataRaw.Add(new CacheData { captureWidth = m_captureWidth, captureHeight = m_captureHeight, playerHight = 0 }, data);
         return data;
     }
     #endregion

@@ -134,7 +134,7 @@ public class MyMatrix
     {
         if (mat1.m_columnCountX != mat2.m_rowCountY)
         {
-            Debug.Log("Aborted: m_rows != otherMatrix.m_columns (" + mat1.m_columnCountX + "/" + mat2.m_rowCountY + ")");
+            Debug.Log("Aborted: m_rows != otherMatrix.m_columns (" + mat1.m_columnCountX + "/" + mat2.m_rowCountY + ")\nmat1:\n" + mat1.ToString() + "\nmat2:\n" + mat2.ToString());
             return null;
         }
 
@@ -184,12 +184,12 @@ public class MyMatrix
     {
         if(mat1.m_rowCountY != mat2.m_rowCountY)
         {
-            Debug.Log("Aborted: row counts didn't match! (mat1: " + mat1.m_rowCountY + ", mat2: " + mat2.m_rowCountY);
+            Debug.Log("Aborted: row counts didn't match! (mat1: " + mat1.m_rowCountY + ", mat2: " + mat2.m_rowCountY + ")\nmat1:\n" + mat1.ToString() + "\nmat2:\n" + mat2.ToString());
             return null;
         }
         if (mat1.m_columnCountX != mat2.m_columnCountX)
         {
-            Debug.Log("Aborted: column counts didn't match! (mat1: " + mat1.m_columnCountX + ", mat2: " + mat2.m_columnCountX);
+            Debug.Log("Aborted: column counts didn't match! (mat1: " + mat1.m_columnCountX + ", mat2: " + mat2.m_columnCountX + ")\nmat1:\n" + mat1.ToString() + "\nmat2:\n" + mat2.ToString());
             return null;
         }
 
@@ -246,6 +246,20 @@ public class MyMatrix
         }
 
         return s;
+    }
+    public float[][] GetMatrixToArray()
+    {
+        float[][] data = new float[m_rowCountY][];
+        for(int y = 0; y < m_rowCountY; y++)
+        {
+            float[] dataX = new float[m_data[m_rowCountY].Length];
+            for(int x = 0; x < dataX.Length; x++)
+            {
+                dataX[x] = m_data[y][x];
+            }
+            data[y] = dataX;
+        }
+        return data;
     }
     #endregion
 }
