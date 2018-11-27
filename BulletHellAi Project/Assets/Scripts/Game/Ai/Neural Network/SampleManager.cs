@@ -130,7 +130,6 @@ public class SampleManager : MonoBehaviour
             m_samples.RemoveAt(Random.Range(0, m_samples.Count - 1));
         }
         m_samples.Add(sampleContainer);
-        
     }
     #endregion
 
@@ -151,7 +150,7 @@ public class SampleManager : MonoBehaviour
     }
     private float[] GenerateInputSourceScreenshot()
     {
-        float[] input = m_screenshotScriptSource.GetScreenshotDataComputed(m_screenshotScriptThis.GetCaptureWidth(), m_screenshotScriptThis.GetCaptureHeight(), m_screenshotScriptThis.GetPlayerHight(), false);
+        float[] input = m_screenshotScriptSource.GetScreenshotDataComputed(m_screenshotScriptThis.GetCaptureWidth(), m_screenshotScriptThis.GetCaptureHeight(), m_screenshotScriptThis.GetPlayerHeight(), false);
 
         return input;
     }
@@ -304,6 +303,9 @@ public class SampleManager : MonoBehaviour
     }
     public void ApplyData()
     {
+        m_samples.Clear();
+        m_cacheSampleSource = null;
+        m_cacheSampleThis = null;
         m_screenshotScriptThis.ApplyData();
     }
     #endregion
@@ -312,6 +314,10 @@ public class SampleManager : MonoBehaviour
     public InputType GetInputType()
     {
         return m_inputType;
+    }
+    public TakeScreenshot GetScreenshotScript()
+    {
+        return m_screenshotScriptThis;
     }
     #endregion
 }

@@ -20,8 +20,12 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
     [SerializeField] private Color m_colorMaxValueBias;
 
     [Header("- Weight -")]
+    [SerializeField] private float m_disableThresholdWeights;
+    [SerializeField] private float[] m_colorThresholdsWeight;
     [SerializeField] private Color m_colorMinValueWeight;
+    [SerializeField] private Color m_colorMinAvgValueWeight;
     [SerializeField] private Color m_colorAverageValueWeight;
+    [SerializeField] private Color m_colorMaxAvgValueWeight;
     [SerializeField] private Color m_colorMaxValueWeight;
 
     [Header("--- Objects ---")]
@@ -35,7 +39,6 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
 
     [Header("------- Debug -------")]
     private List<NeuralNetworkVisualization> m_activeVisualizations;
-    private int creationIndex;
 
     #region Mono
     private void Awake()
@@ -57,39 +60,6 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
         NeuralNetworkVisualization visualizationScript = g.GetComponent<NeuralNetworkVisualization>();
         if(visualizationScript == null)
             visualizationScript = g.AddComponent<NeuralNetworkVisualization>();
-
-        Vector3 position = Vector3.zero;
-        Vector3 rotation = Vector3.zero;
-
-        if (creationIndex == 0)
-        {
-            position.x = -10;
-            rotation.y = -90;
-        }
-        else if (creationIndex == 1)
-        {
-            position.x = 10;
-            rotation.y = 90;
-        }
-        else if (creationIndex == 2)
-        {
-            position.y = 10;
-            rotation.x = 90;
-        }
-        else if (creationIndex == 3)
-        {
-            position.y = -10;
-            rotation.x = -90;
-        }
-        else if (creationIndex == 4)
-        {
-            position.z = -10;
-            rotation.y = 180;
-        }
-        else
-            return;
-
-        creationIndex++;
 
         visualizationScript.CreateVisualization(networkContainer);//, position, rotation, 10);
 
@@ -147,9 +117,21 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
         return m_colorMaxValueBias;
     }
     // weight
+    public float[] GetColorThresholdsWeight()
+    {
+        return m_colorThresholdsWeight;
+    }
+    public float GetDisableThresholdWeights()
+    {
+        return m_disableThresholdWeights;
+    }
     public Color GetColorWeightMin()
     {
         return m_colorMinValueWeight;
+    }
+    public Color GetColorWeightMinAvg()
+    {
+        return m_colorMinAvgValueWeight;
     }
     public Color GetColorWeightAverage()
     {
@@ -159,7 +141,12 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
     {
         return m_colorMaxValueWeight;
     }
-    
+    public Color GetColorWeightMaxAvg()
+    {
+        return m_colorMaxAvgValueWeight;
+    }
+
+
     #endregion
 
     #region Statics

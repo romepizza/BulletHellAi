@@ -204,7 +204,10 @@ public class NeuralNetwork
                 for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
                 {
                     for (int weightIndex = 0; weightIndex < weightCount; weightIndex++)
+                    {
+                        //Debug.Log(weightData[layerIndex].array[nodeCount].data.Length + ", " + weightCount);
                         mat.m_data[nodeIndex][weightIndex] = weightData[layerIndex].array[nodeIndex].data[weightIndex];
+                    }
                 }
             }
             m_weights[layerIndex] = mat;
@@ -408,8 +411,12 @@ public class NeuralNetwork
         // set the final values
         learnRate = (learnRate <= 0 ? m_learnRate : learnRate);
         float weightDecayFactor = 1f - learnRate * m_weightDecayRate / m_batchSize;
-        //Debug.Log("0: " + learnRate + " / " + m_weightDecayRate + " / " + m_batchSize);
-        //Debug.Log("1: " + weightDecayFactor);
+        if (weightDecayFactor < 0 || weightDecayFactor > 1)
+        {
+            Debug.Log(string.Format("Warning: weightDecayFactor is corrupt: learnRate {0} + weightDecayRate {1} / batchSize {2} = {3} ", learnRate, m_weightDecayRate, m_batchSize, weightDecayFactor));
+            weightDecayFactor = Mathf.Clamp(weightDecayFactor, 0.00001f, 1f);
+        }
+
         for (int layerIndex = 0; layerIndex < m_biases.Length; layerIndex++)
         {
             m_batchedGradientBiases[layerIndex].MultiplyByFactor(learnRate / m_batchSize);
@@ -653,7 +660,6 @@ public class NeuralNetwork
     #region Save / Load
     public NNSaveData SaveData()
     {
-
         // biases
         JaggedArrayContainer[] finalBiasArray = new JaggedArrayContainer[m_biases.Length];
         for(int layerIndex = 0; layerIndex < finalBiasArray.Length; layerIndex++)
@@ -700,7 +706,7 @@ public class NeuralNetwork
     }
     public void ApplyData()
     {
-
+        InitializeBatch();
     }
     #endregion
 
@@ -718,6 +724,8 @@ public class NeuralNetwork
     /// <returns></returns>
     public float GetWeight(int layerIndex, int nodeIndex, int weightIndex)
     {
+        //Debug.Log(string.Format("0: {0}, {1}, {2}", layerIndex, nodeIndex, weightIndex));
+        //Debug.Log(string.Format("1: {0}, {1}, {2}", m_weights.Length, m_weights[layerIndex].m_data[weightIndex].Length, m_weights[layerIndex].m_data.Length));
         return m_weights[layerIndex].m_data[weightIndex][nodeIndex];
     }
     #endregion

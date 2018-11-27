@@ -12,6 +12,11 @@ public class JaggedArrayContainer
     {
 
     }
+    public JaggedArrayContainer(int dataLength, int arrayLenth)
+    {
+        data = new float[dataLength];
+        array = new JaggedArrayContainer[arrayLenth];
+    }
     public JaggedArrayContainer(float[] data)
     {
         this.data = data;

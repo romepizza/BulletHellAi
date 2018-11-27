@@ -34,7 +34,7 @@ public struct NNTMSaveData
     public float m_trainingCooldownRdyOffline;
     public float m_trainingCooldownRdyOfflineGather;
      
-    public int m_trainingUnitssCompleted;
+    public int m_trainingUnitsCompleted;
 }
 
 public class NeuralNetworkTrainingManager : MonoBehaviour
@@ -85,7 +85,10 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     private float m_trainingCooldownRdyOffline;
     private float m_trainingCooldownRdyOfflineGather;
 
-    private int m_trainingUnitssCompleted;
+    private int m_trainingUnitsCompleted;
+    private bool m_updateVisualization;
+    private float m_visualizationCooldown = 0.25f;
+    private float m_visualizationCooldownRdy;
 
 
     #region Enums
@@ -115,12 +118,26 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     {
         ManageTraining();
     }
+    private void LateUpdate()
+    {
+        if (m_updateVisualization && m_visualizationCooldownRdy < Time.time)
+        {
+            SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
+            m_visualization.UpdateActivisions(sampleThis.m_input);
+            if (m_updateVisualization)
+            {
+                m_visualization.UpdateVisualization();
+            }
+            m_updateVisualization = false;
+            m_visualizationCooldownRdy = m_visualizationCooldown + Time.time;
+        }
+    }
     #endregion
 
     #region Training
     private void ManageTraining()
     {
-        if (m_stopAtMaximumUnitCount > 0 && m_trainingUnitssCompleted >= m_stopAtMaximumUnitCount)
+        if (m_stopAtMaximumUnitCount > 0 && m_trainingUnitsCompleted >= m_stopAtMaximumUnitCount)
             m_trainNetworkOnline = m_trainNetworkOffline = false;
 
         if (m_trainNetworkOnline && m_trainingCooldownRdyOnline < Time.time)
@@ -153,16 +170,11 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         if (!sampleSource.m_isOkay)
             return;
 
-        bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitssCompleted));
+        bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitsCompleted));
+        m_updateVisualization |= update;
 
-
-        SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
-        m_visualization.UpdateActivisions(sampleThis.m_input);
         if (update)
-        {
             UpdateTraningCount();
-            m_visualization.UpdateVisualization();
-        }
     }
     public void TrainNetworkOffline()
     {
@@ -170,15 +182,11 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         if (!sampleSource.m_isOkay)
             return;
 
-        bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitssCompleted));
+        bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitsCompleted));
+        m_updateVisualization |= update;
 
-        SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
-        m_visualization.UpdateActivisions(sampleThis.m_input);
         if (update)
-        {
             UpdateTraningCount();
-            m_visualization.UpdateVisualization();
-        }
     }
     private void GatherNetworkOffline()
     {
@@ -198,9 +206,9 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     }
     private void UpdateTraningCount()
     {
-        m_trainingUnitssCompleted++;
+        m_trainingUnitsCompleted++;
         if(m_unitCountText != null)
-            m_unitCountText.text = "" + m_trainingUnitssCompleted;
+            m_unitCountText.text = "" + m_trainingUnitsCompleted;
     }
     #endregion
 
@@ -236,7 +244,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
             m_trainingCooldownRdyOffline               = m_trainingCooldownRdyOffline,
             m_trainingCooldownRdyOfflineGather         = m_trainingCooldownRdyOfflineGather,
                                                        
-            m_trainingUnitssCompleted                  = m_trainingUnitssCompleted,
+            m_trainingUnitsCompleted                  = m_trainingUnitsCompleted,
         };
 
         return data;
@@ -270,7 +278,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         m_trainingCooldownRdyOffline = data.m_trainingCooldownRdyOffline;
         m_trainingCooldownRdyOfflineGather = data.m_trainingCooldownRdyOfflineGather;
 
-        m_trainingUnitssCompleted = data.m_trainingUnitssCompleted;
+        m_trainingUnitsCompleted = data.m_trainingUnitsCompleted;
     }
     public void ApplyData()
     {

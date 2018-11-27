@@ -17,8 +17,8 @@ public class AiMovement : MonoBehaviour {
 
     [Header("----- Interpretation Type -----")]
     [SerializeField] private NetworkOutputInterpretation m_interpretationType;
-    [SerializeField] private float m_decisionThreshold;
-    [SerializeField] private float m_decisionDynamicRandomThreshold;
+    //[SerializeField] private float m_decisionThreshold;
+    [SerializeField] private float m_interpretationVar;
 
     [Header("--- Display Cost ---")]
     [SerializeField] private bool m_displayCost;
@@ -41,7 +41,7 @@ public class AiMovement : MonoBehaviour {
     private bool m_isPressingRight;
 
     #region Enums
-    public enum NetworkOutputInterpretation { ThresholdOnly, DynamicRandomThreshold, RandomAndThreshold, Random}
+    public enum NetworkOutputInterpretation { DynamicRandomWaitThreshold, DynamicRandomThreshold, Random}
     public enum MovementDecision { DontDecide, Network, Algorithm, Random }
     #endregion
 
@@ -148,20 +148,88 @@ public class AiMovement : MonoBehaviour {
             noOutput = output.Length == 3 ? output[2] : output[4];
         }
 
-        if (m_interpretationType == NetworkOutputInterpretation.ThresholdOnly)
+        //if (m_interpretationType == NetworkOutputInterpretation.ThresholdOnly)
+        //{
+        //    Debug.Log("Warning: NetworkOutputInterpretation.ThresholdOnly not recommended!");
+        //    if (leftOutput >= m_decisionThreshold)
+        //        m_isPressingLeft = true;
+        //    if (rightOutput >= m_decisionThreshold)
+        //        m_isPressingRight = true;
+        //    if (output.Length > 3)
+        //    {
+        //        if (upOutput >= m_decisionThreshold)
+        //            m_isPressingUp = true;
+        //        if (downOutput >= m_decisionThreshold)
+        //            m_isPressingDown = true;
+        //    }
+        //}
+        if (m_interpretationType == NetworkOutputInterpretation.DynamicRandomWaitThreshold)
         {
-            Debug.Log("Warning: NetworkOutputInterpretation.ThresholdOnly not recommended!");
-            if (leftOutput >= m_decisionThreshold)
-                m_isPressingLeft = true;
-            if (rightOutput >= m_decisionThreshold)
-                m_isPressingRight = true;
-            if (output.Length > 3)
+            if (m_randomInitialCooldownRdy > Time.time)
+                return;
+
+            // Threshold
+            if (output.Length == 2)
             {
-                if (upOutput >= m_decisionThreshold)
-                    m_isPressingUp = true;
-                if (downOutput >= m_decisionThreshold)
-                    m_isPressingDown = true;
+                if (leftOutput < rightOutput * m_interpretationVar)
+                    leftOutput = 0;
+                else if (rightOutput < leftOutput * m_interpretationVar)
+                    rightOutput = 0;
+                else
+                    leftOutput = rightOutput = 0;
             }
+            else
+                Debug.Log("Warning: Feature not implemented yet!");
+            //if (output.Length == 3)
+            //{
+            //    float max = Mathf.Max(leftOutput, upOutput, noOutput);
+            //    if (leftOutput <= max * m_interpretationVar)
+            //        leftOutput = 0;
+            //    if (rightOutput <= max * m_interpretationVar)
+            //        rightOutput = 0;
+            //    if (noOutput <= max * m_interpretationVar)
+            //        noOutput = 0;
+            //}
+            //if (output.Length > 3)
+            //{
+            //    if (upOutput < downOutput * m_interpretationVar)
+            //        upOutput = 0;
+            //    if (downOutput < upOutput * m_interpretationVar)
+            //        downOutput = 0;
+            //}
+
+            // decide left/right
+            if (leftOutput != 0 || rightOutput != 0)
+            {
+                if (leftOutput == 0 && noOutput == 0)
+                    m_isPressingRight = true;
+                else if (rightOutput == 0 && noOutput == 0)
+                    m_isPressingLeft = true;
+                else if (rightOutput == 0 && leftOutput == 0)
+                    ;
+                else
+                    ;
+            }
+            // decide up/down
+            //if (output.Length > 3)
+            //{
+            //    Debug.Log("Warning: Code not uptodate!");
+            //    if (upOutput != 0 || downOutput != 0)
+            //    {
+            //        if (upOutput == 0)
+            //            m_isPressingDown = true;
+            //        else if (downOutput == 0)
+            //            m_isPressingUp = true;
+            //        else
+            //        {
+            //            float random = Random.Range(0, upOutput + downOutput);
+            //            if (random < upOutput)
+            //                m_isPressingUp = true;
+            //            else
+            //                m_isPressingDown = true;
+            //        }
+            //    }
+            //}
         }
         if (m_interpretationType == NetworkOutputInterpretation.DynamicRandomThreshold)
         {
@@ -171,26 +239,26 @@ public class AiMovement : MonoBehaviour {
             // Threshold
             if (output.Length == 2)
             {
-                if (leftOutput < rightOutput * m_decisionDynamicRandomThreshold)
+                if (leftOutput < rightOutput * m_interpretationVar)
                     leftOutput = 0;
-                if (rightOutput < leftOutput * m_decisionDynamicRandomThreshold)
+                if (rightOutput < leftOutput * m_interpretationVar)
                     rightOutput = 0;
             }
             if (output.Length == 3)
             {
                 float max = Mathf.Max(leftOutput, upOutput, noOutput);
-                if (leftOutput <= max * m_decisionDynamicRandomThreshold)
+                if (leftOutput <= max * m_interpretationVar)
                     leftOutput = 0;
-                if (rightOutput <= max * m_decisionDynamicRandomThreshold)
+                if (rightOutput <= max * m_interpretationVar)
                     rightOutput = 0;
-                if (noOutput <= max * m_decisionDynamicRandomThreshold)
+                if (noOutput <= max * m_interpretationVar)
                     noOutput = 0;
             }
             if (output.Length > 3)
             {
-                if (upOutput < downOutput * m_decisionDynamicRandomThreshold)
+                if (upOutput < downOutput * m_interpretationVar)
                     upOutput = 0;
-                if (downOutput < upOutput * m_decisionDynamicRandomThreshold)
+                if (downOutput < upOutput * m_interpretationVar)
                     downOutput = 0;
             }
 
@@ -260,62 +328,62 @@ public class AiMovement : MonoBehaviour {
                     m_isPressingDown = true;
             }
         }
-        if (m_interpretationType == NetworkOutputInterpretation.RandomAndThreshold)
-        {
-            Debug.Log("Warning: Code not uptodate!");
-            if (m_randomInitialCooldownRdy > Time.time)
-                return;
+        //if (m_interpretationType == NetworkOutputInterpretation.RandomAndThreshold)
+        //{
+        //    Debug.Log("Warning: Code not uptodate!");
+        //    if (m_randomInitialCooldownRdy > Time.time)
+        //        return;
 
 
-            if (leftOutput < m_decisionThreshold)
-                leftOutput = 0;
-            if (rightOutput < m_decisionThreshold)
-                rightOutput = 0;
-            if (output.Length > 3)
-            {
-                if (upOutput < m_decisionThreshold)
-                    upOutput = 0;
-                if (downOutput < m_decisionThreshold)
-                    downOutput = 0;
-            }
+        //    if (leftOutput < m_decisionThreshold)
+        //        leftOutput = 0;
+        //    if (rightOutput < m_decisionThreshold)
+        //        rightOutput = 0;
+        //    if (output.Length > 3)
+        //    {
+        //        if (upOutput < m_decisionThreshold)
+        //            upOutput = 0;
+        //        if (downOutput < m_decisionThreshold)
+        //            downOutput = 0;
+        //    }
 
 
-            // decide left/right
-            if (leftOutput != 0 || rightOutput != 0)
-            {
-                if (leftOutput == 0)
-                    m_isPressingRight = true;
-                else if (rightOutput == 0)
-                    m_isPressingLeft = true;
-                else
-                {
-                    float random = Random.Range(0, leftOutput + rightOutput);
-                    if (random < leftOutput)
-                        m_isPressingLeft = true;
-                    else
-                        m_isPressingRight = true;
-                }
-            }
-            // decide up/down
-            if (output.Length > 3)
-            {
-                if (upOutput != 0 || downOutput != 0)
-                {
-                    if (upOutput == 0)
-                        m_isPressingDown = true;
-                    else if (downOutput == 0)
-                        m_isPressingUp = true;
-                    else
-                    {
-                        float random = Random.Range(0, upOutput + downOutput);
-                        if (random < upOutput)
-                            m_isPressingUp = true;
-                        else
-                            m_isPressingDown = true;
-                    }
-                }
-            }
-        }
+        //    // decide left/right
+        //    if (leftOutput != 0 || rightOutput != 0)
+        //    {
+        //        if (leftOutput == 0)
+        //            m_isPressingRight = true;
+        //        else if (rightOutput == 0)
+        //            m_isPressingLeft = true;
+        //        else
+        //        {
+        //            float random = Random.Range(0, leftOutput + rightOutput);
+        //            if (random < leftOutput)
+        //                m_isPressingLeft = true;
+        //            else
+        //                m_isPressingRight = true;
+        //        }
+        //    }
+        //    // decide up/down
+        //    if (output.Length > 3)
+        //    {
+        //        if (upOutput != 0 || downOutput != 0)
+        //        {
+        //            if (upOutput == 0)
+        //                m_isPressingDown = true;
+        //            else if (downOutput == 0)
+        //                m_isPressingUp = true;
+        //            else
+        //            {
+        //                float random = Random.Range(0, upOutput + downOutput);
+        //                if (random < upOutput)
+        //                    m_isPressingUp = true;
+        //                else
+        //                    m_isPressingDown = true;
+        //            }
+        //        }
+        //    }
+        //}
     }
     void GetPressingInputViaAlgorithm()
     {

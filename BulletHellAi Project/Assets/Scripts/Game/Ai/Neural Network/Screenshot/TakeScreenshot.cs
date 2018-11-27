@@ -131,18 +131,15 @@ public class TakeScreenshot : MonoBehaviour {
         ShowScreenshot();
         SaveFile();
     }
-    public float[] GetScreenshotDataComputed(int captureWidth, int captureHeight, float playerHight, bool show)
+    public float[] GetScreenshotDataComputed(int captureWidth, int captureHeight, float playerHeight, bool show)
     {
-        //CacheData cacheData = new CacheData { captureWidth = captureWidth, captureHeight = captureHeight, playerHight = playerHight };
-        
-
         m_currentWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
         m_currentHeight = captureHeight == 0 ? GetCaptureHeight() : captureHeight;
-        playerHight = playerHight == 0 ? GetPlayerHight() : playerHight;
+        playerHeight = playerHeight == 0 ? GetPlayerHeight() : playerHeight;
 
         foreach (CacheData cacheData in m_cacheDataComputed)
         {
-            if (cacheData.Equals(m_currentWidth, m_currentHeight, playerHight))
+            if (cacheData.Equals(m_currentWidth, m_currentHeight, playerHeight))
             {
                 return cacheData.dataComputed;
             }
@@ -151,12 +148,9 @@ public class TakeScreenshot : MonoBehaviour {
         Texture2D texture = PrepareScreenshot(false);
 
         int enemyLength = m_currentWidth * m_currentHeight;
-        int playerLength = GetInputLayerLengthPlayer(m_currentWidth, playerHight);
+        int playerLength = GetInputLayerLengthPlayer(m_currentWidth, playerHeight);
 
         int dataLength = enemyLength + playerLength;
-        //Debug.Log("E: " + enemyLength);
-        //Debug.Log("P: " + playerLenth);
-        //Debug.Log("Tw: " + texture.width + ", Th: " + texture.height);
         float[] data = new float[dataLength];
 
         for (int height = 0; height < texture.height; height++)
@@ -178,15 +172,7 @@ public class TakeScreenshot : MonoBehaviour {
                     index += enemyLength;
                 }
 
-                //try
-                //{
-                    data[index] = value;
-                //}
-                //catch (System.Exception e)
-                //{
-
-                //    Debug.Log("i: " + index);
-                //}
+                data[index] = value;
             }
         }
 
@@ -194,22 +180,21 @@ public class TakeScreenshot : MonoBehaviour {
             ShowScreenshot();
         SaveFile();
 
-        m_cacheDataComputed.Add(new CacheData { captureWidth = m_captureWidth, captureHeight = m_captureHeight, playerHeight = playerHight, dataComputed = data });// new CacheData { captureWidth = captureWidth, captureHeight = captureHeight, playerHight = playerHight }; ;
+        m_cacheDataComputed.Add(new CacheData { captureWidth = m_currentWidth, captureHeight = m_currentHeight, playerHeight = playerHeight, dataComputed = data });
         return data;
     }
     public float[][] GetScreenshotDataRaw(int captureWidth, int captureHeight, bool forceHdr, bool show)
     {
-        //CacheData cacheData = new CacheData { captureWidth = captureWidth, captureHeight = captureHeight };
-        
 
         m_currentWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
         m_currentHeight = captureHeight == 0 ? GetCaptureHeight() : captureHeight;
 
-        //Debug.Log("1: " + m_cacheDataRaw.Count);
         foreach (CacheData cacheData in m_cacheDataRaw)
         {
             if (cacheData.Equals(m_currentWidth, m_currentHeight, 0))
+            {
                 return cacheData.dataRaw;
+            }
         }
 
         Texture2D texture = PrepareScreenshot(forceHdr);
@@ -243,7 +228,7 @@ public class TakeScreenshot : MonoBehaviour {
             ShowScreenshot();
         SaveFile();
 
-        m_cacheDataRaw.Add(new CacheData { captureWidth = m_captureWidth, captureHeight = m_captureHeight, playerHeight = 0, dataRaw = data });
+        m_cacheDataRaw.Add(new CacheData { captureWidth = m_currentWidth, captureHeight = m_currentHeight, playerHeight = 0, dataRaw = data });
         return data;
     }
     #endregion
@@ -391,7 +376,7 @@ public class TakeScreenshot : MonoBehaviour {
     public int GetInputLayerLengthTotal(int captureWidth, float playerHeight)
     {
         captureWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
-        playerHeight = playerHeight == 0 ? GetPlayerHight() : playerHeight;
+        playerHeight = playerHeight == 0 ? GetPlayerHeight() : playerHeight;
         //Debug.Log("0: " + (GetInputLayerLengthEnemy(captureWidth) + GetInputLayerLengthPlayer(captureWidth)));
         return GetInputLayerLengthEnemy(captureWidth) + GetInputLayerLengthPlayer(captureWidth, playerHeight);
     }
@@ -401,14 +386,11 @@ public class TakeScreenshot : MonoBehaviour {
         //Debug.Log("1: " + captureWidth * GetCaptureHeight());
         return captureWidth * GetCaptureHeight();
     }
-    public int GetInputLayerLengthPlayer(int captureWidth, float playerhight)
+    public int GetInputLayerLengthPlayer(int captureWidth, float playerHeight)
     {
-        float playerHeight = -1;
-        //if (m_playerVisualsCapture != null && m_playerVisualsCapture.Count != 0)
-            playerHeight = playerhight;// m_playerVisualsCapture[0].localScale.y;
-        //else
-        //    Debug.Log("Warning: No player visual capture transform found!");
-        
+        m_currentWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
+        playerHeight = playerHeight == 0 ? GetPlayerHeight() : playerHeight;
+
         float pixelSize = GetPixelToWorldScale(captureWidth);
 
         int height = (int)(playerHeight / pixelSize);
@@ -511,6 +493,8 @@ public class TakeScreenshot : MonoBehaviour {
     {
         SetCaptureSize();
         SetCaptureSizesPlayer(0);
+        m_cacheDataComputed.Clear();
+        m_cacheDataRaw.Clear();
     }
     #endregion
 
@@ -520,6 +504,14 @@ public class TakeScreenshot : MonoBehaviour {
     //{
     //    m_sampleManager = manager;
     //}
+    public void SetCaptureWidth(int width)
+    {
+        m_captureWidth = width;
+    }
+    public void SetCaptureHeight(int height)
+    {
+        m_captureHeight = height;
+    }
     #endregion
 
     #region Getter
@@ -549,7 +541,7 @@ public class TakeScreenshot : MonoBehaviour {
 
         return isBase;
     }
-    public float GetPlayerHight()
+    public float GetPlayerHeight()
     {
         return (m_playerVisualsCapture != null && m_playerVisualsCapture.Count != 0) ? m_playerVisualsCapture[0].localScale.y : 0;
     }

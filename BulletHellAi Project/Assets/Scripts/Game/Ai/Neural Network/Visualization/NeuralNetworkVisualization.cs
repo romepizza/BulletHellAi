@@ -25,6 +25,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
 {
     [Header("------- Settings -------")]
     [SerializeField] private bool m_visualize;
+    [SerializeField] private bool m_showBiases;
     [SerializeField] private float m_height;
     [SerializeField] private float m_width;
     [SerializeField] private float m_marginX = 0.25f;
@@ -262,6 +263,9 @@ public class NeuralNetworkVisualization : MonoBehaviour
     }
     private void UpdateBiases()
     {
+        if (!m_showBiases)
+            return;
+
         float[] minValues = new float[m_layerCount];
         float[] maxValues = new float[m_layerCount];
         //float minValueBias = float.MaxValue;
@@ -358,7 +362,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
                 values[nodeIndex] = value;
 
                 // set the color of activisions and biases in the input layer
-                if(layerIndex == 0)
+                if(layerIndex == 0 || !m_showBiases)
                 {
                     Transform bias = m_nodeTransforms[layerIndex][nodeIndex];
 
@@ -425,13 +429,46 @@ public class NeuralNetworkVisualization : MonoBehaviour
                     Transform weight = m_weightTransforms[layerIndex][nodeIndex][weightIndex];
 
                     float value = m_network.GetWeight(layerIndex, nodeIndex, weightIndex);
-                    float mappedValue = Utility.MapValuePercent(minValues[layerIndex], maxValues[layerIndex], value);
+                    float mappedValue = 0.5f;
 
-                    if (mappedValue > 0.5f)
-                        color = Color.Lerp(m_manager.GetColorWeightAverage(), m_manager.GetColorWeightMax(), (mappedValue - 0.5f) * 2f);
+                    if (value > 0)
+                        mappedValue = 0.5f + 0.5f * Utility.MapValuePercent(0, Mathf.Max(-minValues[layerIndex], maxValues[layerIndex]), value);
                     else
-                        color = Color.Lerp(m_manager.GetColorWeightMin(), m_manager.GetColorWeightAverage(), mappedValue * 2f);
+                    {
+                        mappedValue = 0.5f * Utility.MapValuePercent(Mathf.Min(minValues[layerIndex], -maxValues[layerIndex]), 0, value);
+                        //Debug.Log(mappedValue);
+                    }
+                    //Utility.MapValuePercent(minValues[layerIndex], maxValues[layerIndex], value);
 
+                    // check disable
+                    if(mappedValue  > (0.5f - 0.5f * m_manager.GetDisableThresholdWeights()) && mappedValue < (0.5f + 0.5f * m_manager.GetDisableThresholdWeights()))
+                    {
+                        weight.gameObject.SetActive(false);
+                        continue;
+                    }
+                    weight.gameObject.SetActive(true);
+
+                    // min
+                    if (mappedValue < m_manager.GetColorThresholdsWeight()[0])
+                    {
+                        mappedValue = Utility.MapValuePercent(0, m_manager.GetColorThresholdsWeight()[0], mappedValue);
+                        color = Color.Lerp(m_manager.GetColorWeightMin(), m_manager.GetColorWeightMinAvg(), mappedValue);
+                    }
+                    else if (mappedValue < m_manager.GetColorThresholdsWeight()[1])
+                    {
+                        mappedValue = Utility.MapValuePercent(m_manager.GetColorThresholdsWeight()[0], m_manager.GetColorThresholdsWeight()[1], mappedValue);
+                        color = Color.Lerp(m_manager.GetColorWeightMinAvg(), m_manager.GetColorWeightAverage(), mappedValue);
+                    }
+                    else if (mappedValue < m_manager.GetColorThresholdsWeight()[2])
+                    {
+                        mappedValue = Utility.MapValuePercent(m_manager.GetColorThresholdsWeight()[1], m_manager.GetColorThresholdsWeight()[2], mappedValue);
+                        color = Color.Lerp(m_manager.GetColorWeightAverage(), m_manager.GetColorWeightMaxAvg(), mappedValue);
+                    }
+                    else
+                    {
+                        mappedValue = Utility.MapValuePercent(m_manager.GetColorThresholdsWeight()[2], 1, mappedValue);
+                        color = Color.Lerp(m_manager.GetColorWeightMaxAvg(), m_manager.GetColorWeightMax(), mappedValue);
+                    }
                     Renderer renderer = weight.GetComponent<Renderer>();
                     renderer.material.SetColor("_TintColor", color);
                 }

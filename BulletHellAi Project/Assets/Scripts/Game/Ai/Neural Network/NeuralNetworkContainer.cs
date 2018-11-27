@@ -44,6 +44,9 @@ public class NeuralNetworkContainer : MonoBehaviour
     [SerializeField] private bool m_loadPath;
     [SerializeField] private string m_dataFileName;
 
+    [Header("--- Key Bindings ---")]
+    [SerializeField] private KeyCode m_keyCodeIncreaseSize;
+
     [Header("--- Objects ---")]
     [SerializeField] private AiMovement m_movementManager;
 
@@ -97,6 +100,7 @@ public class NeuralNetworkContainer : MonoBehaviour
     }
     private void Update()
     {
+        ManageSize();
         CheckLoadOrSave();
     }
     #endregion
@@ -107,6 +111,114 @@ public class NeuralNetworkContainer : MonoBehaviour
         m_network = network;
         m_visualization.CreateVisualization(this);//, transform.position, transform.rotation.eulerAngles, 10f);
         m_trainingManager.SetNetwork(network);
+    }
+    #endregion
+
+    #region Increase Size
+    private void ManageSize()
+    {
+        if (!Input.GetKeyDown(m_keyCodeIncreaseSize))
+            return;
+
+        NNSaveData data = m_network.SaveData();
+
+        int oldEnemyWidth = m_sampleManager.GetScreenshotScript().GetInputLayerLengthEnemy(0);
+        int oldPlayerHeightPixel = m_sampleManager.GetScreenshotScript().GetInputLayerLengthPlayer(0, 0);
+
+        m_sampleManager.GetScreenshotScript().SetCaptureHeight(m_sampleManager.GetScreenshotScript().GetCaptureHeight() * 2);
+        m_sampleManager.GetScreenshotScript().SetCaptureWidth(m_sampleManager.GetScreenshotScript().GetCaptureWidth() * 2);
+        m_sampleManager.GetScreenshotScript().SetCaptureSize();
+        m_sampleManager.GetScreenshotScript().SetCaptureSizesPlayer(m_sampleManager.GetScreenshotScript().GetCaptureWidth());
+        m_layerLengths[0] = m_sampleManager.GetScreenshotScript().GetInputLayerLengthTotal(0, 0);
+
+        int newPlayerHeightPixel = m_sampleManager.GetScreenshotScript().GetInputLayerLengthPlayer(0, 0);
+        int width = m_sampleManager.GetScreenshotScript().GetCaptureWidth();
+        JaggedArrayContainer[] newWeights = new JaggedArrayContainer[data.m_biases[0].data.Length];
+
+        //Debug.Log("old: " + oldPlayerHeightPixel + ", new: " + newPlayerHeightPixel);
+
+        for (int nodeIndex = 0; nodeIndex < data.m_biases[0].data.Length; nodeIndex++)
+        {
+            bool addIndex = true;
+            JaggedArrayContainer weights2 = new JaggedArrayContainer(m_layerLengths[0], 0);
+            int index = 0;
+            for (int weightIndex = 0; weightIndex < data.m_weights[0].array[0].data.Length; weightIndex++)
+            {
+                if (weightIndex < oldEnemyWidth)
+                {
+                    if (weightIndex % (width / 2) == 0 && weightIndex != 0)
+                        index += width + 2;
+                    else if (weightIndex != 0)
+                        index += 2;
+                    int[] indices = { index, index + 1, index + width, index + width + 1 };
+
+                    //Debug.Log(weightIndex + ": (" + indices[0] + ",  " + indices[1] + ",  " + indices[2] + ", " + indices[3] + "),  " + ((nodeIndex) % (width / 2)));
+                    foreach (int i in indices)
+                    {
+                        weights2.data[i] = data.m_weights[0].array[nodeIndex].data[weightIndex] * 0.25f;
+                    }
+                }
+                else
+                {
+                    if (2 * oldPlayerHeightPixel >  newPlayerHeightPixel)
+                    {
+                        if (weightIndex % (width / 2) == 0 && weightIndex != 0)
+                            index += width + 2;
+                        else if (weightIndex != 0)
+                            index = index + 2;
+                        int[] indices = { index, index + 1, index + width, index + width + 1 };
+                        //Debug.Log(weightIndex + ": (" + indices[0] + ",  " + indices[1] + ",  " + indices[2] + ", " + indices[3] + ")");
+                        foreach (int i in indices)
+                        {
+                            weights2.data[i] = data.m_weights[0].array[nodeIndex].data[weightIndex] * 0.25f;
+                        }
+                    }
+                    else// if (2 * oldPlayerHeightPixel == newPlayerHeightPixel)
+                    {
+                        if (addIndex)
+                        {
+                            index += width + 2;
+                            addIndex = false;
+                        }
+
+                        //Debug.Log(weightIndex + ": (" + index + ")");
+                        weights2.data[index] = data.m_weights[0].array[nodeIndex].data[weightIndex] * 0.5f;
+                        weights2.data[index + 1] = data.m_weights[0].array[nodeIndex].data[weightIndex] * 0.5f;
+                        index += 2;
+                    }
+                    //else
+                        //Debug.Log("Warning!");
+
+                    newWeights[nodeIndex] = weights2;
+                }
+            }
+        }
+
+        data.m_weights[0].array = newWeights;
+
+        //Debug.Log(data.m_weights[0].array[0].data.Length);
+
+        NNCSaveData containerData = new NNCSaveData
+        {
+            m_trainingData = m_trainingManager.SaveData(),
+            m_sampleData = m_sampleManager.SaveData(),
+            m_visuilizationData = m_visualization.SaveData(),
+            m_networkData = data,
+
+
+            m_layerLengths = m_layerLengths,
+            m_dataFileName = m_dataFileName,
+            m_activisionType = m_activisionType,
+            m_activisionTypeOutput = m_activisionTypeOutput,
+            m_costType = m_costType,
+            m_initializationType = m_initializationType,
+            m_activisionConstant = m_activisionConstant
+        };
+
+        LoadContainer(containerData);
+
+        //m_network.LoadData(data);
+        //m_visualization.ApplyData();
     }
     #endregion
 
