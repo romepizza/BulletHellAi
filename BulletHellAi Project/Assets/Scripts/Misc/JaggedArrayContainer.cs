@@ -5,7 +5,8 @@ using UnityEngine;
 [System.Serializable]
 public class JaggedArrayContainer
 {
-    public float[] data;
+    public float[] dataFloat;
+    public bool[] dataBool;
     public JaggedArrayContainer[] array;
 
     public JaggedArrayContainer()
@@ -14,12 +15,16 @@ public class JaggedArrayContainer
     }
     public JaggedArrayContainer(int dataLength, int arrayLenth)
     {
-        data = new float[dataLength];
+        dataFloat = new float[dataLength];
         array = new JaggedArrayContainer[arrayLenth];
     }
     public JaggedArrayContainer(float[] data)
     {
-        this.data = data;
+        this.dataFloat = data;
+    }
+    public JaggedArrayContainer(bool[] data)
+    {
+        this.dataBool = data;
     }
     public JaggedArrayContainer(JaggedArrayContainer[] array)
     {

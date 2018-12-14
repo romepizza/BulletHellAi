@@ -28,9 +28,9 @@ public class PlayerMovement : MonoBehaviour
     {
         float[] input = new float[ScreenshotManager.Instance().GetOutputNumber()];
 
-        if (Input.GetKey(m_keyLeft))
+        if (Input.GetKey(m_keyLeft) || Input.GetAxis("LeftJoystickHorizontal") < -0.2f)
             input[0] = 1;
-        if (Input.GetKey(m_keyRight))
+        if (Input.GetKey(m_keyRight) || Input.GetAxis("LeftJoystickHorizontal") > 0.2f)
             input[1] = 1;
         
         if(input[0] == 0 && input[1] == 0)

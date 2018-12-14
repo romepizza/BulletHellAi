@@ -37,8 +37,8 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
     [SerializeField] private GameObject m_nodePrefabHemisphere;
     [SerializeField] private GameObject m_weightPrefab;
 
-    [Header("------- Debug -------")]
-    private List<NeuralNetworkVisualization> m_activeVisualizations;
+    //[Header("------- Debug -------")]
+    //private List<NeuralNetworkVisualization> m_activeVisualizations;
 
     #region Mono
     private void Awake()
@@ -49,22 +49,10 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
     }
     private void Start()
     {
-        m_activeVisualizations = new List<NeuralNetworkVisualization>();
+        //m_activeVisualizations = new List<NeuralNetworkVisualization>();
     }
     #endregion
 
-    public void CreateVisualization(NeuralNetworkContainer networkContainer)
-    {
-        GameObject g = Instantiate(m_objectPrefab, networkContainer.transform);
-
-        NeuralNetworkVisualization visualizationScript = g.GetComponent<NeuralNetworkVisualization>();
-        if(visualizationScript == null)
-            visualizationScript = g.AddComponent<NeuralNetworkVisualization>();
-
-        visualizationScript.CreateVisualization(networkContainer);//, position, rotation, 10);
-
-        m_activeVisualizations.Add(visualizationScript);
-    }
     public void UpdateVisualization()
     {
 

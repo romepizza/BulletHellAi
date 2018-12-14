@@ -38,7 +38,7 @@ public class Utility : MonoBehaviour
 
     //    return component;
     //}
-    public static Component getComponentInParents<T>(Transform startTransform) where T : Component
+    public static Component GetComponentInParents<T>(Transform startTransform) where T : Component
     {
         Transform currentTransform = startTransform;
         Component component = currentTransform.GetComponent(typeof(T));
@@ -52,5 +52,23 @@ public class Utility : MonoBehaviour
         }
 
         return component;
+    }
+    public static int ExpInt(int b, int e)
+    {
+        if (e == 0)
+            return b;
+        else if (e < 0)
+        {
+            Debug.Log("Warning: ExpInt doesn't take negative exponentials at the moment!");
+            return b;
+        }
+
+        int result = b;
+        for(int i = 0; i < e - 1; i++)
+        {
+            result *= b;
+        }
+
+        return result;
     }
 }

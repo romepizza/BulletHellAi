@@ -6,13 +6,13 @@ public class SpawnObstacles : MonoBehaviour
 {
     [Header("------- Settings -------")]
     [SerializeField] private GameObject m_spawnPrefab;
-    //[SerializeField] private Vector3 m_directionMin;
-    //[SerializeField] private Vector3 m_directionMax;
-    //[SerializeField] private float m_cooldownMin;
-    //[SerializeField] private float m_cooldownMax;
+
+    [Header("--- Sequences ---")]
+    [SerializeField] private bool m_repeatSequences;
+    [SerializeField] private SpawnSequences m_sequnces;
+    //[SerializeField] private List<SpawnSequence> m_spawnSequences;
 
     [Header("--- Spawn Position ---")]
-    //[SerializeField] private bool m_spawnForScreenshot;
     [SerializeField] private Vector3 m_relativeRestrictionPos;
     [SerializeField] private Vector3 m_relativeRestrictionNeg;
 
@@ -20,7 +20,6 @@ public class SpawnObstacles : MonoBehaviour
     [SerializeField] private bool m_showGizmos;
 
     [Header("--- Objects ---")]
-    [SerializeField] private List<SpawnSequence> m_spawnSequences;
     [SerializeField] private LevelOptions m_levelOptions;
     [SerializeField] private TakeScreenshot m_screenshotScript;
 
@@ -28,80 +27,88 @@ public class SpawnObstacles : MonoBehaviour
     //private float m_cooldownRdyTime;
     private bool m_isActive;
     private List<IsObstacle> m_activeObstacles = new List<IsObstacle>();
+    private int m_currentSequenceIndex;
 
 
     #region Mono
+    private void Awake()
+    {
+        if (m_sequnces == null)
+        {
+            Debug.Log("Warning: No sequences detected! Created a default one!");
+            m_sequnces = gameObject.AddComponent<SpawnSequences>();
+            m_sequnces.m_sequences = new List<SpawnSequence>();
+        }
+        if (m_sequnces.m_sequences == null)
+        {
+            Debug.Log("Warning: Sequences sequences were null! Created an empty List!");
+            m_sequnces.m_sequences = new List<SpawnSequence>();
+        }
+    }
     void Start()
     {
-        for(int i = 0; i < m_spawnSequences.Count; i++)
+        for (int i = 0; i < m_sequnces.m_sequences.Count; i++)
         {
-            m_spawnSequences[i].SetSpawnScript(this);
+            m_sequnces.m_sequences[i].SetSpawnScript(this);
         }
     }
     void Update()
     {
         if (!m_isActive)
             return;
-        manageSpawn();
+        ManageSpawn();
     }
     #endregion Mono
 
     #region ManageSpawn
-    void manageSpawn()
+    void ManageSpawn()
     {
-        //if (m_cooldownRdyTime > Time.time)
-        //    return;
-        //m_cooldownRdyTime = Time.time + Random.Range(m_cooldownMin, m_cooldownMax);
+        if (/*m_sequnces.m_sequences == null ||*/ m_sequnces.m_sequences.Count == 0)
+            return;
+
         List<SpawnSequence.Sequence> spawns = new List<SpawnSequence.Sequence>();
 
-        for(int i = 0; i < m_spawnSequences.Count; i++)
+        List<SpawnSequence.Sequence> l = m_sequnces.m_sequences[m_currentSequenceIndex].ManageSequence(m_relativeRestrictionPos, m_relativeRestrictionNeg);
+        if (l == null)
+            return;
+        for (int i = 0; i < l.Count; i++)
         {
-            List<SpawnSequence.Sequence> l = m_spawnSequences[i].ManageSequence(m_relativeRestrictionPos, m_relativeRestrictionNeg);
-            if (l == null)
-                continue;
-            for(int j = 0; j < l.Count; j++)
-            {
-                spawns.Add(l[j]);
-            }
+            spawns.Add(l[i]);
         }
 
-        for(int i = 0; i < spawns.Count; i++)
+        for (int i = 0; i < spawns.Count; i++)
         {
             GameObject spawnedObject = Instantiate(m_spawnPrefab, transform);
             Vector3 scale = m_screenshotScript.GetObstacleScale(spawnedObject.transform.localScale, 0);
+            IsObstacle obstacleScript = spawnedObject.GetComponent<IsObstacle>();
             if (scale != Vector3.zero)
-                spawnedObject.GetComponent<IsObstacle>().GetCaptureCameraTransform().transform.localScale = scale;
-            spawnedObject.GetComponent<Rigidbody>().velocity = spawns[i].velocity;// /*m_levelOrientation.rotation **/ new Vector3(Random.Range(m_directionMin.x, m_directionMax.x), Random.Range(m_directionMin.y, m_directionMax.y), Random.Range(m_directionMin.z, m_directionMax.z));
+                obstacleScript.GetCaptureCameraTransform().transform.localScale = scale;
+            spawnedObject.GetComponent<Rigidbody>().velocity = spawns[i].velocity;
             spawnedObject.transform.position = spawns[i].position;
 
-            IsObstacle obstacleScript = spawnedObject.GetComponent<IsObstacle>();
             obstacleScript.SetLevelOptionsScript(m_levelOptions);
             obstacleScript.SetSpawnObstaclesScript(this);
 
             m_activeObstacles.Add(obstacleScript);
         }
     }
-    //Vector3 getRandomPosition()
-    //{
-    //    Vector3 pos = transform.position + /*m_levelOrientation.rotation **/ m_relativeRestrictionPos;
-    //    Vector3 neg = transform.position + /*m_levelOrientation.rotation **/ m_relativeRestrictionNeg;
+    #endregion
 
-    //    Vector3 randomPosition = Vector3.zero;
-    //    if (m_spawnForScreenshot)
-    //    {
-    //        randomPosition = neg + new Vector3(m_screenshotScript.GetPixelToWorldScale(0) * (0.5f + Random.Range(0, m_screenshotScript.GetCaptureWidth())), 0, 0);
-    //    }
-    //    else
-    //        randomPosition = (pos + neg) * 0.5f + (Random.Range(-0.5f, 0.5f) * (neg - pos));
-    //    return randomPosition;
-    //}
-    public void activate()
+    #region Manage State
+    public void Activate()
     {
         m_isActive = true;
+        m_currentSequenceIndex = 0;
+        if (/*m_sequnces.m_sequences != null ||*/ m_sequnces.m_sequences.Count >= 1)
+            m_sequnces.m_sequences[0].InitializeSequence();
     }
-    public void deactivate()
+    public void Deactivate()
     {
         m_isActive = false;
+        if (/*m_sequnces.m_sequences != null && */m_currentSequenceIndex < m_sequnces.m_sequences.Count)
+        {
+            m_sequnces.m_sequences[m_currentSequenceIndex].EndSequence();
+        }
         for (int i = m_activeObstacles.Count - 1; i >= 0; i--)
         {
             m_activeObstacles[i].DestroySelf();
@@ -109,7 +116,8 @@ public class SpawnObstacles : MonoBehaviour
     }
     #endregion
 
-    public void setScaleOfActiveObstacles(Vector3 scale)
+    #region Manage Obstacles
+    public void SetScaleOfActiveObstacles(Vector3 scale)
     {
         if (m_activeObstacles == null)
             return;
@@ -126,6 +134,7 @@ public class SpawnObstacles : MonoBehaviour
     {
         m_activeObstacles.Remove(obstacle);
     }
+    #endregion
 
     #region Gizmos
     private void OnDrawGizmosSelected()
@@ -148,10 +157,10 @@ public class SpawnObstacles : MonoBehaviour
     #endregion
 
     #region Getter
-    public List<IsObstacle> GetActiveObstacles()
-    {
-        return m_activeObstacles;
-    }
+    //public List<IsObstacle> GetActiveObstacles()
+    //{
+    //    return m_activeObstacles;
+    //}
     public GameObject GetSpawnPrefab()
     {
         return m_spawnPrefab;
@@ -159,6 +168,34 @@ public class SpawnObstacles : MonoBehaviour
     public TakeScreenshot GetScreenshotScript()
     {
         return m_screenshotScript;
+    }
+    #endregion
+
+    #region Misc
+    //private void RegisterStartSequence()
+    //{
+
+    //}
+    public void RegisterEndSequence(SpawnSequence sequence)
+    {
+        m_currentSequenceIndex++;
+        if(m_currentSequenceIndex >= m_sequnces.m_sequences.Count)
+        {
+            if (m_repeatSequences)
+            {
+                m_currentSequenceIndex = 0;
+            }
+            else
+            {
+                m_isActive = false;
+                return;
+            }
+        }
+        m_sequnces.m_sequences[m_currentSequenceIndex].InitializeSequence();
+    }
+    public bool NoObstaclesPresent()
+    {
+        return m_activeObstacles.Count == 0;
     }
     #endregion
 }

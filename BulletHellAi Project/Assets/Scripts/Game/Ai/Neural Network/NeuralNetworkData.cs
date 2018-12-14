@@ -15,7 +15,6 @@ public class NeuralNetworkData
             sw.WriteLine(JsonUtility.ToJson(container, true));
         }
     }
-    
 
     public static NNCSaveData Load(string fileName)
     {
@@ -49,16 +48,12 @@ public class NeuralNetworkData
         directoryName = "Neural Network Saves";
 
         if (Application.isEditor)
-            directoryName = Path.GetFullPath(Application.dataPath + "/" + directoryName);
+            directoryName = Path.GetFullPath(Application.dataPath + "\\" + directoryName);
         else
-            directoryName = Application.dataPath + "/" + directoryName;
+            directoryName = Application.dataPath + "\\" + directoryName;
 
 
         Directory.CreateDirectory(directoryName);
-
-        //fileName = string.Format("{0}/{1}_{2}x{3}_{4}.json", directoryName, fileName, 0, 0, 0);// m_currentWidth, m_currentHeight, m_fileNameCounter, m_format.ToString().ToLower());
-
-        //m_fileNameCounter++;
 
         return directoryName;
     }

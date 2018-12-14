@@ -111,10 +111,10 @@ public class NeuralNetworkManager : MonoBehaviour
     #endregion
 
     #region Visualization
-    private void VisualizeNetwork(NeuralNetworkContainer network)
-    {
-        NeuralNetworkVisualizationManager.Instance().CreateVisualization(network);
-    }
+    //private void VisualizeNetwork(NeuralNetworkContainer network)
+    //{
+    //    NeuralNetworkVisualizationManager.Instance().CreateVisualization(network);
+    //}
     #endregion
 
     #region Manage Input

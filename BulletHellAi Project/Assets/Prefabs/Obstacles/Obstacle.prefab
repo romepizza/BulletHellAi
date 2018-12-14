@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4901960437917542}
   - component: {fileID: 54168480227081338}
   - component: {fileID: 114753117631667746}
-  - component: {fileID: 114027490894607908}
   m_Layer: 0
   m_Name: Obstacle
   m_TagString: Untagged
@@ -59,6 +58,7 @@ GameObject:
   - component: {fileID: 23135216022539822}
   - component: {fileID: 65714832211907282}
   - component: {fileID: 96499398659114970}
+  - component: {fileID: 114530992086652912}
   m_Layer: 15
   m_Name: Visual And Collider Main Camera
   m_TagString: Untagged
@@ -225,7 +225,7 @@ BoxCollider:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1658080026226260}
   m_Material: {fileID: 13400000, guid: 12e4845cfbcc47049a7f1d7ac55a6d78, type: 2}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
@@ -340,12 +340,12 @@ TrailRenderer:
   m_MinVertexDistance: 0.5
   m_Autodestruct: 0
   m_Emitting: 1
---- !u!114 &114027490894607908
+--- !u!114 &114530992086652912
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1358917423948542}
+  m_GameObject: {fileID: 1658080026226260}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2b1bd5cd141185349a22ce9dae52d4ec, type: 3}

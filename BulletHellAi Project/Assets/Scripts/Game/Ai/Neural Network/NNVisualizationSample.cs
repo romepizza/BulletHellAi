@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public struct NNVSaveData
+public struct NNSVSaveData
 {
     public bool m_visualize;
     public float m_height;
     public float m_width;
     public float m_marginX;
     public float m_marginY;
-    public NeuralNetworkVisualization.OrientationType m_orientation;
+    public NNVisualizationSample.OrientationType m_orientation;
 
     public float m_nodesScaleFactorGlobal;
     public float m_weightsScaleFactorGloal;
@@ -21,15 +20,15 @@ public struct NNVSaveData
     public Vector3 m_relativeRotation;
 }
 
-public class NeuralNetworkVisualization : MonoBehaviour
-{
+public class NNVisualizationSample : MonoBehaviour {
+
     [Header("------- Settings -------")]
     [SerializeField] private bool m_visualize;
     [SerializeField] private int m_updateWeightsPerFrame;
     [SerializeField] private bool m_showBiases;
 
     [Header("--- Weight Color Modes ---")]
-    
+
 
     [Header("--- Scale ---")]
     [SerializeField] private float m_nodesScaleFactorGlobal = 1;
@@ -100,7 +99,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
         m_manager = NeuralNetworkVisualizationManager.Instance();
         m_network = networkContainer.m_network;
         m_layerCount = m_network.m_layerCount;
-        
+
         m_cameraCanvasSize.y = m_height;
         m_cameraCanvasSize.x = m_width;// m_cameraCanvasSize.y * Statics.GetMainCamera().aspect;
 
@@ -118,7 +117,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
     {
         // create layer objects
         m_layerTransforms = new Transform[m_layerCount];
-        for(int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
+        for (int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
         {
             GameObject layerObject = Instantiate(m_manager.GetLayerPrefab(), m_parentTransform);
             layerObject.name = "Layer_" + layerIndex;
@@ -129,7 +128,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
         // create node and activision objects
         m_nodeTransforms = new Transform[m_layerCount][];
         m_activisionTransforms = new Transform[m_layerCount][];
-        for(int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
+        for (int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
         {
             int nodeCount = m_network.m_layerLengths[layerIndex];
             Transform[] nodesThisLayer = new Transform[nodeCount];
@@ -163,15 +162,15 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
         // create weight objects
         m_weightTransforms = new Transform[m_layerCount][][];
-        for(int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
+        for (int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
         {
             int nodeCountThisLayer = m_network.m_layerLengths[layerIndex];
             int nodeCountNextLayer = m_network.m_layerLengths[layerIndex + 1];
             Transform[][] nodesThisLayer = new Transform[nodeCountThisLayer][];
-            for(int nodeIndex = 0; nodeIndex < nodeCountThisLayer; nodeIndex++)
+            for (int nodeIndex = 0; nodeIndex < nodeCountThisLayer; nodeIndex++)
             {
                 Transform[] weightTransforms = new Transform[nodeCountNextLayer];
-                for(int weightIndex = 0; weightIndex < nodeCountNextLayer; weightIndex++)
+                for (int weightIndex = 0; weightIndex < nodeCountNextLayer; weightIndex++)
                 {
                     GameObject weight = Instantiate(m_manager.GetWeightPrefab(), m_nodeTransforms[layerIndex][nodeIndex], true);
                     weight.name = "Weight_" + layerIndex + "_" + nodeIndex + "_" + weightIndex;
@@ -201,7 +200,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
             for (int nodeIndex = 0; nodeIndex < nodeCountThisLayer; nodeIndex++)
             {
-               // position
+                // position
                 Transform node = m_nodeTransforms[layerIndex][nodeIndex];
                 node.position = currentLayerPadding + currentNodePadding;
 
@@ -238,7 +237,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
                     // scale
                     float scaleFactorWeight = m_weightsScaleFactorGloal;
-                    if (m_weightsScaleFactorLayerWise != null && layerIndex < m_weightsScaleFactorLayerWise.Length )
+                    if (m_weightsScaleFactorLayerWise != null && layerIndex < m_weightsScaleFactorLayerWise.Length)
                         scaleFactorWeight *= m_weightsScaleFactorLayerWise[layerIndex];
                     float scaleFactorNode = m_nodesScaleFactorGlobal;
                     if (m_nodesScaleFactorLayerWise != null && layerIndex < m_nodesScaleFactorLayerWise.Length)
@@ -273,13 +272,13 @@ public class NeuralNetworkVisualization : MonoBehaviour
     }
     private void UpdateLayerNetwork()
     {
-        for(int layerIndex = 1; layerIndex < m_layerTransforms.Length; layerIndex++)
+        for (int layerIndex = 1; layerIndex < m_layerTransforms.Length; layerIndex++)
         {
             NeuralNetworkValueContainer valueContainer = m_layerTransforms[layerIndex].GetComponent<NeuralNetworkValueContainer>();
             if (valueContainer == null)
                 valueContainer = m_layerTransforms[layerIndex].gameObject.AddComponent<NeuralNetworkValueContainer>();
             float[] values = new float[m_nodeTransforms[layerIndex].Length];
-            for(int nodeIndex = 0; nodeIndex < m_nodeTransforms[layerIndex].Length; nodeIndex++)
+            for (int nodeIndex = 0; nodeIndex < m_nodeTransforms[layerIndex].Length; nodeIndex++)
             {
                 values[nodeIndex] = m_network.GetBias(layerIndex, nodeIndex);
             }
@@ -353,7 +352,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
             if (valueContainerLayer == null)
                 valueContainerLayer = m_layerTransforms[layerIndex].gameObject.AddComponent<NeuralNetworkValueContainer>();
             float[] values = new float[m_nodeTransforms[layerIndex].Length];
-            
+
 
             int nodeCount = m_network.m_layerLengths[layerIndex];
             for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
@@ -363,7 +362,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
                 float value = activisions[layerIndex].m_data[nodeIndex][0];
 
                 float mappedValue = 0;
-                if(layerIndex == 0)
+                if (layerIndex == 0)
                     mappedValue = Utility.MapValuePercent(0f, 1f, value);
                 else
                     mappedValue = Utility.MapValuePercent(0f, 1f, value);
@@ -387,7 +386,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
                 values[nodeIndex] = value;
 
                 // set the color of activisions and biases in the input layer
-                if(layerIndex == 0 || !m_showBiases)
+                if (layerIndex == 0 || !m_showBiases)
                 {
                     Transform bias = m_nodeTransforms[layerIndex][nodeIndex];
 
@@ -413,7 +412,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
             number = 0;
             for (int i = 0; i < m_network.m_layerLengths.Length - 1; i++)
             {
-                number += m_network.m_layerLengths[i] * m_network.m_layerLengths[i+1];
+                number += m_network.m_layerLengths[i] * m_network.m_layerLengths[i + 1];
             }
         }
         for (int i = 0; i < number; i++)
@@ -429,20 +428,18 @@ public class NeuralNetworkVisualization : MonoBehaviour
             Vector2 minMaxValues = GetMinMaxValueNetwork(m_layerIndex);
             float minValue = minMaxValues[0];
             float maxValue = minMaxValues[1];
-            //Debug.Log(minMaxValues.ToString());
 
             // evaluate mappped value
             if (value > 0)
                 mappedValue = 0.5f + 0.5f * Utility.MapValuePercent(0, Mathf.Max(-minValue, maxValue), value);
             else
                 mappedValue = 0.5f * Utility.MapValuePercent(Mathf.Min(minValue, -maxValue), 0, value);
-            
+
 
             // check disable
             if (mappedValue > (0.5f - 0.5f * m_manager.GetDisableThresholdWeights()) && mappedValue < (0.5f + 0.5f * m_manager.GetDisableThresholdWeights()))
             {
                 weight.gameObject.SetActive(false);
-                UpdateWeightIndices();
                 continue;
             }
             weight.gameObject.SetActive(true);
@@ -475,28 +472,24 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
 
             // update current indices
-            UpdateWeightIndices();
-        }
-    }
-    private void UpdateWeightIndices()
-    {
-        m_weightIndex++;
-        if (m_weightIndex >= m_weightTransforms[m_layerIndex][m_nodeIndex].Length)
-        {
-            m_weightIndex = 0;
-            m_nodeIndex++;
-            if (m_nodeIndex >= m_weightTransforms[m_layerIndex].Length)
+            m_weightIndex++;
+            if (m_weightIndex >= m_weightTransforms[m_layerIndex][m_nodeIndex].Length)
             {
-                m_nodeIndex = 0;
-                m_layerIndex++;
-                if (m_layerIndex >= m_weightTransforms.Length - 1)
+                m_weightIndex = 0;
+                m_nodeIndex++;
+                if (m_nodeIndex >= m_weightTransforms[m_layerIndex].Length)
                 {
-                    m_layerIndex = 0;
-                    m_currentNodeContainer = m_nodeTransforms[m_layerIndex][m_nodeIndex].GetComponent<NeuralNetworkValueContainer>(); // because of the return, the current container of node 0 would never be reached
-                    return;
+                    m_nodeIndex = 0;
+                    m_layerIndex++;
+                    if (m_layerIndex >= m_weightTransforms.Length - 1)
+                    {
+                        m_layerIndex = 0;
+                        m_currentNodeContainer = m_nodeTransforms[m_layerIndex][m_nodeIndex].GetComponent<NeuralNetworkValueContainer>(); // because of the return, the current container of node 0 would never be reached
+                        return;
+                    }
                 }
+                m_currentNodeContainer = m_nodeTransforms[m_layerIndex][m_nodeIndex].GetComponent<NeuralNetworkValueContainer>();
             }
-            m_currentNodeContainer = m_nodeTransforms[m_layerIndex][m_nodeIndex].GetComponent<NeuralNetworkValueContainer>();
         }
     }
     private Vector2 GetMinMaxValueNetwork(int layer)
@@ -554,14 +547,14 @@ public class NeuralNetworkVisualization : MonoBehaviour
     #endregion
 
     #region Save / Load
-    public NNVSaveData SaveData()
+    public NNSVSaveData SaveData()
     {
-        NNVSaveData data = new NNVSaveData
+        NNSVSaveData data = new NNSVSaveData
         {
             m_visualize = m_visualize,
-            m_height =  m_height,
-            m_width =  m_width,
-            m_marginX =  m_marginX,
+            m_height = m_height,
+            m_width = m_width,
+            m_marginX = m_marginX,
             m_marginY = m_marginY,
             m_orientation = m_orientation,
 
@@ -576,7 +569,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
 
         return data;
     }
-    public void LoadData(NNVSaveData data)
+    public void LoadData(NNSVSaveData data)
     {
         m_visualize = data.m_visualize;
         m_height = data.m_height;

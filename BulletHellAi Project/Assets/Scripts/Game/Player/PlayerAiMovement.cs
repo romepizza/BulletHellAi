@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PlayerAiMovement : MonoBehaviour
 {
+    #region Member Variables
     private static PlayerAiMovement s_instance;
 
     [Header("------ Settings ------")]
@@ -16,8 +17,6 @@ public class PlayerAiMovement : MonoBehaviour
     [SerializeField] private float m_additionalRaycastHeight;
     [SerializeField] private float m_switchDirectionTimer;
 
-    [Header("--- Misc ---")]
-    [SerializeField] private float m_showCooldown;
 
     [Header("--- Objects ---")]
     [SerializeField] private TakeScreenshot m_screenshotManager;
@@ -25,8 +24,8 @@ public class PlayerAiMovement : MonoBehaviour
     [SerializeField] private Transform m_captureArea;
 
     [Header("------ Debug ------")]
-     private Vector2Int m_areaSizePixel;
-     private Vector2 m_areaSizeWorld;
+    private Vector2Int m_areaSizePixel;
+    private Vector2 m_areaSizeWorld;
     private float m_pixelSize;
     private float m_raycastHeight;
 
@@ -65,8 +64,8 @@ public class PlayerAiMovement : MonoBehaviour
 
     [Space]
      private float m_actualAdditionalRaycastHeight;
-    private float m_showCooldownRdy;
     private float m_changeDirectionTimer;
+    #endregion
 
     #region Enums
     private enum InputType { Screenshot, Raycast }
@@ -84,14 +83,6 @@ public class PlayerAiMovement : MonoBehaviour
         if (m_screenshotManager == null)
             Debug.Log("Warning: m_screenshotManager is null!");
 	}
-    private void Update()
-    {
-        if(m_showCooldownRdy >= Time.time)
-        {
-            m_screenshotManager.GetScreenshotDataRaw(0, 0, false, true);
-            m_showCooldownRdy = m_showCooldown + Time.time;
-        }
-    }
     #endregion
 
     #region Input Control
@@ -100,154 +91,157 @@ public class PlayerAiMovement : MonoBehaviour
         float[] inputData = null;
 
         if (m_inputType == InputType.Screenshot)
-            inputData = GenerateInputDataScreenshot();
+        {
+            Debug.Log("Aborted: InputType.Screenshot currently not implemented!");
+            //inputData = GenerateInputDataScreenshot();
+        }
         else if (m_inputType == InputType.Raycast)
             inputData = GenerateInputDataRaycast();
 
         return inputData;
     }
-    private float[] GenerateInputDataScreenshot()
-    {
-        float[] inputData = new float[ScreenshotManager.Instance().GetOutputNumber()];
+    //private float[] GenerateInputDataScreenshot()
+    //{
+    //    Debug.Log("Warning: Code not up to date! m_screenshotManager.GetScreenshotDataRaw(0, 0, false, true); is not optimized!");
 
-        float[][] inputInformation = m_screenshotManager.GetScreenshotDataRaw(0, 0, false, true);
-        int width = inputInformation.Length;
-        int height = inputInformation[0].Length;
+    //    float[] inputData = new float[ScreenshotManager.Instance().GetOutputNumber()];
 
-        int[] dangers = new int[width];
-        Vector2Int playerPositionMin = new Vector2Int(int.MaxValue, int.MaxValue);
-        Vector2Int playerPositionMax = Vector2Int.zero;
-        // compute pixel data and fill danger array and player pixel list
-        for(int x = 0; x < width;  x++)
-        {
-            bool dangerFound = false;
-            for(int y = 0; y < height; y++)
-            {
-                float value = inputInformation[x][y];
-                if(value > 0) // player
-                {
-                    playerPositionMin.x = Mathf.Min(playerPositionMin.x, x);
-                    playerPositionMin.y = Mathf.Min(playerPositionMin.y, y);
-                    playerPositionMax.x = Mathf.Max(playerPositionMax.x, x);
-                    playerPositionMax.y = Mathf.Max(playerPositionMax.y, y);
-                }
-                else if(!dangerFound && value < 0) // enemy
-                {
-                    dangerFound = true;
-                    int danger = height - y;
+    //    float[][] inputInformation = m_screenshotManager.GetScreenshotDataRaw(0, 0, false, true);
+    //    int width = inputInformation.Length;
+    //    int height = inputInformation[0].Length;
 
-                    dangers[x] = danger;
-                }
-            }
-        }
+    //    int[] dangers = new int[width];
+    //    Vector2Int playerPositionMin = new Vector2Int(int.MaxValue, int.MaxValue);
+    //    Vector2Int playerPositionMax = Vector2Int.zero;
+    //    // compute pixel data and fill danger array and player pixel list
+    //    for(int x = 0; x < width;  x++)
+    //    {
+    //        bool dangerFound = false;
+    //        for(int y = 0; y < height; y++)
+    //        {
+    //            float value = inputInformation[x][y];
+    //            if(value > 0) // player
+    //            {
+    //                playerPositionMin.x = Mathf.Min(playerPositionMin.x, x);
+    //                playerPositionMin.y = Mathf.Min(playerPositionMin.y, y);
+    //                playerPositionMax.x = Mathf.Max(playerPositionMax.x, x);
+    //                playerPositionMax.y = Mathf.Max(playerPositionMax.y, y);
+    //            }
+    //            else if(!dangerFound && value < 0) // enemy
+    //            {
+    //                dangerFound = true;
+    //                int danger = height - y;
 
-        // evaluate new danger values depending on player position
-        for (int dangerIndex = 0; dangerIndex < dangers.Length; dangerIndex++)
-        {
-            int dangerValue = dangers[dangerIndex];
-            if (dangerValue == 0)
-                continue;
-            int newDanger = dangerValue;
-            if (dangerIndex < playerPositionMin.x) // pixels to the left
-            {
-                int distanceX = playerPositionMin.x - dangerIndex;
-                newDanger = dangerValue - distanceX;
-            }
-            else if(dangerIndex > playerPositionMax.x) // pixels to the right
-            {
-                int distanceX = dangerIndex - playerPositionMax.x;
-                newDanger = dangerValue - distanceX;
-            }
-            else// pixels ahead of player
-            {
-                newDanger = dangerValue;
-            }
+    //                dangers[x] = danger;
+    //            }
+    //        }
+    //    }
 
-            dangers[dangerIndex] = newDanger;
-        }
+    //    // evaluate new danger values depending on player position
+    //    for (int dangerIndex = 0; dangerIndex < dangers.Length; dangerIndex++)
+    //    {
+    //        int dangerValue = dangers[dangerIndex];
+    //        if (dangerValue == 0)
+    //            continue;
+    //        int newDanger = dangerValue;
+    //        if (dangerIndex < playerPositionMin.x) // pixels to the left
+    //        {
+    //            int distanceX = playerPositionMin.x - dangerIndex;
+    //            newDanger = dangerValue - distanceX;
+    //        }
+    //        else if(dangerIndex > playerPositionMax.x) // pixels to the right
+    //        {
+    //            int distanceX = dangerIndex - playerPositionMax.x;
+    //            newDanger = dangerValue - distanceX;
+    //        }
+    //        else// pixels ahead of player
+    //        {
+    //            newDanger = dangerValue;
+    //        }
 
-        // set the side dangers correctly if there is not enough space for the player
-        int playerLengthX = (int)Mathf.Ceil(m_visualCapturePlayer.localScale.x / m_screenshotManager.GetPixelToWorldScale(0));
-        int sideDanger = 0;
-        for (int leftIndex = playerLengthX - 1; leftIndex >= 0; leftIndex--)
-        {
-            if (leftIndex < 0 || leftIndex >= width)
-                Debug.Log("Warning!");
-            int dangerValue = dangers[leftIndex];
-            sideDanger = Mathf.Max(sideDanger, dangerValue);
-            int newDanger = sideDanger;
-            dangers[leftIndex] = newDanger;
-        }
-        sideDanger = 0;
-        for (int rightIndex = width - 1 - playerLengthX + 1; rightIndex < width; rightIndex++)
-        {
-            if (rightIndex < 0 || rightIndex >= width)
-                Debug.Log("Warning!");
-            int dangerValue = dangers[rightIndex];
-            sideDanger = Mathf.Max(sideDanger, dangerValue);
-            int newDanger = sideDanger;
-            dangers[rightIndex] = newDanger;
-        }
+    //        dangers[dangerIndex] = newDanger;
+    //    }
 
-        int dangerAhead = 0;
-        int dangerLeft = 0;
-        int dangerRight = 0;
-        // decide the danger in the three directions
-        int checkPixelExact = playerLengthX != 1 ? 1 : 0;
-        for (int leftIndex = playerPositionMin.x - checkPixelExact; leftIndex >= 0; leftIndex--) // evaluate dangerLeft
-        {
-            if(dangers[leftIndex] > 0)
-            {
-                dangerLeft = Mathf.Max(dangerLeft, dangers[leftIndex]);
-                //break;
-            }
-        }
-        for (int rightIndex = playerPositionMax.x + checkPixelExact; rightIndex < width; rightIndex++) // evaluate dangerRight
-        {
-            if (dangers[rightIndex] > 0)
-            {
-                dangerRight = Mathf.Max(dangerRight, dangers[rightIndex]);
-                //break;
-            }
-        }
-        //int checkPixelExact = playerLengthX != 1 ? 1 : 0;
-        for (int pixelIndex = playerPositionMin.x - checkPixelExact; pixelIndex <= playerPositionMax.x + checkPixelExact; pixelIndex++)
-        {
-            int i = pixelIndex;
-            i = Mathf.Clamp(pixelIndex, 0, width - 1);
-            if (dangers[i] > 0)
-            {
-                dangerAhead = Mathf.Max(dangerAhead, dangers[i] + 1);
-                break;
-            }
-        }
+    //    // set the side dangers correctly if there is not enough space for the player
+    //    int playerLengthX = (int)Mathf.Ceil(m_visualCapturePlayer.localScale.x / m_screenshotManager.GetPixelToWorldScale(0));
+    //    int sideDanger = 0;
+    //    for (int leftIndex = playerLengthX - 1; leftIndex >= 0; leftIndex--)
+    //    {
+    //        if (leftIndex < 0 || leftIndex >= width)
+    //            Debug.Log("Warning!");
+    //        int dangerValue = dangers[leftIndex];
+    //        sideDanger = Mathf.Max(sideDanger, dangerValue);
+    //        int newDanger = sideDanger;
+    //        dangers[leftIndex] = newDanger;
+    //    }
+    //    sideDanger = 0;
+    //    for (int rightIndex = width - 1 - playerLengthX + 1; rightIndex < width; rightIndex++)
+    //    {
+    //        if (rightIndex < 0 || rightIndex >= width)
+    //            Debug.Log("Warning!");
+    //        int dangerValue = dangers[rightIndex];
+    //        sideDanger = Mathf.Max(sideDanger, dangerValue);
+    //        int newDanger = sideDanger;
+    //        dangers[rightIndex] = newDanger;
+    //    }
+
+    //    int dangerAhead = 0;
+    //    int dangerLeft = 0;
+    //    int dangerRight = 0;
+    //    // decide the danger in the three directions
+    //    int checkPixelExact = playerLengthX != 1 ? 1 : 0;
+    //    for (int leftIndex = playerPositionMin.x - checkPixelExact; leftIndex >= 0; leftIndex--) // evaluate dangerLeft
+    //    {
+    //        if(dangers[leftIndex] > 0)
+    //        {
+    //            dangerLeft = Mathf.Max(dangerLeft, dangers[leftIndex]);
+    //            //break;
+    //        }
+    //    }
+    //    for (int rightIndex = playerPositionMax.x + checkPixelExact; rightIndex < width; rightIndex++) // evaluate dangerRight
+    //    {
+    //        if (dangers[rightIndex] > 0)
+    //        {
+    //            dangerRight = Mathf.Max(dangerRight, dangers[rightIndex]);
+    //            //break;
+    //        }
+    //    }
+    //    //int checkPixelExact = playerLengthX != 1 ? 1 : 0;
+    //    for (int pixelIndex = playerPositionMin.x - checkPixelExact; pixelIndex <= playerPositionMax.x + checkPixelExact; pixelIndex++)
+    //    {
+    //        int i = pixelIndex;
+    //        i = Mathf.Clamp(pixelIndex, 0, width - 1);
+    //        if (dangers[i] > 0)
+    //        {
+    //            dangerAhead = Mathf.Max(dangerAhead, dangers[i] + 1);
+    //            break;
+    //        }
+    //    }
 
 
-        Debug.Log("A: " + dangerAhead + ", l: " + dangerLeft + ", r: " + dangerRight + "  , min: " + playerPositionMin.x + ", max: " + playerPositionMax.x);
-        //Debug.Log("left: " + dangerLeft);
-        //Debug.Log("right: " + dangerRight);
+    //    Debug.Log("A: " + dangerAhead + ", l: " + dangerLeft + ", r: " + dangerRight + "  , min: " + playerPositionMin.x + ", max: " + playerPositionMax.x);
+    //    //Debug.Log("left: " + dangerLeft);
+    //    //Debug.Log("right: " + dangerRight);
 
-        bool stay = dangerAhead == 0 ||  (dangerAhead < dangerLeft && dangerAhead < dangerRight);
-        if (stay)
-        {
-            if (ScreenshotManager.Instance().GetOutputNumber() == 3)
-                inputData[2] = 1;
-            if(ScreenshotManager.Instance().GetOutputNumber() == 5)
-                inputData[4] = 1;
-            return inputData;
-        }
+    //    bool stay = dangerAhead == 0 ||  (dangerAhead < dangerLeft && dangerAhead < dangerRight);
+    //    if (stay)
+    //    {
+    //        if (ScreenshotManager.Instance().GetOutputNumber() == 3)
+    //            inputData[2] = 1;
+    //        if(ScreenshotManager.Instance().GetOutputNumber() == 5)
+    //            inputData[4] = 1;
+    //        return inputData;
+    //    }
 
-        bool goLeft = dangerLeft < dangerRight || (dangerLeft == dangerRight && (playerPositionMin.x + playerPositionMax.x) * 0.5f >= width * 0.5f);
-        bool goRight = !goLeft;
-        inputData[0] = goLeft ? 1 : 0;
-        inputData[1] = goRight ? 1 : 0;
+    //    bool goLeft = dangerLeft < dangerRight || (dangerLeft == dangerRight && (playerPositionMin.x + playerPositionMax.x) * 0.5f >= width * 0.5f);
+    //    bool goRight = !goLeft;
+    //    inputData[0] = goLeft ? 1 : 0;
+    //    inputData[1] = goRight ? 1 : 0;
 
-        return inputData;
-    }
+    //    return inputData;
+    //}
     private float[] GenerateInputDataRaycast()
     {
-        //float[] inputData = new float[ScreenshotManager.Instance().GetOutputNumber()];
-
         InitInfo();
 
         // get the distances to the enemy
@@ -310,7 +304,6 @@ public class PlayerAiMovement : MonoBehaviour
             else
             {
                 m_distances[i] = m_raycastHeight;
-                //Debug.DrawRay(m_raycastPosition, Vector3.up * m_captureArea.localScale.y, Color.green);
             }
             m_raycastPosition.x += m_pixelSize;
         }
@@ -447,13 +440,6 @@ public class PlayerAiMovement : MonoBehaviour
                 endIndexRight++;
                 m_distanceRightX++;
             }
-
-            // if no obstacle to the left and to the right detected, go to the nearest side
-            //if(m_distanceRightY == m_distanceLeftY)
-            //{
-            //    m_distanceLeftX = m_playerPositionPixelCenterMin - Mathf.Max(0, startIndexLeft);
-            //    m_distanceRightX = Mathf.Min(startIndexRight, m_distances.Length - 1) - m_playerPositionPixelCenterMax;
-            //}
 
         } while (m_distanceLeftY == m_distanceRightY && m_distanceRightX == m_distanceLeftX && !isAtEndLeft && !isAtEndRight);
 

@@ -10,7 +10,8 @@ public struct NNCSaveData
 
     public NNTMSaveData m_trainingData;
     public NNSMSaveData m_sampleData;
-    public NNVSaveData m_visuilizationData;
+    public NNVSaveData m_visuilizationNetworkData;
+    //public NNSVSaveData m_visuilizationSampleData;
     public NNSaveData m_networkData;
 
     public int[] m_layerLengths;
@@ -25,6 +26,7 @@ public struct NNCSaveData
 
 public class NeuralNetworkContainer : MonoBehaviour
 {
+    #region Member Variables
     [Header("------ Settings ------")]
     //[SerializeField] private bool m_setInputLayerLengthDynamicly;
     [SerializeField] private int[] m_layerLengths;
@@ -51,13 +53,15 @@ public class NeuralNetworkContainer : MonoBehaviour
     [SerializeField] private AiMovement m_movementManager;
 
     bool placeHolder0;
-    public NeuralNetworkVisualization m_visualization { get; private set; }
+    public NeuralNetworkVisualization m_visualizationNetwork { get; private set; }
+    //public NNVisualizationSample m_visualizationSample { get; private set; }
     public NeuralNetworkTrainingManager m_trainingManager { get; private set; }
     public SampleManager m_sampleManager { get; private set; }
 
     [Header("------ Debug ------")]
     bool placeHolder1;
     public NeuralNetwork m_network { get; private set; }
+    #endregion
 
     #region Mono
     private void Awake()
@@ -67,10 +71,15 @@ public class NeuralNetworkContainer : MonoBehaviour
         if (m_trainingManager == null)
             Debug.Log("Warning: NeuralNetworkTrainingManager not found!");
 
-        if (m_visualization == null)
-            m_visualization = GetComponent<NeuralNetworkVisualization>();
-        if (m_visualization == null)
+        if (m_visualizationNetwork == null)
+            m_visualizationNetwork = GetComponent<NeuralNetworkVisualization>();
+        if (m_visualizationNetwork == null)
             Debug.Log("Warning: NeuralNetworkVisualization not found!");
+
+        //if (m_visualizationSample == null)
+        //    m_visualizationSample = GetComponent<NNVisualizationSample>();
+        //if (m_visualizationSample == null)
+        //    Debug.Log("Warning: NeuralNetworkVisualization not found!");
 
         if (m_sampleManager == null)
             m_sampleManager = GetComponent<SampleManager>();
@@ -109,7 +118,9 @@ public class NeuralNetworkContainer : MonoBehaviour
     public void InitializeContainer(NeuralNetwork network)
     {
         m_network = network;
-        m_visualization.CreateVisualization(this);//, transform.position, transform.rotation.eulerAngles, 10f);
+        m_visualizationNetwork.CreateVisualization(this);
+        //if(m_visualizationSample != null)
+        //    m_visualizationSample.CreateVisualization(this);
         m_trainingManager.SetNetwork(network);
     }
     #endregion
@@ -133,16 +144,16 @@ public class NeuralNetworkContainer : MonoBehaviour
 
         int newPlayerHeightPixel = m_sampleManager.GetScreenshotScript().GetInputLayerLengthPlayer(0, 0);
         int width = m_sampleManager.GetScreenshotScript().GetCaptureWidth();
-        JaggedArrayContainer[] newWeights = new JaggedArrayContainer[data.m_biases[0].data.Length];
+        JaggedArrayContainer[] newWeights = new JaggedArrayContainer[data.m_biases[0].dataFloat.Length];
 
         //Debug.Log("old: " + oldPlayerHeightPixel + ", new: " + newPlayerHeightPixel);
 
-        for (int nodeIndex = 0; nodeIndex < data.m_biases[0].data.Length; nodeIndex++)
+        for (int nodeIndex = 0; nodeIndex < data.m_biases[0].dataFloat.Length; nodeIndex++)
         {
             bool addIndex = true;
             JaggedArrayContainer weights2 = new JaggedArrayContainer(m_layerLengths[0], 0);
             int index = 0;
-            for (int weightIndex = 0; weightIndex < data.m_weights[0].array[0].data.Length; weightIndex++)
+            for (int weightIndex = 0; weightIndex < data.m_weights[0].array[0].dataFloat.Length; weightIndex++)
             {
                 if (weightIndex < oldEnemyWidth)
                 {
@@ -155,7 +166,7 @@ public class NeuralNetworkContainer : MonoBehaviour
                     //Debug.Log(weightIndex + ": (" + indices[0] + ",  " + indices[1] + ",  " + indices[2] + ", " + indices[3] + "),  " + ((nodeIndex) % (width / 2)));
                     foreach (int i in indices)
                     {
-                        weights2.data[i] = data.m_weights[0].array[nodeIndex].data[weightIndex] * 0.25f;
+                        weights2.dataFloat[i] = data.m_weights[0].array[nodeIndex].dataFloat[weightIndex] * 0.25f;
                     }
                 }
                 else
@@ -170,7 +181,7 @@ public class NeuralNetworkContainer : MonoBehaviour
                         //Debug.Log(weightIndex + ": (" + indices[0] + ",  " + indices[1] + ",  " + indices[2] + ", " + indices[3] + ")");
                         foreach (int i in indices)
                         {
-                            weights2.data[i] = data.m_weights[0].array[nodeIndex].data[weightIndex] * 0.25f;
+                            weights2.dataFloat[i] = data.m_weights[0].array[nodeIndex].dataFloat[weightIndex] * 0.25f;
                         }
                     }
                     else// if (2 * oldPlayerHeightPixel == newPlayerHeightPixel)
@@ -182,8 +193,8 @@ public class NeuralNetworkContainer : MonoBehaviour
                         }
 
                         //Debug.Log(weightIndex + ": (" + index + ")");
-                        weights2.data[index] = data.m_weights[0].array[nodeIndex].data[weightIndex] * 0.5f;
-                        weights2.data[index + 1] = data.m_weights[0].array[nodeIndex].data[weightIndex] * 0.5f;
+                        weights2.dataFloat[index] = data.m_weights[0].array[nodeIndex].dataFloat[weightIndex] * 0.5f;
+                        weights2.dataFloat[index + 1] = data.m_weights[0].array[nodeIndex].dataFloat[weightIndex] * 0.5f;
                         index += 2;
                     }
                     //else
@@ -196,13 +207,12 @@ public class NeuralNetworkContainer : MonoBehaviour
 
         data.m_weights[0].array = newWeights;
 
-        //Debug.Log(data.m_weights[0].array[0].data.Length);
-
         NNCSaveData containerData = new NNCSaveData
         {
             m_trainingData = m_trainingManager.SaveData(),
             m_sampleData = m_sampleManager.SaveData(),
-            m_visuilizationData = m_visualization.SaveData(),
+            m_visuilizationNetworkData = m_visualizationNetwork.SaveData(),
+            //m_visuilizationSampleData = m_visualizationSample.SaveData(),
             m_networkData = data,
 
 
@@ -216,9 +226,6 @@ public class NeuralNetworkContainer : MonoBehaviour
         };
 
         LoadContainer(containerData);
-
-        //m_network.LoadData(data);
-        //m_visualization.ApplyData();
     }
     #endregion
 
@@ -244,7 +251,8 @@ public class NeuralNetworkContainer : MonoBehaviour
         NNCSaveData data = new NNCSaveData {
             m_trainingData = m_trainingManager.SaveData(),
             m_sampleData = m_sampleManager.SaveData(),
-            m_visuilizationData = m_visualization.SaveData(),
+            m_visuilizationNetworkData = m_visualizationNetwork.SaveData(),
+            //m_visuilizationSampleData = m_visualizationSample.SaveData(),
             m_networkData = m_network.SaveData(),
 
 
@@ -271,7 +279,8 @@ public class NeuralNetworkContainer : MonoBehaviour
         LoadData(data);
         m_trainingManager.LoadData(data.m_trainingData);
         m_sampleManager.LoadData(data.m_sampleData);
-        m_visualization.LoadData(data.m_visuilizationData);
+        m_visualizationNetwork.LoadData(data.m_visuilizationNetworkData);
+        //m_visualizationSample.LoadData(data.m_visuilizationSampleData);
         m_network.LoadData(data.m_networkData);
 
         InitializeContainer(new NeuralNetwork(
@@ -291,10 +300,10 @@ public class NeuralNetworkContainer : MonoBehaviour
         ApplyData();
         m_trainingManager.ApplyData();
         m_sampleManager.ApplyData();
-        m_visualization.ApplyData();
+        m_visualizationNetwork.ApplyData();
+        //m_visualizationSample.ApplyData();
         m_network.ApplyData();
     }
-
     private void CheckLoadOrSave()
     {
         if(m_save)
@@ -314,19 +323,4 @@ public class NeuralNetworkContainer : MonoBehaviour
         }
     }
     #endregion
-
-    //#region Getter
-    //public SampleManager GetSampleManager()
-    //{
-    //    return m_sampleManager;
-    //}
-    //public NeuralNetworkTrainingManager GetTrainingManager()
-    //{
-    //    return m_trainingManager;
-    //}
-    //public NeuralNetworkVisualization GetVisualization()
-    //{
-    //    return m_visualization;
-    //}
-    //#endregion
 }

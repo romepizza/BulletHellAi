@@ -6,7 +6,7 @@ public class CatchObstacles : MonoBehaviour {
 
     private void OnTriggerEnter(Collider collider)
     {
-        IsObstacle obstacleScript = (IsObstacle)Utility.getComponentInParents<IsObstacle>(collider.transform);// collider.GetComponent<IsObstacle>();
+        IsObstacle obstacleScript = (IsObstacle)Utility.GetComponentInParents<IsObstacle>(collider.transform);// collider.GetComponent<IsObstacle>();
         if (obstacleScript == null)
             return;
 

@@ -78,7 +78,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
 
     [Header("------ Debug -------")]
     private SampleManager m_sampleManager;
-    private NeuralNetworkVisualization m_visualization;
+    //private NeuralNetworkVisualization m_visualization;
     private NeuralNetwork m_network;
 
     private float m_trainingCooldownRdyOnline;
@@ -86,9 +86,9 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     private float m_trainingCooldownRdyOfflineGather;
 
     private int m_trainingUnitsCompleted;
-    private bool m_updateVisualization;
-    private float m_visualizationCooldown = 0.25f;
-    private float m_visualizationCooldownRdy;
+    //private bool m_updateVisualization;
+    //private float m_visualizationCooldown = 0.25f;
+    //private float m_visualizationCooldownRdy;
 
 
     #region Enums
@@ -103,10 +103,10 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         if (m_sampleManager == null)
             Debug.Log("Warning: SampleManager not found!");
 
-        if (m_visualization == null)
-            m_visualization = GetComponent<NeuralNetworkVisualization>();
-        if (m_visualization == null)
-            Debug.Log("Warning: NeuralNetworkVisualization not found!");
+        //if (m_visualization == null)
+        //    m_visualization = GetComponent<NeuralNetworkVisualization>();
+        //if (m_visualization == null)
+        //    Debug.Log("Warning: NeuralNetworkVisualization not found!");
     }
     private void Start()
     {
@@ -120,17 +120,17 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     }
     private void LateUpdate()
     {
-        if (m_updateVisualization && m_visualizationCooldownRdy < Time.time)
-        {
-            SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
-            m_visualization.UpdateActivisions(sampleThis.m_input);
-            if (m_updateVisualization)
-            {
-                m_visualization.UpdateVisualization();
-            }
-            m_updateVisualization = false;
-            m_visualizationCooldownRdy = m_visualizationCooldown + Time.time;
-        }
+        //if (m_updateVisualization && m_visualizationCooldownRdy < Time.time)
+        //{
+        //    SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
+        //    m_visualization.UpdateActivisions(sampleThis.m_input);
+        //    if (m_updateVisualization)
+        //    {
+        //        //m_visualization.UpdateVisualization();
+        //    }
+        //    m_updateVisualization = false;
+        //    m_visualizationCooldownRdy = m_visualizationCooldown + Time.time;
+        //}
     }
     #endregion
 
@@ -171,7 +171,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
             return;
 
         bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitsCompleted));
-        m_updateVisualization |= update;
+        //m_updateVisualization |= update;
 
         if (update)
             UpdateTraningCount();
@@ -183,7 +183,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
             return;
 
         bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitsCompleted));
-        m_updateVisualization |= update;
+        // m_updateVisualization |= update;
 
         if (update)
             UpdateTraningCount();

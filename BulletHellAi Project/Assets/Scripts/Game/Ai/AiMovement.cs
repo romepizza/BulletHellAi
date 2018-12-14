@@ -147,22 +147,6 @@ public class AiMovement : MonoBehaviour {
         {
             noOutput = output.Length == 3 ? output[2] : output[4];
         }
-
-        //if (m_interpretationType == NetworkOutputInterpretation.ThresholdOnly)
-        //{
-        //    Debug.Log("Warning: NetworkOutputInterpretation.ThresholdOnly not recommended!");
-        //    if (leftOutput >= m_decisionThreshold)
-        //        m_isPressingLeft = true;
-        //    if (rightOutput >= m_decisionThreshold)
-        //        m_isPressingRight = true;
-        //    if (output.Length > 3)
-        //    {
-        //        if (upOutput >= m_decisionThreshold)
-        //            m_isPressingUp = true;
-        //        if (downOutput >= m_decisionThreshold)
-        //            m_isPressingDown = true;
-        //    }
-        //}
         if (m_interpretationType == NetworkOutputInterpretation.DynamicRandomWaitThreshold)
         {
             if (m_randomInitialCooldownRdy > Time.time)
@@ -180,23 +164,7 @@ public class AiMovement : MonoBehaviour {
             }
             else
                 Debug.Log("Warning: Feature not implemented yet!");
-            //if (output.Length == 3)
-            //{
-            //    float max = Mathf.Max(leftOutput, upOutput, noOutput);
-            //    if (leftOutput <= max * m_interpretationVar)
-            //        leftOutput = 0;
-            //    if (rightOutput <= max * m_interpretationVar)
-            //        rightOutput = 0;
-            //    if (noOutput <= max * m_interpretationVar)
-            //        noOutput = 0;
-            //}
-            //if (output.Length > 3)
-            //{
-            //    if (upOutput < downOutput * m_interpretationVar)
-            //        upOutput = 0;
-            //    if (downOutput < upOutput * m_interpretationVar)
-            //        downOutput = 0;
-            //}
+            
 
             // decide left/right
             if (leftOutput != 0 || rightOutput != 0)
@@ -210,26 +178,7 @@ public class AiMovement : MonoBehaviour {
                 else
                     ;
             }
-            // decide up/down
-            //if (output.Length > 3)
-            //{
-            //    Debug.Log("Warning: Code not uptodate!");
-            //    if (upOutput != 0 || downOutput != 0)
-            //    {
-            //        if (upOutput == 0)
-            //            m_isPressingDown = true;
-            //        else if (downOutput == 0)
-            //            m_isPressingUp = true;
-            //        else
-            //        {
-            //            float random = Random.Range(0, upOutput + downOutput);
-            //            if (random < upOutput)
-            //                m_isPressingUp = true;
-            //            else
-            //                m_isPressingDown = true;
-            //        }
-            //    }
-            //}
+            
         }
         if (m_interpretationType == NetworkOutputInterpretation.DynamicRandomThreshold)
         {
@@ -403,14 +352,14 @@ public class AiMovement : MonoBehaviour {
     {
         float[] input = GetInputForNetwork();
         float[] output = m_networkContainer.m_network.GetOutput(input);
-        m_networkContainer.m_visualization.UpdateActivisions(input);
+        m_networkContainer.m_visualizationNetwork.UpdateActivisionsNetwork(input);
         //UpdateCostText(m_networkContainer.m_network.GetCost(PlayerMovementManager.Instance().GenerateInputData(), output));
         return output;
     }
     float[] GetInputForNetwork()
     {
         SampleContainer sample = m_networkContainer.m_sampleManager.GenerateSampleThis();
-
+        //m_networkContainer.m_visualization.UpdateVisualizationSample(sample);
         float[] input = sample.m_input;
         return input;
     }

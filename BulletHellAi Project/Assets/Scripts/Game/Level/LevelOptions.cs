@@ -8,10 +8,11 @@ public class LevelOptions : MonoBehaviour
     //public Text m_aiText;
 
     [Header("------- Settings ------")]
-    //[SerializeField] private bool m_isPlayerLevel;
-    //[SerializeField] private bool m_isAiLevel;
     [SerializeField] private KeyCode m_startGameKeyCode;
+    [SerializeField] private bool m_endOnDeath;
+    [SerializeField] private bool m_restartOnDeath;
 
+    [Header("--- UI ---")]
     [SerializeField] private int m_meanConsiderNumber;
     [SerializeField] private float m_meanThresholdTime;
 
@@ -57,7 +58,7 @@ public class LevelOptions : MonoBehaviour
         }
         else if (m_isPressingGameStart && m_isRunning)
         {
-            EndGame();
+            EndGame(true);
         }
     }
     public void StartGame()
@@ -66,26 +67,33 @@ public class LevelOptions : MonoBehaviour
         SpawnObstacles[] objectSpawners = m_objectSpawner.GetComponents<SpawnObstacles>();
         for (int i = 0; i < objectSpawners.Length; i++)
         {
-            objectSpawners[i].activate();
+            objectSpawners[i].Activate();
         }
 
         m_currentTime = 0;
     }
-    public void EndGame()
+    public void EndGame(bool addTime)
     {
         m_isRunning = false;
         SpawnObstacles[] objectSpawners = m_objectSpawner.GetComponents<SpawnObstacles>();
         for (int i = 0; i < objectSpawners.Length; i++)
         {
-            objectSpawners[i].deactivate();
+            objectSpawners[i].Deactivate();
         }
-
-        AddTime();
+        if(addTime)
+            AddTime();
     }
-    public void RestartGame()
+    public void Die()
     {
-        EndGame();
-        StartGame();
+        AddTime();
+        if (m_endOnDeath)
+            EndGame(false);
+        else if (m_restartOnDeath)
+        {
+            EndGame(false);
+            StartGame();
+        }
+        m_currentTime = 0;
     }
     #endregion
 

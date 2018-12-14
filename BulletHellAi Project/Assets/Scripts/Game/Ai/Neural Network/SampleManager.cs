@@ -33,7 +33,10 @@ public class SampleManager : MonoBehaviour
     [SerializeField] private int m_batchSize;
 
     [Header("--- Save / Load ---")]
-    [SerializeField] private bool m_keepSamples;
+    [SerializeField] private bool m_useGatheredSamples;
+    [SerializeField] private bool m_usePreDefinedSamples;
+    [SerializeField] private TextAsset m_sampleDataFile;
+    private bool m_keepSamples;
 
     [Header("--- Objects ---")]
     [SerializeField] private TakeScreenshot m_screenshotScriptThis;
@@ -41,7 +44,8 @@ public class SampleManager : MonoBehaviour
     private NeuralNetworkTrainingManager m_trainingManager;
 
     [Header("------ Debug ------")]
-    private List<SampleContainer> m_samples;
+    private List<SampleContainer> m_samplesGathered;
+    private List<SampleContainer> m_samplesPredefined;
     private SampleContainer m_cacheSampleSource;
     private SampleContainer m_cacheSampleThis;
 
@@ -54,11 +58,17 @@ public class SampleManager : MonoBehaviour
     {
         if (m_trainingManager == null)
             m_trainingManager = GetComponent<NeuralNetworkTrainingManager>();
-        if (m_trainingManager == null)
-            Debug.Log("Warning: Training Manager not found!");
 
-        m_samples = new List<SampleContainer>();
+        m_samplesGathered = new List<SampleContainer>();
 
+        SampleData data = SampleSaveManager.LoadSampleData(m_sampleDataFile);
+        if (data.m_isCorrupted == true)
+            m_samplesPredefined = null;
+        else
+        {
+            m_samplesPredefined = data.ToSampleContainers();
+            FilterSamples();
+        }
     }
     private void LateUpdate()
     {
@@ -70,21 +80,19 @@ public class SampleManager : MonoBehaviour
     #region Sample Control
     public SampleContainer GenerateSampleSource(bool save)
     {
-        //if (m_cacheSampleSource != null)
-        //    return m_cacheSampleSource;
-
         float[] desiredOutput = GenerateDesiredOutput();
-        bool isOkay = CheckFilterDesiredOutput(desiredOutput);
+        bool isOkay = CheckIsOkayDesiredOutput(desiredOutput);
         if (!isOkay)
-            return new SampleContainer(null, null, false);
+            return new SampleContainer(false);
 
         float[] input = GenerateInputSource();
-        isOkay = CheckFilterInput(input);
+        isOkay = CheckIsOkayInput(input);
 
         if (!isOkay)
-            return new SampleContainer(null, null, false);
+            return new SampleContainer(false);
 
-        SampleContainer sampleContainer = new SampleContainer(input, desiredOutput, isOkay);
+
+        SampleContainer sampleContainer = new SampleContainer(input, desiredOutput, CheckFilterDesiredOutput(desiredOutput));
 
         if(save)
             SaveSample(sampleContainer);
@@ -100,7 +108,7 @@ public class SampleManager : MonoBehaviour
         float[] input = GenerateInputThis();
         float[] desiredOutput = null;
 
-        SampleContainer sampleContainer = new SampleContainer(input, desiredOutput, true);
+        SampleContainer sampleContainer = new SampleContainer(input, desiredOutput, null);
         //SaveSample(sampleContainer);
 
         m_cacheSampleThis = sampleContainer;
@@ -108,15 +116,32 @@ public class SampleManager : MonoBehaviour
     }
     public SampleContainer GenerateSampleOffline()
     {
-        if (m_samples.Count < m_minSamples || m_samples.Count == 0)
-            return new SampleContainer(null, null, false);
+        if(m_usePreDefinedSamples && m_useGatheredSamples)
+        {
+            Debug.Log("Warning: m_usePreDefinedSamples && m_useGatheredSamples not implented yet! Using only m_usePreDefinedSamples instead!");
+        }
+        if (m_usePreDefinedSamples)
+        {
+            if (m_samplesPredefined == null || m_samplesPredefined.Count == 0)
+                return new SampleContainer(false);
 
-        //SampleContainer container = new SampleContainer(null, null, true);
+            int index = Random.Range(0, m_samplesPredefined.Count - 1);
+            SampleContainer sampleContainer = m_samplesPredefined[index];
 
-        int index = Random.Range(0, m_samples.Count - 1);
-        SampleContainer sampleContainer = m_samples[index];
+            return sampleContainer;
+        }
+        else if (m_useGatheredSamples)
+        {
+            if (m_samplesGathered.Count < m_minSamples || m_samplesGathered.Count == 0)
+                return new SampleContainer(false);
 
-        return sampleContainer;
+            int index = Random.Range(0, m_samplesGathered.Count - 1);
+            SampleContainer sampleContainer = m_samplesGathered[index];
+
+            return sampleContainer;
+        }
+
+        return new SampleContainer(false);
     }
 
     private float[] GenerateDesiredOutput()
@@ -125,11 +150,11 @@ public class SampleManager : MonoBehaviour
     }
     private void SaveSample(SampleContainer sampleContainer)
     {
-        while (m_maxSamples >= 0 && m_samples.Count > m_maxSamples)
+        while (m_maxSamples >= 0 && m_samplesGathered.Count > m_maxSamples)
         {
-            m_samples.RemoveAt(Random.Range(0, m_samples.Count - 1));
+            m_samplesGathered.RemoveAt(Random.Range(0, m_samplesGathered.Count - 1));
         }
-        m_samples.Add(sampleContainer);
+        m_samplesGathered.Add(sampleContainer);
     }
     #endregion
 
@@ -150,7 +175,7 @@ public class SampleManager : MonoBehaviour
     }
     private float[] GenerateInputSourceScreenshot()
     {
-        float[] input = m_screenshotScriptSource.GetScreenshotDataComputed(m_screenshotScriptThis.GetCaptureWidth(), m_screenshotScriptThis.GetCaptureHeight(), m_screenshotScriptThis.GetPlayerHeight(), false);
+        float[] input = m_screenshotScriptSource.GetScreenshotDataComputed(m_screenshotScriptThis.GetCaptureWidth(), m_screenshotScriptThis.GetCaptureHeight(), m_screenshotScriptThis.GetPlayerHeight(), TakeScreenshot.CaptureType.Separate);
 
         return input;
     }
@@ -187,7 +212,7 @@ public class SampleManager : MonoBehaviour
     }
     private float[] GenerateInputScreenshotThis()
     {
-        float[] input = m_screenshotScriptThis.GetScreenshotDataComputed(0, 0, 0, true);
+        float[] input = m_screenshotScriptThis.GetScreenshotDataComputed(0, 0, 0, TakeScreenshot.CaptureType.Separate);
 
         return input;
     }
@@ -236,20 +261,45 @@ public class SampleManager : MonoBehaviour
     #endregion
 
     #region Filter
-    private bool CheckFilterDesiredOutput(float[] desiredOutput)
+    private void FilterSamples()
+    {
+        if (m_samplesPredefined == null || m_samplesPredefined.Count == 0)
+            return;
+
+        for(int i = m_samplesPredefined.Count - 1; i >= 0; i--)
+        {
+            SampleContainer sample = m_samplesPredefined[i];
+
+            if (!CheckIsOkayDesiredOutput(sample.m_desiredOutput) || !CheckIsOkayInput(sample.m_input))
+                m_samplesPredefined.RemoveAt(i);
+        }
+    }
+    public bool CheckIsOkayDesiredOutput(float[] desiredOutput)
     {
         bool isOkay = true;
 
-        if(m_tossNoOutputSamples)
+        bool[] filters = CheckFilterDesiredOutput(desiredOutput);
+        foreach(bool b in filters)
         {
-            if(desiredOutput[0] == 0 && desiredOutput[1] == 0)
-            isOkay = false;
-            
+            if (b == true)
+                isOkay = false;
         }
 
         return isOkay;
     }
-    private bool CheckFilterInput(float[] input)
+    public bool[] CheckFilterDesiredOutput(float[] desiredOutput)
+    {
+        bool[] filters = new bool[1];
+
+        if (m_tossNoOutputSamples)
+        {
+            if (desiredOutput[0] == 0 && desiredOutput[1] == 0)
+                filters[0] = true;
+        }
+
+        return filters;
+    }
+    public bool CheckIsOkayInput(float[] input)
     {
         bool isOkay = true;
 
@@ -260,6 +310,10 @@ public class SampleManager : MonoBehaviour
     #endregion
 
     #region Save / Load
+    // sample data control
+
+
+    // object data control
     public NNSMSaveData SaveData()
     {
         NNSMSaveData data = new NNSMSaveData
@@ -277,7 +331,7 @@ public class SampleManager : MonoBehaviour
         if (m_keepSamples)
         {
             data.m_samples = new List<SampleContainer>();
-            foreach(SampleContainer sample in m_samples)
+            foreach(SampleContainer sample in m_samplesGathered)
                 data.m_samples.Add(sample);
         }
 
@@ -296,14 +350,14 @@ public class SampleManager : MonoBehaviour
 
         if(m_keepSamples)
         {
-            m_samples.Clear();
+            m_samplesGathered.Clear();
             foreach (SampleContainer sample in data.m_samples)
-                m_samples.Add(sample);
+                m_samplesGathered.Add(sample);
         }
     }
     public void ApplyData()
     {
-        m_samples.Clear();
+        m_samplesGathered.Clear();
         m_cacheSampleSource = null;
         m_cacheSampleThis = null;
         m_screenshotScriptThis.ApplyData();

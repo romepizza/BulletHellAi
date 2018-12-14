@@ -22,7 +22,7 @@ public class PlayerMovementManager : MonoBehaviour
     private Vector3 m_currentMoveDirectionLocal;
 
     #region Enums
-    private enum ControllerType { Player, Ai }
+    public enum ControllerType { Player, Ai }
     #endregion
 
     #region Mono
@@ -103,6 +103,13 @@ public class PlayerMovementManager : MonoBehaviour
     public static PlayerMovementManager Instance()
     {
         return s_instance;
+    }
+    #endregion
+
+    #region Getter
+    public ControllerType GetControllerType()
+    {
+        return m_controllerType;
     }
     #endregion
 }

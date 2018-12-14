@@ -170,7 +170,7 @@ public class NeuralNetwork
             else
             {
                 for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
-                    mat.m_data[nodeIndex][0] = biasData[layerIndex - 1].data[nodeIndex];
+                    mat.m_data[nodeIndex][0] = biasData[layerIndex - 1].dataFloat[nodeIndex];
             }
             m_biases[layerIndex - 1] = mat;
         }
@@ -206,7 +206,7 @@ public class NeuralNetwork
                     for (int weightIndex = 0; weightIndex < weightCount; weightIndex++)
                     {
                         //Debug.Log(weightData[layerIndex].array[nodeCount].data.Length + ", " + weightCount);
-                        mat.m_data[nodeIndex][weightIndex] = weightData[layerIndex].array[nodeIndex].data[weightIndex];
+                        mat.m_data[nodeIndex][weightIndex] = weightData[layerIndex].array[nodeIndex].dataFloat[weightIndex];
                     }
                 }
             }
@@ -685,7 +685,7 @@ public class NeuralNetwork
                     weightData[weightIndex] = m_weights[layerIndex].m_data[nodeIndex][weightIndex];
                 }
                 weightArray[nodeIndex] = new JaggedArrayContainer();
-                weightArray[nodeIndex].data = weightData;
+                weightArray[nodeIndex].dataFloat = weightData;
             }
             finalWeightArray[layerIndex] = new JaggedArrayContainer(weightArray);
         }
