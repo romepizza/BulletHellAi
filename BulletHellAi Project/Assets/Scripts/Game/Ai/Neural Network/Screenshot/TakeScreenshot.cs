@@ -17,18 +17,19 @@ public struct NNTSSaveData
 
     public float m_activisionThreshold;
 }
-
 public struct CacheData
 {
     public int captureWidth;
     public int captureHeight;
     public float playerHeight;
+    public AnimationCurve curveWidth;
+    public AnimationCurve curveHeight;
     public TakeScreenshot.CaptureType captureType;
 
     public float[] dataComputed;
     //public float[][] dataRaw;
 
-    public bool Equals(int captureWidth, int captureHeight, float playerHeight, TakeScreenshot.CaptureType captureType)
+    public bool Equals(int captureWidth, int captureHeight, float playerHeight, TakeScreenshot.CaptureType captureType, AnimationCurve curveWidth, AnimationCurve curveHeight)
     {
         if (this.captureWidth > captureWidth * 1.0001f || this.captureWidth < captureWidth * 0.9999f)
             return false;
@@ -38,6 +39,17 @@ public struct CacheData
             return false;
         if(this.captureType != captureType)
             return false;
+
+        for (int i = 0; i < curveWidth.keys.Length; i++)
+        {
+            if (!this.curveWidth.keys[i].Equals(curveWidth.keys[i]))
+                return false;
+        }
+        for (int i = 0; i < curveHeight.keys.Length; i++)
+        {
+            if (!this.curveHeight.keys[i].Equals(curveHeight.keys[i]))
+                return false;
+        }
 
         return true;
     }
@@ -110,9 +122,12 @@ public class TakeScreenshot : MonoBehaviour
     private int m_currentHeight;
     private int m_currentWidth;
 
+    // cache
     private List<CacheData> m_cacheDataComputed = new List<CacheData>();
     //private List<CacheData> m_cacheDataRaw = new List<CacheData>();
     private List<CacheScreenshot> m_cacheScrenshots = new List<CacheScreenshot>();
+    private List<int> m_obstacleWidths = new List<int>();
+    private List<int> m_obstacleIndices = new List<int>();
 
     private int m_lastCaptureWidth;
     private int m_lastCaptureHeight;
@@ -162,20 +177,22 @@ public class TakeScreenshot : MonoBehaviour
     //    ShowScreenshot(PrepareScreenshot(false, 0));
     //    SaveFile();
     //}
-    public float[] GetScreenshotDataComputed(int captureWidth, int captureHeight, float playerHeight, CaptureType captureType)
+    public float[] GetScreenshotDataComputed(int captureWidth, int captureHeight, float playerHeight, CaptureType captureType, AnimationCurve curveWidth, AnimationCurve curveHeight)
     {
         m_currentWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
         m_currentHeight = captureHeight == 0 ? GetCaptureHeight() : captureHeight;
         playerHeight = playerHeight == 0 ? GetPlayerHeight() : playerHeight;
 
+        // check for cache data
         foreach (CacheData cacheData in m_cacheDataComputed)
         {
-            if (cacheData.Equals(m_currentWidth, m_currentHeight, playerHeight, captureType))
+            if (cacheData.Equals(m_currentWidth, m_currentHeight, playerHeight, captureType, curveWidth, curveHeight))
             {
                 return cacheData.dataComputed;
             }
         }
 
+        // take screenshots
         Texture2D textureObstacles = null;
         Texture2D texturePlayer = null;
         if (captureType == CaptureType.Separate)
@@ -186,13 +203,26 @@ public class TakeScreenshot : MonoBehaviour
         else if(captureType == CaptureType.Raw)
             textureObstacles = PrepareScreenshot(m_currentWidth, m_currentHeight, false, 0);
 
-
+        // create data to return
         int enemyLength = m_currentWidth * m_currentHeight;
         int playerLength = GetInputLayerLengthPlayer(m_currentWidth, playerHeight);
-
         int dataLength = enemyLength + playerLength;
         float[] data = new float[dataLength];
-    
+
+        // if animation curve is used, memorize position of the player
+        bool useCurveWidth = curveWidth != null;
+        if (useCurveWidth && curveWidth.keys[0].value == 1 && curveWidth.keys[curveWidth.keys.Length - 1].value == 1)
+            useCurveWidth = false;
+        bool useCurveHeight = curveHeight != null;
+        if (useCurveHeight && curveHeight.keys[0].value == 1 && curveHeight.keys[curveHeight.keys.Length - 1].value == 1)
+            useCurveHeight = false;
+        // these are only in use if the width is in use
+        float playerPositionX = 0;
+        int playerPositionCounter = 0;
+        m_obstacleWidths.Clear();
+        m_obstacleIndices.Clear();
+
+        // identify positions of obstacles and player
         for (int height = 0; height < textureObstacles.height; height++)
         {
             for (int width = 0; width < textureObstacles.width; width++)
@@ -207,22 +237,76 @@ public class TakeScreenshot : MonoBehaviour
 
                 if (colorObstacle.r > m_activisionThreshold) // Red = Obstacle
                 {
-                    value = colorObstacle.r;
+                    float heightFactor = useCurveHeight ? EvaluateCurveHeight(height, textureObstacles.height, curveHeight) : 1;
+                    value = 1f * heightFactor;
                     data[index] = value;
+
+                    if (useCurveWidth)
+                    {
+                        m_obstacleWidths.Add(width);
+                        m_obstacleIndices.Add(width);
+                    }
                 }
                 if (index < playerLength && colorPlayer.g > m_activisionThreshold) // Green = Player / Ai
                 {
-                    value = colorPlayer.g;
+                    value = 1;
                     index += enemyLength;
                     data[index] = value;
+
+                    if (useCurveWidth)
+                    {
+                        playerPositionX += width;
+                        playerPositionCounter++;
+                    }
                 }
             }
         }
 
-        //SaveFile();
+        // alter the values of obstacles by the width curve
+        if (useCurveWidth)
+        {
+            if (playerPositionCounter != 0)
+            {
+                playerPositionX /= playerPositionCounter;
+                for(int i = 0; i < m_obstacleIndices.Count; i++)
+                {
+                    float widthFactor = EvaluateCurveWidth(m_obstacleWidths[i], playerPositionX, textureObstacles.width, curveWidth);
+                    data[m_obstacleIndices[i]] *= widthFactor;
+                }
+            }
+            else
+                Debug.Log("Warning: playerPositionCounter is 0!");
+        }
 
-        m_cacheDataComputed.Add(new CacheData { captureWidth = m_currentWidth, captureHeight = m_currentHeight, playerHeight = playerHeight, dataComputed = data, captureType = captureType});
+        // add cache data
+        m_cacheDataComputed.Add(new CacheData {
+            captureWidth = m_currentWidth,
+            captureHeight = m_currentHeight,
+            playerHeight = playerHeight,
+            curveWidth = curveWidth,
+            curveHeight = curveHeight,
+            captureType = captureType,
+            dataComputed = data
+        });
         return data;
+    }
+    private float EvaluateCurveWidth(int obstacleIndex, float playerIndex, int maxWidth, AnimationCurve curve)
+    {
+        if (maxWidth == 0)
+            return 1f;
+
+        float difference = Mathf.Abs(obstacleIndex - playerIndex);
+        return curve.Evaluate(difference / maxWidth);
+    }
+    private float EvaluateCurveHeight(float obstacleIndex, float maxIndex, AnimationCurve curve)
+    {
+        if(maxIndex == 0)
+        {
+            Debug.Log("Warning: maxIndex was 0!");
+            return 1f;
+        }
+
+        return curve.Evaluate(obstacleIndex / maxIndex);
     }
     //public float[][] GetScreenshotDataRaw(int captureWidth, int captureHeight, bool forceHdr, bool show)
     //{
@@ -445,13 +529,14 @@ public class TakeScreenshot : MonoBehaviour
         captureWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
         playerHeight = playerHeight == 0 ? GetPlayerHeight() : playerHeight;
         //Debug.Log("0: " + (GetInputLayerLengthEnemy(captureWidth) + GetInputLayerLengthPlayer(captureWidth)));
-        return GetInputLayerLengthEnemy(captureWidth) + GetInputLayerLengthPlayer(captureWidth, playerHeight);
+        return GetInputLayerLengthEnemy(captureWidth, 0) + GetInputLayerLengthPlayer(captureWidth, playerHeight);
     }
-    public int GetInputLayerLengthEnemy(int captureWidth)
+    public int GetInputLayerLengthEnemy(int captureWidth, int captureHeight)
     {
         captureWidth = captureWidth == 0 ? GetCaptureWidth() : captureWidth;
+        captureHeight = captureHeight == 0 ? GetCaptureHeight() : captureHeight;
         //Debug.Log("1: " + captureWidth * GetCaptureHeight());
-        return captureWidth * GetCaptureHeight();
+        return captureWidth * captureHeight;
     }
     public int GetInputLayerLengthPlayer(int captureWidth, float playerHeight)
     {

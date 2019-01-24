@@ -13,9 +13,9 @@ public struct NNTMSaveData
     public int m_curveRange;
     public AnimationCurve m_curve;
 
-    public float m_regularizationKeepRate;
-
+    public float m_dropoutKeepRate;
     public float m_weightDecayRate;
+
     public bool m_trainNetworkOnline;
     public bool m_saveSamplesOnline;
     public float m_trainingCooldownOnlineMin;
@@ -35,10 +35,13 @@ public struct NNTMSaveData
     public float m_trainingCooldownRdyOfflineGather;
      
     public int m_trainingUnitsCompleted;
+    public int m_initSeed;
+    public int m_currentSeed;
 }
 
 public class NeuralNetworkTrainingManager : MonoBehaviour
 {
+    #region Member Variables
     [Header("------ Settings -------")]
     [Header("--- Learn Type ---")]
     [SerializeField] private UpdateType m_updateType;
@@ -69,7 +72,10 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     [Space]
     [SerializeField] private float m_trainingCooldownOfflineGatherMin;
     [SerializeField] private float m_trainingCooldownOfflineGatherMax;
-    
+
+    [Header("--- Seed ---")]
+    [SerializeField] private int m_initSeed = -1;
+
     [Header("--- Stop Learning ---")]
     [SerializeField] private int m_stopAtMaximumUnitCount;
 
@@ -78,7 +84,6 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
 
     [Header("------ Debug -------")]
     private SampleManager m_sampleManager;
-    //private NeuralNetworkVisualization m_visualization;
     private NeuralNetwork m_network;
 
     private float m_trainingCooldownRdyOnline;
@@ -86,10 +91,8 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     private float m_trainingCooldownRdyOfflineGather;
 
     private int m_trainingUnitsCompleted;
-    //private bool m_updateVisualization;
-    //private float m_visualizationCooldown = 0.25f;
-    //private float m_visualizationCooldownRdy;
-
+    private int m_currentSeed;
+    #endregion
 
     #region Enums
     public enum UpdateType { SGD, Momentum, NAG, Adam }
@@ -103,34 +106,18 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         if (m_sampleManager == null)
             Debug.Log("Warning: SampleManager not found!");
 
+        m_trainingCooldownRdyOnline = Time.time + GetRandom(m_trainingCooldownOnlineMin, m_trainingCooldownOnlineMax);
+        m_trainingCooldownRdyOffline = Time.time + GetRandom(m_trainingCooldownOfflineMin, m_trainingCooldownOfflineMax);
+        m_trainingCooldownRdyOfflineGather = (m_trainingCooldownOfflineGatherMin < 0 && m_trainingCooldownOfflineGatherMax < 0) ? float.MaxValue : Time.time + GetRandom(m_trainingCooldownOfflineGatherMin, m_trainingCooldownOfflineGatherMax);
+
         //if (m_visualization == null)
         //    m_visualization = GetComponent<NeuralNetworkVisualization>();
         //if (m_visualization == null)
         //    Debug.Log("Warning: NeuralNetworkVisualization not found!");
     }
-    private void Start()
-    {
-        m_trainingCooldownRdyOnline = Time.time + Random.Range(m_trainingCooldownOnlineMin, m_trainingCooldownOnlineMax);
-        m_trainingCooldownRdyOffline = Time.time + Random.Range(m_trainingCooldownOfflineMin, m_trainingCooldownOfflineMax);
-        m_trainingCooldownRdyOfflineGather = Time.time + Random.Range(m_trainingCooldownOfflineGatherMin, m_trainingCooldownOfflineGatherMax);
-    }
     private void Update()
     {
         ManageTraining();
-    }
-    private void LateUpdate()
-    {
-        //if (m_updateVisualization && m_visualizationCooldownRdy < Time.time)
-        //{
-        //    SampleContainer sampleThis = m_sampleManager.GenerateSampleThis();
-        //    m_visualization.UpdateActivisions(sampleThis.m_input);
-        //    if (m_updateVisualization)
-        //    {
-        //        //m_visualization.UpdateVisualization();
-        //    }
-        //    m_updateVisualization = false;
-        //    m_visualizationCooldownRdy = m_visualizationCooldown + Time.time;
-        //}
     }
     #endregion
 
@@ -143,7 +130,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         if (m_trainNetworkOnline && m_trainingCooldownRdyOnline < Time.time)
         {
             TrainNetworkOnline();
-            m_trainingCooldownRdyOnline = Time.time + Random.Range(m_trainingCooldownOnlineMin, m_trainingCooldownOnlineMax);
+            m_trainingCooldownRdyOnline = Time.time + GetRandom(m_trainingCooldownOnlineMin, m_trainingCooldownOnlineMax);
         }
 
         if (m_trainNetworkOffline)
@@ -151,7 +138,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
             if (m_trainingCooldownRdyOfflineGather < Time.time)
             {
                 GatherNetworkOffline();
-                m_trainingCooldownRdyOfflineGather = Time.time + Random.Range(m_trainingCooldownOfflineGatherMin, m_trainingCooldownOfflineGatherMax);
+                m_trainingCooldownRdyOfflineGather = (m_trainingCooldownOfflineGatherMin < 0 && m_trainingCooldownOfflineGatherMax < 0) ? float.MaxValue : Time.time + GetRandom(m_trainingCooldownOfflineGatherMin, m_trainingCooldownOfflineGatherMax);
             }
 
             if (m_trainingCooldownRdyOffline < Time.time)
@@ -160,7 +147,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
                 {
                     TrainNetworkOffline();
                 }
-                m_trainingCooldownRdyOffline = Time.time + Random.Range(m_trainingCooldownOfflineMin, m_trainingCooldownOfflineMax);
+                m_trainingCooldownRdyOffline = Time.time + GetRandom(m_trainingCooldownOfflineMin, m_trainingCooldownOfflineMax);
             }
         }
     }
@@ -170,9 +157,8 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         if (!sampleSource.m_isOkay)
             return;
 
+        // Actual training command
         bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitsCompleted));
-        //m_updateVisualization |= update;
-
         if (update)
             UpdateTraningCount();
     }
@@ -183,14 +169,13 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
             return;
 
         bool update = m_network.AddTrainingData(sampleSource.m_input, sampleSource.m_desiredOutput, GetLearnRate(m_trainingUnitsCompleted));
-        // m_updateVisualization |= update;
-
         if (update)
             UpdateTraningCount();
     }
     private void GatherNetworkOffline()
     {
-        /*SampleContainer sampleSource =*/ m_sampleManager.GenerateSampleSource(true);
+        if(PlayerMovementManager.Instance() != null)
+            m_sampleManager.GenerateSampleSource(true);
     }
     #endregion
     
@@ -210,6 +195,24 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         if(m_unitCountText != null)
             m_unitCountText.text = "" + m_trainingUnitsCompleted;
     }
+    private float GetRandom(float min, float max)
+    {
+        float random = 0;
+        if (m_initSeed >= 0)
+            random = Utility.GetRandomWithSeed(min, max, m_currentSeed++);
+        else
+            random = Random.Range(min, max);
+        return random;
+    }
+    private int GetRandom(int min, int max)
+    {
+        int random = 0;
+        if (m_initSeed >= 0)
+            random = Utility.GetRandomWithSeed(min, max, m_currentSeed++);
+        else
+            random = Random.Range(min, max);
+        return random;
+    }
     #endregion
 
     #region Save / Load
@@ -217,34 +220,36 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
     {
         NNTMSaveData data = new NNTMSaveData
         {
-            m_learnRate                                = m_learnRate,
-            m_batchSize                                = m_batchSize,
-            m_curveRange                               = m_curveRange,
-            m_curve                                    = m_curve,
+            m_learnRate                                 = m_learnRate,
+            m_batchSize                                 = m_batchSize,
+            m_curveRange                                = m_curveRange,
+            m_curve                                     = m_curve,
 
-            m_regularizationKeepRate                   = m_dropoutKeepRate,
+            m_dropoutKeepRate                    = m_dropoutKeepRate,
 
-            m_weightDecayRate                          = m_weightDecayRate,
+            m_weightDecayRate                           = m_weightDecayRate,
 
-            m_trainNetworkOnline                       = m_trainNetworkOnline,
-            m_saveSamplesOnline                        = m_saveSamplesOnline,
-            m_trainingCooldownOnlineMin                = m_trainingCooldownOnlineMin,
-            m_trainingCooldownOnlineMax                = m_trainingCooldownOnlineMax,
-                                                       
-            m_trainNetworkOffline                      = m_trainNetworkOffline,
-            m_trainingUnits                            = m_trainingUnits,
-            m_trainingCooldownOfflineMin               = m_trainingCooldownOfflineMin,
-            m_trainingCooldownOfflineMax               = m_trainingCooldownOfflineMax,
-            m_trainingCooldownOfflineGatherMin         = m_trainingCooldownOfflineGatherMin,
-            m_trainingCooldownOfflineGatherMax         = m_trainingCooldownOfflineGatherMax,
-                                                       
-            m_stopAtMaximumUnitCount                   = m_stopAtMaximumUnitCount,
-                                                       
-            m_trainingCooldownRdyOnline                = m_trainingCooldownRdyOnline,
-            m_trainingCooldownRdyOffline               = m_trainingCooldownRdyOffline,
-            m_trainingCooldownRdyOfflineGather         = m_trainingCooldownRdyOfflineGather,
-                                                       
-            m_trainingUnitsCompleted                  = m_trainingUnitsCompleted,
+            m_trainNetworkOnline                        = m_trainNetworkOnline,
+            m_saveSamplesOnline                         = m_saveSamplesOnline,
+            m_trainingCooldownOnlineMin                 = m_trainingCooldownOnlineMin,
+            m_trainingCooldownOnlineMax                 = m_trainingCooldownOnlineMax,
+                                                        
+            m_trainNetworkOffline                       = m_trainNetworkOffline,
+            m_trainingUnits                             = m_trainingUnits,
+            m_trainingCooldownOfflineMin                = m_trainingCooldownOfflineMin,
+            m_trainingCooldownOfflineMax                = m_trainingCooldownOfflineMax,
+            m_trainingCooldownOfflineGatherMin          = m_trainingCooldownOfflineGatherMin,
+            m_trainingCooldownOfflineGatherMax          = m_trainingCooldownOfflineGatherMax,
+                                                        
+            m_stopAtMaximumUnitCount                    = m_stopAtMaximumUnitCount,
+                                                        
+            //m_trainingCooldownRdyOnline                 = m_trainingCooldownRdyOnline,
+            //m_trainingCooldownRdyOffline                = m_trainingCooldownRdyOffline,
+            //m_trainingCooldownRdyOfflineGather          = m_trainingCooldownRdyOfflineGather,
+                                                        
+            m_trainingUnitsCompleted                    = m_trainingUnitsCompleted,
+            m_currentSeed                               = m_currentSeed,
+            m_initSeed                                  = m_initSeed
         };
 
         return data;
@@ -256,7 +261,7 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
         m_curveRange = data.m_curveRange;
         m_curve = data.m_curve;
 
-        m_dropoutKeepRate = data.m_regularizationKeepRate;
+        m_dropoutKeepRate = data.m_dropoutKeepRate;
 
         m_weightDecayRate = data.m_weightDecayRate;
 
@@ -274,11 +279,18 @@ public class NeuralNetworkTrainingManager : MonoBehaviour
 
         m_stopAtMaximumUnitCount = data.m_stopAtMaximumUnitCount;
 
-        m_trainingCooldownRdyOnline = data.m_trainingCooldownRdyOnline;
-        m_trainingCooldownRdyOffline = data.m_trainingCooldownRdyOffline;
-        m_trainingCooldownRdyOfflineGather = data.m_trainingCooldownRdyOfflineGather;
+        m_trainingCooldownRdyOnline = Time.time + GetRandom(m_trainingCooldownOnlineMin, m_trainingCooldownOnlineMax);
+        m_trainingCooldownRdyOffline = Time.time + GetRandom(m_trainingCooldownOfflineMin, m_trainingCooldownOfflineMax);
+        m_trainingCooldownRdyOfflineGather = (m_trainingCooldownOfflineGatherMin < 0 && m_trainingCooldownOfflineGatherMax < 0) ? float.MaxValue : Time.time + GetRandom(m_trainingCooldownOfflineGatherMin, m_trainingCooldownOfflineGatherMax);
+
+
+        //m_trainingCooldownRdyOnline = data.m_trainingCooldownRdyOnline;
+        //m_trainingCooldownRdyOffline = data.m_trainingCooldownRdyOffline;
+        //m_trainingCooldownRdyOfflineGather = data.m_trainingCooldownRdyOfflineGather;
 
         m_trainingUnitsCompleted = data.m_trainingUnitsCompleted;
+        m_currentSeed = data.m_currentSeed;
+        m_initSeed = data.m_initSeed;
     }
     public void ApplyData()
     {

@@ -74,15 +74,21 @@ public class MyMatrix
             }
         }
     }
-    public void SetRandomValues(float minValue, float maxValue)
+    public void SetRandomValues(float minValue, float maxValue, int seed)
     {
-        for(int y = 0; y < m_rowCountY; y++)
+        Random.State oldSate = Random.state;
+        if (seed > 0)
+            Random.InitState(seed);
+
+        for (int y = 0; y < m_rowCountY; y++)
         {
             for(int x = 0; x < m_columnCountX; x++)
             {
-                m_data[y][x] = Random.Range(minValue, maxValue);
+                m_data[y][x] =  Random.Range(minValue, maxValue);
             }
         }
+
+        Random.state = oldSate;
     }
     public void AddMatrix(MyMatrix otherMat)
     {

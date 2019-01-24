@@ -19,7 +19,7 @@ public class ScreenshotManager : MonoBehaviour
     //[SerializeField] private bool m_ceilScaleToPixelQuads;
 
     [Header("--- Objects ---")]
-    [SerializeField] private List<Transform> m_playerVisualsCapture;
+    [SerializeField] private Transform m_playerVisualsCapture;
     [SerializeField] private List<Transform> m_captureAreas;
     [SerializeField] private List<TakeScreenshot> m_screenshotScripts;
 
@@ -29,8 +29,8 @@ public class ScreenshotManager : MonoBehaviour
     private int m_lastCaptureWidth;
     private int m_lastCaptureHeight;
     private float m_lastBackgroundHeight;
-    private Vector3 m_captureAreaSize;
-    private float m_pixelWorldScale;
+    [SerializeField] private Vector3 m_captureAreaSize;
+    //private float m_pixelWorldScale;
 
     #region Mono
     private void Awake()
@@ -44,9 +44,8 @@ public class ScreenshotManager : MonoBehaviour
     #region Size
     public float GetPixelToWorldScale(int size)
     {
-        float pixelHeight = m_captureAreaSize.y / m_captureHeight;
-
-        return pixelHeight * size;
+        float pixelHeight = m_captureAreaSize.x / size;
+        return pixelHeight;
     }
     private void SetCaptureSize(/*int captureWidth, int captureHeight*/)
     {
@@ -58,7 +57,7 @@ public class ScreenshotManager : MonoBehaviour
         // change capture area size
         float finalCaptureAreaWidth = m_backgroundHeight * m_ratio;
         m_captureAreaSize = new Vector3(finalCaptureAreaWidth, m_backgroundHeight, 1);
-        m_pixelWorldScale = GetPixelToWorldScale(1);
+        //m_pixelWorldScale = GetPixelToWorldScale(1);
 
         for (int i = 0; i < m_screenshotScripts.Count; i++)
         {
@@ -71,6 +70,7 @@ public class ScreenshotManager : MonoBehaviour
     #region Gizmos
     private void OnDrawGizmosSelected()
     {
+
         bool change = m_lastCaptureHeight != m_captureHeight && m_captureHeight > 0 && m_lastBackgroundHeight != 0;
         change |= m_lastCaptureWidth != m_captureWidth && m_captureWidth > 0;
         change |= m_lastBackgroundHeight != m_backgroundHeight && m_backgroundHeight > 0;
@@ -82,6 +82,26 @@ public class ScreenshotManager : MonoBehaviour
 
         m_lastCaptureWidth = GetCaptureWidth();
         m_lastCaptureHeight = GetCaptureHeight();
+    }
+    #endregion
+
+    #region Utility
+    public int GetInputLayerLengthPlayer(int captureWidth, float playerHeight)
+    {
+        captureWidth = captureWidth == 0 ? m_captureWidth : captureWidth;
+        playerHeight = playerHeight == 0 ? GetPlayerHeight() : playerHeight;
+
+        float pixelSize = GetPixelToWorldScale(captureWidth);
+
+        int height = (int)(playerHeight / pixelSize);
+        if (playerHeight != pixelSize)
+            height += 1;
+
+        return (captureWidth == 0 ? GetCaptureWidth() : captureWidth) * height;
+    }
+    public float GetPlayerHeight()
+    {
+        return (m_playerVisualsCapture != null) ? m_playerVisualsCapture.localScale.y : 0;
     }
     #endregion
 

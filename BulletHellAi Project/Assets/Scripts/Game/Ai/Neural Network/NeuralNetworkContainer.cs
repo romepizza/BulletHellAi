@@ -21,6 +21,8 @@ public struct NNCSaveData
     public NeuralNetwork.CostFunctionType m_costType;
     public NeuralNetwork.InitializationType m_initializationType;
 
+    public int m_dropoutSeed;
+
     public float m_activisionConstant;
 }
 
@@ -35,6 +37,8 @@ public class NeuralNetworkContainer : MonoBehaviour
     [SerializeField] private NeuralNetwork.ActivisionFunctionType m_activisionTypeOutput;
     [SerializeField] private NeuralNetwork.CostFunctionType m_costType;
     [SerializeField] private NeuralNetwork.InitializationType m_initializationType;
+    [SerializeField] private int m_initializationSeed;
+    [SerializeField] private int m_initDropoutSeed;
 
     [Header("--- Other Hyperparameter ---")]
     [SerializeField] private float m_activisionConstant;
@@ -89,7 +93,7 @@ public class NeuralNetworkContainer : MonoBehaviour
     private void Start()
     {
         if (m_layerLengths[0] <= 0)
-            m_layerLengths[0] = m_sampleManager.GetInputLayerLengthDynamicly();
+            m_layerLengths[0] = m_sampleManager.GetInputLayerLengthDynamiclyScreenshot();
         if (m_layerLengths[m_layerLengths.Length - 1] <= 0)
             m_layerLengths[m_layerLengths.Length - 1] = ScreenshotManager.Instance().GetOutputNumber();
         
@@ -103,7 +107,9 @@ public class NeuralNetworkContainer : MonoBehaviour
             m_activisionTypeOutput,
             m_costType,
             m_initializationType,
-            m_activisionConstant));
+            m_initializationSeed,
+            m_activisionConstant,
+            m_initDropoutSeed));
 
         //SaveContainer(m_dataFileName);
     }
@@ -133,7 +139,7 @@ public class NeuralNetworkContainer : MonoBehaviour
 
         NNSaveData data = m_network.SaveData();
 
-        int oldEnemyWidth = m_sampleManager.GetScreenshotScript().GetInputLayerLengthEnemy(0);
+        int oldEnemyWidth = m_sampleManager.GetScreenshotScript().GetInputLayerLengthEnemy(0, 0);
         int oldPlayerHeightPixel = m_sampleManager.GetScreenshotScript().GetInputLayerLengthPlayer(0, 0);
 
         m_sampleManager.GetScreenshotScript().SetCaptureHeight(m_sampleManager.GetScreenshotScript().GetCaptureHeight() * 2);
@@ -145,8 +151,6 @@ public class NeuralNetworkContainer : MonoBehaviour
         int newPlayerHeightPixel = m_sampleManager.GetScreenshotScript().GetInputLayerLengthPlayer(0, 0);
         int width = m_sampleManager.GetScreenshotScript().GetCaptureWidth();
         JaggedArrayContainer[] newWeights = new JaggedArrayContainer[data.m_biases[0].dataFloat.Length];
-
-        //Debug.Log("old: " + oldPlayerHeightPixel + ", new: " + newPlayerHeightPixel);
 
         for (int nodeIndex = 0; nodeIndex < data.m_biases[0].dataFloat.Length; nodeIndex++)
         {
@@ -163,7 +167,6 @@ public class NeuralNetworkContainer : MonoBehaviour
                         index += 2;
                     int[] indices = { index, index + 1, index + width, index + width + 1 };
 
-                    //Debug.Log(weightIndex + ": (" + indices[0] + ",  " + indices[1] + ",  " + indices[2] + ", " + indices[3] + "),  " + ((nodeIndex) % (width / 2)));
                     foreach (int i in indices)
                     {
                         weights2.dataFloat[i] = data.m_weights[0].array[nodeIndex].dataFloat[weightIndex] * 0.25f;
@@ -178,13 +181,12 @@ public class NeuralNetworkContainer : MonoBehaviour
                         else if (weightIndex != 0)
                             index = index + 2;
                         int[] indices = { index, index + 1, index + width, index + width + 1 };
-                        //Debug.Log(weightIndex + ": (" + indices[0] + ",  " + indices[1] + ",  " + indices[2] + ", " + indices[3] + ")");
                         foreach (int i in indices)
                         {
                             weights2.dataFloat[i] = data.m_weights[0].array[nodeIndex].dataFloat[weightIndex] * 0.25f;
                         }
                     }
-                    else// if (2 * oldPlayerHeightPixel == newPlayerHeightPixel)
+                    else
                     {
                         if (addIndex)
                         {
@@ -254,6 +256,7 @@ public class NeuralNetworkContainer : MonoBehaviour
             m_visuilizationNetworkData = m_visualizationNetwork.SaveData(),
             //m_visuilizationSampleData = m_visualizationSample.SaveData(),
             m_networkData = m_network.SaveData(),
+            m_dropoutSeed = m_initDropoutSeed,
 
 
             m_layerLengths = m_layerLengths,
@@ -262,7 +265,7 @@ public class NeuralNetworkContainer : MonoBehaviour
             m_activisionTypeOutput = m_activisionTypeOutput,
             m_costType = m_costType,
             m_initializationType = m_initializationType,
-            m_activisionConstant = m_activisionConstant
+            m_activisionConstant = m_activisionConstant,
         };
 
 
@@ -294,7 +297,9 @@ public class NeuralNetworkContainer : MonoBehaviour
             m_activisionTypeOutput,
             m_costType,
             m_initializationType,
-            m_activisionConstant
+            m_activisionConstant,
+            data.m_networkData.m_currentDropoutSeed,
+            data.m_networkData.m_initDropoutSeed
             ));
 
         ApplyData();

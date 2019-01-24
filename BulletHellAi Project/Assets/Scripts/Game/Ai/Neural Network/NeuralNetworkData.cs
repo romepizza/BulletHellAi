@@ -13,6 +13,7 @@ public class NeuralNetworkData
         using (StreamWriter sw = new StreamWriter(path))
         {
             sw.WriteLine(JsonUtility.ToJson(container, true));
+            sw.Close();
         }
     }
 

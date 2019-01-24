@@ -2,18 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
+//using System.Runtime.Serialization.Formatters.Binary;
+//using System.IO;
 
 [System.Serializable]
 public struct NNSaveData
 {
     public JaggedArrayContainer[] m_biases;
     public JaggedArrayContainer[] m_weights;
+    public int m_initDropoutSeed;
+    public int m_currentDropoutSeed;
 }
 
 public class NeuralNetwork
 {
+    #region Member Variables
     // Options
     private float m_learnRate;
     private int m_batchSize;
@@ -50,6 +53,11 @@ public class NeuralNetwork
     private ActivisionFunction m_activisionFunction;
     private ActivisionFunction m_activisionFunctionOutput;
 
+    // Seed
+    private int m_initDropoutSeed;
+    private int m_currentDropoutSeed;
+    #endregion
+
     #region Enums
     public enum ActivisionFunctionType { Tanh, ReLU, LReLU, ELU, Sigmoid }
     public enum CostFunctionType { CrossEntropy, Quadratic }
@@ -67,7 +75,9 @@ public class NeuralNetwork
         ActivisionFunctionType activisionTypeOutput,
         CostFunctionType costType,
         InitializationType initializationType,
-        float activisionCoeffitient
+        int initializationSeed,
+        float activisionCoeffitient,
+        int dropoutSeed
         )
     {
         m_layerLengths = layerLengths;
@@ -76,6 +86,8 @@ public class NeuralNetwork
         m_activisionCoeffitient = activisionCoeffitient;
         m_dropoutKeepRate = dropoutKeepRate;
         m_weightDecayRate = weightDecayRate;
+        m_initDropoutSeed = dropoutSeed;
+        m_currentDropoutSeed = dropoutSeed;
 
         if (batchSize <= 0)
         {
@@ -91,8 +103,10 @@ public class NeuralNetwork
 
         SetActivisionFunction(activisionType);
       
-        InitializeBiases(null);
-        InitializeWeights(null);
+        InitializeBiases(null, initializationSeed);
+        for (int i = 1; i < m_layerCount; i++)
+            initializationSeed += m_layerLengths[i];
+        InitializeWeights(null, initializationSeed);
         InitializeBatch();
 
         InitializeBackPropagation();
@@ -110,7 +124,9 @@ public class NeuralNetwork
         ActivisionFunctionType activisionTypeOutput,
         CostFunctionType costType,
         InitializationType initializationType,
-        float activisionCoeffitient
+        float activisionCoeffitient,
+        int currentDropoutSeed,
+        int dropoutSeed
 
         )
     {
@@ -136,15 +152,15 @@ public class NeuralNetwork
 
         SetActivisionFunction(activisionType);
 
-        InitializeBiases(data.m_biases);
-        InitializeWeights(data.m_weights);
+        InitializeBiases(data.m_biases, 0);
+        InitializeWeights(data.m_weights, 0);
 
         InitializeBatch();
         InitializeBackPropagation();
 
         //m_activisionFunctionType = ActivisionFunctionType.Sigmoid;
     }
-    private void InitializeBiases(JaggedArrayContainer[] biasData)
+    private void InitializeBiases(JaggedArrayContainer[] biasData, int seed)
     {
         m_biases = new MyMatrix[m_layerCount - 1];
         for (int layerIndex = 1; layerIndex < m_layerCount; layerIndex++)
@@ -165,7 +181,7 @@ public class NeuralNetwork
                 //    if (m_activisionFunctionType == ActivisionFunctionType.Tanh)
                 //        variance = Mathf.Sqrt(variance);
                 //}
-                mat.SetRandomValues(-variance, variance);
+                mat.SetRandomValues(-variance, variance, seed);
             }
             else
             {
@@ -175,7 +191,7 @@ public class NeuralNetwork
             m_biases[layerIndex - 1] = mat;
         }
     }
-    private void InitializeWeights(JaggedArrayContainer[] weightData)
+    private void InitializeWeights(JaggedArrayContainer[] weightData, int seed)
     {
         m_weights = new MyMatrix[m_layerCount - 1];
         for (int layerIndex = 0; layerIndex < m_layerCount - 1; layerIndex++)
@@ -197,7 +213,7 @@ public class NeuralNetwork
                         variance = Mathf.Sqrt(1f / m_layerLengths[layerIndex + 1]);
                 }
 
-                mat.SetRandomValues(-variance, variance);
+                mat.SetRandomValues(-variance, variance, seed);
             }
             else
             {
@@ -342,7 +358,12 @@ public class NeuralNetwork
                 MyMatrix regularizationMask = new MyMatrix(m_activisionValues[layerIndex + 1].m_rowCountY, 1);// new float[m_layerLengths[layerIndex] + 1];
                 for (int i = 0; i < regularizationMask.m_rowCountY; i++)
                 {
-                    if (Random.Range(0f, 1f) < m_dropoutKeepRate)
+                    float random = 0;
+                    if (m_initDropoutSeed >= 0)
+                        random = Utility.GetRandomWithSeed(0f, 1f, m_currentDropoutSeed++);
+                    else
+                        Random.Range(0f, 1f);
+                    if (random < m_dropoutKeepRate)
                         regularizationMask.m_data[i][0] = 1;
                 }
 
@@ -693,11 +714,14 @@ public class NeuralNetwork
         NNSaveData data = new NNSaveData
         {
             m_biases = finalBiasArray,
-            m_weights = finalWeightArray
+            m_weights = finalWeightArray,
+            m_initDropoutSeed = m_initDropoutSeed,
+            m_currentDropoutSeed = m_currentDropoutSeed
         };
 
-        
 
+        m_currentDropoutSeed = data.m_currentDropoutSeed;
+        m_initDropoutSeed = data.m_initDropoutSeed;
         return data;
     }
     public void LoadData(NNSaveData data)

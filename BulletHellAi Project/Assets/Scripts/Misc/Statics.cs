@@ -8,6 +8,7 @@ public class Statics : MonoBehaviour
     public static int s_captureCameraLayerPlayer { get; private set; }
     public static int s_captureCameraLayerObstacle { get; private set; }
     public static int s_neuralNetworkLayer { get; private set; }
+    public static ScreenshotManager s_screenshotManager { get; private set; }
 
     [SerializeField] private Camera m_camera;
     private static Camera s_camera;
@@ -21,6 +22,7 @@ public class Statics : MonoBehaviour
         s_captureCameraLayerPlayer = 16;
         s_captureCameraLayerObstacle = 17;
         s_neuralNetworkLayer = 20;
+
     }
     #endregion
 

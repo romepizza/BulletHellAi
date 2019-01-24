@@ -8,6 +8,7 @@ public class PlayerAiMovement : MonoBehaviour
     private static PlayerAiMovement s_instance;
 
     [Header("------ Settings ------")]
+    [SerializeField] private float m_randomLeftRight;
     [SerializeField] private InputType m_inputType;
 
     [Header("--- Raycast ---")]
@@ -263,7 +264,7 @@ public class PlayerAiMovement : MonoBehaviour
             return MoveToRaycastposition();
         }
         EvaluateDitanceLeftRight();
-        decideDirection();
+        DecideDirection();
 
         return MoveToRaycastposition();
     }
@@ -299,7 +300,7 @@ public class PlayerAiMovement : MonoBehaviour
             {
                 float distance = (m_raycastPosition - hit.point).magnitude;
                 m_distances[i] = distance;
-                Debug.DrawRay(m_raycastPosition, Vector3.up * distance, Color.Lerp(Color.green, Color.red, Utility.MapValuePercent(0, m_raycastHeight, distance != 0 ? distance : 0)));
+                //Debug.DrawRay(m_raycastPosition, Vector3.up * distance, Color.Lerp(Color.green, Color.red, Utility.MapValuePercent(0, m_raycastHeight, distance != 0 ? distance : 0)));
             }
             else
             {
@@ -407,6 +408,7 @@ public class PlayerAiMovement : MonoBehaviour
         bool isAtEndRight = false;
         do
         {
+            // left
             if (!isAtEndLeft)
             {
                 for (int pixelIndexLeft = startIndexLeft; pixelIndexLeft >= endIndexLeft; pixelIndexLeft--)
@@ -424,8 +426,9 @@ public class PlayerAiMovement : MonoBehaviour
                 m_distanceLeftX++;
             }
 
+            // right
             if (!isAtEndRight)
-            { 
+            {
                 for (int pixelIndexRight = startIndexRight; pixelIndexRight <= endIndexRight; pixelIndexRight++)
                 {
                     if (pixelIndexRight >= m_distances.Length)
@@ -436,15 +439,37 @@ public class PlayerAiMovement : MonoBehaviour
                     m_distanceRightY = Mathf.Min(m_distanceRightY, m_distances[pixelIndexRight]);
                 }
                 m_moveToIndexPositionRight = (startIndexRight + endIndexRight) / 2;
+                //Debug.Log(startIndexRight + " + " + endIndexRight + " / 2 = " + m_moveToIndexPositionRight);
                 startIndexRight++;
                 endIndexRight++;
                 m_distanceRightX++;
             }
+            
+            // if both lines are clear, go to the middle
+            if(m_distanceRightY >= m_raycastHeight && m_distanceLeftY >= m_raycastHeight)
+            {
+                bool correct = Random.Range(0f, 1f) < (1 - m_randomLeftRight);
+                bool middleIsLeft = m_playerPositionPixelCenterMin >= m_distances.Length / 2;
+                bool middleIsRight = m_playerPositionPixelCenterMax < m_distances.Length / 2;
 
+                if ((middleIsLeft && correct) || (middleIsRight && !correct)) // moveLeft
+                {
+                    m_moveToIndexPositionLeft = (startIndexLeft + endIndexLeft + 2) / 2;
+                    m_distanceLeftY += 0.01f;
+                }
+                else if ((middleIsRight && correct) || (middleIsLeft && !correct)) // moveRight
+                {
+                    m_moveToIndexPositionRight = (startIndexRight + endIndexRight - 2) / 2;
+                    m_distanceRightY += 0.01f;
+                }
+                else
+                    Debug.Log("Warning: " + correct + ", " + middleIsLeft + ", " + middleIsRight);
+            }
+            //Debug.Log("" + (m_distanceLeftY == m_distanceRightY) + (m_distanceRightX == m_distanceLeftX) + (!isAtEndLeft) + (!isAtEndRight));
         } while (m_distanceLeftY == m_distanceRightY && m_distanceRightX == m_distanceLeftX && !isAtEndLeft && !isAtEndRight);
 
         if (isAtEndRight && isAtEndLeft)
-            Debug.Log("Warning!");
+            Debug.Log("Warning! No free space to avoid found!");
         
     }
     private float[] MoveToRaycastposition()
@@ -453,25 +478,29 @@ public class PlayerAiMovement : MonoBehaviour
         if (!m_isMovingRight && !m_isMovingLeft)
         {
             m_changeDirectionTimer += Time.deltaTime;
-            if (ScreenshotManager.Instance().GetOutputNumber() == 3)
+            if (inputData.Length == 3)
                 inputData[2] = 1;
-            if (ScreenshotManager.Instance().GetOutputNumber() == 5)
+            if (inputData.Length == 5)
                 inputData[4] = 1;
             return inputData;
         }
         m_position = m_visualCapturePlayer.position.x - GetAreaStartPosition().x;
         m_wantPosition = m_pixelSize * (0.5f + (m_isMovingLeft ? m_moveToIndexPositionLeft : m_moveToIndexPositionRight));
+        //Debug.Log(m_visualCapturePlayer.position.x - GetAreaStartPosition().x);
+        //Debug.Log(m_moveToIndexPositionLeft + ", " + m_moveToIndexPositionRight);
+        //Debug.DrawRay(m_visualCapturePlayer.position, Vector3.up * 10f, Color.red, 1);
+        //Debug.DrawRay(m_visualCapturePlayer.position, Vector3.right * m_wantPosition, Color.blue);
 
         if(m_isMovingLeft)
         {
-            if (m_position <= m_wantPosition)
+            if (m_position < m_wantPosition)
                 m_isMovingLeft = false;
             else
                 inputData[0] = 1;
         }
         if (m_isMovingRight)
         {
-            if (m_position >= m_wantPosition)
+            if (m_position > m_wantPosition)
                 m_isMovingRight = false;
             else
                 inputData[1] = 1;
@@ -479,7 +508,7 @@ public class PlayerAiMovement : MonoBehaviour
 
         return inputData;
     }
-    private void decideDirection()
+    private void DecideDirection()
     {
         if (m_distanceLeftY > m_distanceRightY)
         {

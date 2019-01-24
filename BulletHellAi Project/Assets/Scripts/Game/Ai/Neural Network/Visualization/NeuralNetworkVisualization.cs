@@ -10,6 +10,8 @@ public struct NNVSaveData
     public float m_width;
     public float m_marginX;
     public float m_marginY;
+    public float m_fitHeight;
+    public float m_maxFitHeight;
     public NeuralNetworkVisualization.OrientationType m_orientation;
 
     public float m_nodesScaleFactorGlobal;
@@ -23,15 +25,17 @@ public struct NNVSaveData
 
 public class NeuralNetworkVisualization : MonoBehaviour
 {
+    #region Member Variables
     [Header("------- Settings -------")]
     [SerializeField] private bool m_visualize;
     [SerializeField] private int m_updateWeightsPerFrame;
     [SerializeField] private bool m_showBiases;
 
     [Header("--- Weight Color Modes ---")]
-    
 
     [Header("--- Scale ---")]
+    [SerializeField] private float m_fitHeight;
+    [SerializeField] private float m_maxFitHeight;
     [SerializeField] private float m_nodesScaleFactorGlobal = 1;
     [SerializeField] private float m_weightsScaleFactorGloal = 1;
     [SerializeField] private float[] m_nodesScaleFactorLayerWise;
@@ -51,14 +55,12 @@ public class NeuralNetworkVisualization : MonoBehaviour
     private NeuralNetworkContainer m_networkContainer;
 
     [Header("------- Debug -------")]
-    //private Vector3 m_originPosition;
     private NeuralNetwork m_network;
     private Transform[] m_layerTransforms;
     private Transform[][] m_nodeTransforms;
     private Transform[][] m_activisionTransforms;
     private Transform[][][] m_weightTransforms;
     private int m_layerCount;
-    //private Camera m_camera;
     private Vector2 m_cameraCanvasSize;
     private bool m_isDestroyed = true;
 
@@ -68,6 +70,8 @@ public class NeuralNetworkVisualization : MonoBehaviour
     private NeuralNetworkValueContainer m_currentNodeContainer;
     private int m_weightIndex;
     private Dictionary<int, Vector2> m_cache = new Dictionary<int, Vector2>();
+    private List<float> m_scaleFactors = new List<float>();
+    #endregion
 
     #region Enums
     public enum OrientationType { TopToDown, DownToTop, LeftToRight, RightToLeft }
@@ -104,6 +108,7 @@ public class NeuralNetworkVisualization : MonoBehaviour
         m_cameraCanvasSize.y = m_height;
         m_cameraCanvasSize.x = m_width;// m_cameraCanvasSize.y * Statics.GetMainCamera().aspect;
 
+
         CreateObjects();
         PositionObjects();
         UpdateVisualizationNetwork();
@@ -129,9 +134,11 @@ public class NeuralNetworkVisualization : MonoBehaviour
         // create node and activision objects
         m_nodeTransforms = new Transform[m_layerCount][];
         m_activisionTransforms = new Transform[m_layerCount][];
-        for(int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
+        //m_totalNodeCount = 0;
+        for (int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
         {
             int nodeCount = m_network.m_layerLengths[layerIndex];
+            //m_totalNodeCount += nodeCount;
             Transform[] nodesThisLayer = new Transform[nodeCount];
             Transform[] activisionsThisLayer = new Transform[nodeCount];
             for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
@@ -193,28 +200,59 @@ public class NeuralNetworkVisualization : MonoBehaviour
         Vector3 currentLayerPadding = originPosition;
         Vector3 currentNodePadding = originPosition;
 
+        m_scaleFactors.Clear();
         for (int layerIndex = 0; layerIndex < m_layerCount; layerIndex++)
         {
             int nodeCountThisLayer = m_network.m_layerLengths[layerIndex];
             nodePadding = GetNodePddingOrientation(nodeCountThisLayer);
             currentNodePadding = Vector3.zero;
 
+            // scale
+            float scaleFactor = 0;
+            if (m_fitHeight <= 0)
+            {
+                scaleFactor = m_nodesScaleFactorGlobal;
+                if (m_nodesScaleFactorLayerWise != null && layerIndex < m_nodesScaleFactorLayerWise.Length)
+                    scaleFactor *= m_nodesScaleFactorLayerWise[layerIndex];
+            }
+            else // fit scale
+            {
+                if (m_nodeTransforms.Length != 0)
+                {
+                    scaleFactor = 2f * (m_height * (1 - m_marginY * 1f)) / (m_nodeTransforms[layerIndex].Length - 1) * m_fitHeight;
+                    scaleFactor = Mathf.Min(scaleFactor, m_maxFitHeight);
+                }
+                else
+                    Debug.Log("Warning: node transform count was 0!");
+            }
+            m_scaleFactors.Add(scaleFactor);
+
             for (int nodeIndex = 0; nodeIndex < nodeCountThisLayer; nodeIndex++)
             {
-               // position
-                Transform node = m_nodeTransforms[layerIndex][nodeIndex];
+                // position
+                int actualNodeIndex = layerIndex != 0 ? nodeIndex : m_nodeTransforms[layerIndex].Length - 1 - nodeIndex;// flip the first layer
+                Transform node = m_nodeTransforms[layerIndex][actualNodeIndex];
                 node.position = currentLayerPadding + currentNodePadding;
 
-                Transform activision = m_activisionTransforms[layerIndex][nodeIndex];
+                Transform activision = m_activisionTransforms[layerIndex][actualNodeIndex];
                 activision.position = currentLayerPadding + currentNodePadding;
 
                 // scale
-                float scaleFactor = m_nodesScaleFactorGlobal;
-                if (m_nodesScaleFactorLayerWise != null && layerIndex < m_nodesScaleFactorLayerWise.Length)
-                    scaleFactor *= m_nodesScaleFactorLayerWise[layerIndex];
-                node.localScale = node.localScale * scaleFactor;
-                activision.localScale = activision.localScale * scaleFactor;
-
+                if (m_fitHeight <= 0)
+                {
+                    node.localScale = node.localScale * scaleFactor;
+                    activision.localScale = activision.localScale * scaleFactor;
+                }
+                else // fit scale
+                {
+                    if (m_nodeTransforms.Length != 0)
+                    {
+                        node.localScale = new Vector3(1, 1 ,1) * scaleFactor;
+                        activision.localScale = new Vector3(1, 1, 1) * scaleFactor;
+                    }
+                    else
+                        Debug.Log("Warning: node transform count was 0!");
+                }
                 currentNodePadding += nodePadding;
             }
             currentLayerPadding += layerPadding;
@@ -240,12 +278,12 @@ public class NeuralNetworkVisualization : MonoBehaviour
                     float scaleFactorWeight = m_weightsScaleFactorGloal;
                     if (m_weightsScaleFactorLayerWise != null && layerIndex < m_weightsScaleFactorLayerWise.Length )
                         scaleFactorWeight *= m_weightsScaleFactorLayerWise[layerIndex];
-                    float scaleFactorNode = m_nodesScaleFactorGlobal;
-                    if (m_nodesScaleFactorLayerWise != null && layerIndex < m_nodesScaleFactorLayerWise.Length)
-                        scaleFactorNode *= m_nodesScaleFactorLayerWise[layerIndex];
-                    if (scaleFactorNode == 0)
-                        scaleFactorNode = 1;
-                    weight.localScale = new Vector3(weight.localScale.x * displacement.magnitude, weight.localScale.y * scaleFactorWeight, weight.localScale.z) / scaleFactorNode;
+                    //float scaleFactorNode = m_nodesScaleFactorGlobal;
+                    //if (m_nodesScaleFactorLayerWise != null && layerIndex < m_nodesScaleFactorLayerWise.Length)
+                    //    scaleFactorNode *= m_nodesScaleFactorLayerWise[layerIndex];
+                    //if (scaleFactorNode == 0)
+                    //    scaleFactorNode = 1;
+                    weight.localScale = new Vector3(weight.localScale.x * displacement.magnitude, weight.localScale.y * scaleFactorWeight, weight.localScale.z) / m_scaleFactors[layerIndex];// scaleFactorNode;
 
                     // position
                     Vector3 position = (nodeNextLayer.position + nodeThisLayer.position) * 0.5f;
@@ -559,10 +597,12 @@ public class NeuralNetworkVisualization : MonoBehaviour
         NNVSaveData data = new NNVSaveData
         {
             m_visualize = m_visualize,
-            m_height =  m_height,
-            m_width =  m_width,
-            m_marginX =  m_marginX,
+            m_height = m_height,
+            m_width = m_width,
+            m_marginX = m_marginX,
             m_marginY = m_marginY,
+            m_fitHeight = m_fitHeight,
+            m_maxFitHeight = m_maxFitHeight,
             m_orientation = m_orientation,
 
             m_nodesScaleFactorGlobal = m_nodesScaleFactorGlobal,
@@ -584,6 +624,8 @@ public class NeuralNetworkVisualization : MonoBehaviour
         m_marginX = data.m_marginX;
         m_marginY = data.m_marginY;
         m_orientation = data.m_orientation;
+        m_fitHeight = data.m_fitHeight;
+        m_maxFitHeight = data.m_maxFitHeight;
 
         m_nodesScaleFactorGlobal = data.m_nodesScaleFactorGlobal;
         m_weightsScaleFactorGloal = data.m_weightsScaleFactorGloal;

@@ -9,7 +9,9 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
     [Header("------- Settings -------")]
 
     [Header("--- Colors ---")]
+
     [Header("- Activision -")]
+
     [SerializeField] private Color m_colorMinValueActivision;
     [SerializeField] private Color m_colorAverageValueActivision;
     [SerializeField] private Color m_colorMaxValueActivision;
@@ -37,8 +39,6 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
     [SerializeField] private GameObject m_nodePrefabHemisphere;
     [SerializeField] private GameObject m_weightPrefab;
 
-    //[Header("------- Debug -------")]
-    //private List<NeuralNetworkVisualization> m_activeVisualizations;
 
     #region Mono
     private void Awake()
@@ -47,16 +47,7 @@ public class NeuralNetworkVisualizationManager : MonoBehaviour
             Debug.Log("Warning: More than one instance of NeuralNetworkVisualizationManager is active!");
         s_instance = this;
     }
-    private void Start()
-    {
-        //m_activeVisualizations = new List<NeuralNetworkVisualization>();
-    }
     #endregion
-
-    public void UpdateVisualization()
-    {
-
-    }
 
     #region Getter
     // prefabs

@@ -70,16 +70,16 @@ public class ShowFps : MonoBehaviour
             if(m_lastUpdateTimes.Count > 1)
                 fps *= m_lastUpdateTimes.Count;
 
-            m_lastUpdateTimes.Enqueue(Time.deltaTime);
-            fps += Time.deltaTime;
+            m_lastUpdateTimes.Enqueue(Time.unscaledDeltaTime);
+            fps += Time.unscaledDeltaTime;
             fps /= m_lastUpdateTimes.Count;
         }
         else
         {
             float oldValue = m_lastUpdateTimes.Dequeue();
             fps -= oldValue / (m_lastUpdateTimes.Count + 1);
-            m_lastUpdateTimes.Enqueue(Time.deltaTime);
-            fps += Time.deltaTime / m_lastUpdateTimes.Count;
+            m_lastUpdateTimes.Enqueue(Time.unscaledDeltaTime);
+            fps += Time.unscaledDeltaTime / m_lastUpdateTimes.Count;
         }
 
         if(fps > 0)
